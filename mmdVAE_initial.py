@@ -8,6 +8,8 @@ from torch.autograd import Variable
 from torchvision import transforms, datasets
 
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import math, os
 
@@ -123,7 +125,7 @@ def convert_to_display(samples):
 def train(dataloader, z_dim=2, n_epochs=10, use_cuda=True):
     model = Model(z_dim)
     if use_cuda:
-        model = model.cuda()
+        model = model.cuda(gpu_id)
     #print(model)
 
     optimizer = torch.optim.Adam(model.parameters())
@@ -137,8 +139,8 @@ def train(dataloader, z_dim=2, n_epochs=10, use_cuda=True):
             # sample: len(images)
             true_samples = Variable(torch.randn(len(images), z_dim), requires_grad=False)
             if use_cuda:
-                x = x.cuda()
-                true_samples = true_samples.cuda()
+                x = x.cuda(gpu_id)
+                true_samples = true_samples.cuda(gpu_id)
             
             z, x_reconstructed = model(x)
             mmd = compute_mmd(true_samples, z)
@@ -158,7 +160,7 @@ def train(dataloader, z_dim=2, n_epochs=10, use_cuda=True):
 
         gen_z = Variable(torch.randn(100, z_dim), requires_grad=False)
         if use_cuda:
-            gen_z = gen_z.cuda()
+            gen_z = gen_z.cuda(gpu_id)
         samples = model.decoder(gen_z)
         samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
         # colormap: 'plasma', 'cubehelix' and 'jet' are all ok
@@ -171,6 +173,7 @@ def train(dataloader, z_dim=2, n_epochs=10, use_cuda=True):
 
 
 # Main
+gpu_id = 1
 workers = 2
 batch_size = 200
 image_size = 64
