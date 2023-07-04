@@ -1,0 +1,12 @@
+~/.bashrc
+alias ta='cd path' 
+
+btop
+
+nvidia-smi
+
+rsync -avz
+
+wc -l
+
+du -sh
