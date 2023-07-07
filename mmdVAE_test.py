@@ -11,11 +11,11 @@ import numpy as np
 import utils
 from mmdVAE_train import Model
 
-def test(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, use_cuda=True):
+def test(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, use_cuda=True, gpu_id=0):
     model = Model(z_dim, nc, n_filters, after_conv)
+    model.load_state_dict(torch.load('./sdss_model_param/model_weights.pth'))
     if use_cuda:
         model = model.cuda(gpu_id)
-    model.load_state_dict(torch.load('./sdss_model_param/model_weights.pth'))
     model.eval()
 
     z_list = []
@@ -36,7 +36,8 @@ def test(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, use_cuda=True):
 if __name__ == "__main__":
     gpu_id = 6
     workers = 4
-    batch_size = 500
+    batch_size = 200 # if batch size = 500, CUDA out of memory (500x500 image size)
+    # ??????????????????????
     image_size = 64
     nc = 3
     nz = 32 # Size of z latent vector
@@ -54,7 +55,8 @@ if __name__ == "__main__":
                                             pin_memory=True)
 
     z_1 = test(dataloader=test_dataloader_1, z_dim=nz,
-                nc=nc, n_filters=n_filters, after_conv=after_conv)
+                nc=nc, n_filters=n_filters, after_conv=after_conv, 
+                use_cuda=True, gpu_id=gpu_id)
     print(z_1.shape)
     # with open("./test_result_txts/NOAGN.txt", "w") as output:
-    #     output.write(str(z_1))
+    #     output.write(str(z_1.shape))

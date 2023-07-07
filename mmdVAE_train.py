@@ -171,7 +171,7 @@ if __name__ == "__main__":
     gpu_id = 1
     workers = 4
     batch_size = 200
-    image_size = 64
+    image_size = 64 # sdss image size
     nc = 3 # Number of channels in the training images. For color images this is 3
     nz = 32 # Size of z latent vector
     n_filters = 64 # Size of feature maps
@@ -181,10 +181,7 @@ if __name__ == "__main__":
     train_dataroot = '../sdss'
     train_dataset = datasets.ImageFolder(root=train_dataroot,
                                 transform=transforms.Compose([
-                                # transforms.Resize(image_size),
-                                # transforms.CenterCrop(image_size),
                                 transforms.ToTensor(),
-                                # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                                 ]))
 
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
