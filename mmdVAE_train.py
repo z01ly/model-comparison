@@ -45,11 +45,8 @@ class Encoder(torch.nn.Module):
         ])
         
     def forward(self, x):
-        #print("Encoder")
-        #print(x.size())
         for layer in self.model:
             x = layer(x)
-            #print(x.size())
         return x
     
 
@@ -69,11 +66,8 @@ class Decoder(torch.nn.Module):
         ])
         
     def forward(self, x):
-        #print("Decoder")
-        #print(x.size())
         for layer in self.model:
             x = layer(x)
-            #print(x.size())
         return x
 
 
@@ -111,7 +105,7 @@ class Model(torch.nn.Module):
 
 
 # Convert a numpy array of shape [batch_size, height, width, 1] into a displayable array 
-# of shape [height*sqrt(batch_size, width*sqrt(batch_size))] by tiling the images
+# of shape [height*sqrt(batch_size), width*sqrt(batch_size))] by tiling the images
 def convert_to_display(samples):
     cnt, height, width = int(math.floor(math.sqrt(samples.shape[0]))), samples.shape[1], samples.shape[2]
     samples = np.transpose(samples, axes=[1, 0, 2, 3])
@@ -126,7 +120,6 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
     model = Model(z_dim, nc, n_filters, after_conv)
     if use_cuda:
         model = model.cuda(gpu_id)
-    #print(model)
 
     optimizer = torch.optim.Adam(model.parameters())
 
@@ -155,9 +148,10 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
             # if i % print_every == 0:
                 # print("Negative log likelihood is {:.5f}, mmd loss is {:.5f}".format(nll.data, mmd.data))
         text = "Negative log likelihood is {:.5f}, mmd loss is {:.5f}. epoch {} \n".format(nll.data, mmd.data, epoch)
-        with open("./cutouts_1000_param/loss.txt", "a") as loss_file:
+        with open("./sdss_model_param/loss.txt", "a") as loss_file:
             loss_file.write(text)
 
+        # 100 images
         gen_z = Variable(torch.randn(100, z_dim), requires_grad=False)
         if use_cuda:
             gen_z = gen_z.cuda(gpu_id)
@@ -165,7 +159,7 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
         samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
         # colormap: 'plasma', 'cubehelix' and 'jet' are all ok
         plt.imshow(convert_to_display(samples), cmap='plasma')
-        savefig_path = './cutouts_1000_param/fig_epoch' + str(epoch) + '.png' 
+        savefig_path = './sdss_model_param/fig_epoch' + str(epoch) + '.png' 
         plt.savefig(savefig_path, dpi=300)
         # plt.show()
 
@@ -173,59 +167,34 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
 
 
 # Main
-gpu_id = 1
-workers = 2
-batch_size = 200
-image_size = 64
-nc = 3 # Number of channels in the training images. For color images this is 3
-nz = 32 # Size of z latent vector
-n_filters = 64 # Size of feature maps
-num_epochs = 20 # Number of training epochs
-after_conv = utils.conv_size_comp(image_size)
+if __name__ == "__main__":
+    gpu_id = 1
+    workers = 4
+    batch_size = 200
+    image_size = 64
+    nc = 3 # Number of channels in the training images. For color images this is 3
+    nz = 32 # Size of z latent vector
+    n_filters = 64 # Size of feature maps
+    num_epochs = 10 # Number of training epochs
+    after_conv = utils.conv_size_comp(image_size)
 
-train_dataroot = '../cutouts_1000'
-train_dataset = datasets.ImageFolder(root=train_dataroot,
-                           transform=transforms.Compose([
-                               # transforms.Resize(image_size),
-                               # transforms.CenterCrop(image_size),
-                               transforms.ToTensor(),
-                               # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                           ]))
+    train_dataroot = '../sdss'
+    train_dataset = datasets.ImageFolder(root=train_dataroot,
+                                transform=transforms.Compose([
+                                # transforms.Resize(image_size),
+                                # transforms.CenterCrop(image_size),
+                                transforms.ToTensor(),
+                                # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                ]))
 
-train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                         shuffle=True, num_workers=workers)
-
-
-model = train(dataloader=train_dataloader, z_dim=nz, 
-            nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
-            use_cuda=True, gpu_id=gpu_id)
-
-torch.save(model.state_dict(), './cutouts_1000_param/model_weights.pth')
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
 
 
+    model = train(dataloader=train_dataloader, z_dim=nz,
+                nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
+                use_cuda=True, gpu_id=gpu_id)
+
+    torch.save(model.state_dict(), './sdss_model_param/model_weights.pth')
 
 
-# If latent z is 2-dimensional we visualize it by plotting latent z of different digits in different colors
-"""
-if z_dim == 2:
-    test_batch_size = 500
-    mnist_test = torch.utils.data.DataLoader(
-        MNIST("./tmp/MNIST", train=False, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                       ])),
-        batch_size=test_batch_size, shuffle=True, num_workers=3,
-        pin_memory=True
-    )
-    z_list, label_list = [], []
-    for i in range(20):
-        batch_x, batch_y = iter(mnist_test).next()
-        batch_x = Variable(batch_x, requires_grad=False).cuda()
-        z = model.encoder(batch_x)
-        z_list.append(z.cpu().data.numpy())
-        label_list.append(batch_y.numpy())
-    z = np.concatenate(z_list, axis=0)
-    label = np.concatenate(label_list)
-    plt.scatter(z[:, 0], z[:, 1], c=label)
-    plt.show()
-"""
