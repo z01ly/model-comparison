@@ -1,7 +1,9 @@
 import torch
 from torchvision import transforms, datasets
 import numpy as np
+import scipy
 from PIL import Image
+import os
 
 def sdss_size():
     filepath = "../cutouts_1000/cutouts_1000_train/3000.png"
@@ -53,7 +55,7 @@ def NOAGN_size():
     print("{} x {} \n".format(img_2.height, img_2.width))
     print("{} x {} \n".format(img_3.height, img_3.width))
     print("{} x {} \n".format(img_4.height, img_4.width))
-# 500 x 500
+# 500 x 500 -> 64 x 64
 # NOAGN_size()
 
 def AGN_size():
@@ -74,7 +76,7 @@ def AGN_size():
     print("{} x {} \n".format(img_2.height, img_2.width))
     print("{} x {} \n".format(img_3.height, img_3.width))
     print("{} x {} \n".format(img_4.height, img_4.width))
-# 500 x 500
+# 500 x 500 -> 64 x 64
 # AGN_size()
 
 def n80_size():
@@ -90,7 +92,7 @@ def n80_size():
     print("{} x {} \n".format(img_1.height, img_1.width))
     print("{} x {} \n".format(img_2.height, img_2.width))
     print("{} x {} \n".format(img_3.height, img_3.width))
-# 500 x 500
+# 500 x 500 -> 64 x 64
 # n80_size()
 
 def UHD_size():
@@ -102,13 +104,24 @@ def UHD_size():
 
     print("{} x {} \n".format(img_1.height, img_1.width))
     print("{} x {} \n".format(img_2.height, img_2.width))
-# 500 x 500
+# 500 x 500 -> 64 x 64
 # UHD_size()
 
-def no_FB_size():
-    filepath_1 = "../no_FB/test/no_FB_g1.50e10_04.png"
-    img_1 = Image.open(filepath_1)
+def downsample_mock(folder_path):
+    for filename in os.listdir(folder_path):
+        image_path = os.path.join(folder_path, filename)
+        image = Image.open(image_path)
 
-    print("{} x {} \n".format(img_1.height, img_1.width))
-# 500 x 500
-# no_FB_size()
+        image_array = np.array(image)
+
+        # Downsample the image to 64x64 using scipy.ndimage.zoom
+        downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
+
+        downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
+
+        # Save the downsampled image, overwriting the original file
+        downsampled_image.save(image_path)
+# downsample_mock('../NOAGN/test')
+# downsample_mock('../AGN/test')
+# downsample_mock('../n80/test')
+# downsample_mock('../UHD/test')

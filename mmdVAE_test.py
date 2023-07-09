@@ -4,19 +4,32 @@ from torch.autograd import Variable
 from torchvision import transforms, datasets
 
 import numpy as np
-# import matplotlib
-# matplotlib.use('Agg')
-# import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 import utils
-from mmdVAE_train import Model
+from mmdVAE_train import Model, convert_to_display
 
-def test(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, use_cuda=True, gpu_id=0):
+def test(test_dataroot, savefig_path, z_dim=2, 
+        nc=3, n_filters=64, after_conv=16, use_cuda=True, 
+        gpu_id=0, workers=4, batch_size=500):
+    # model
     model = Model(z_dim, nc, n_filters, after_conv)
     model.load_state_dict(torch.load('./sdss_model_param/model_weights.pth'))
     if use_cuda:
         model = model.cuda(gpu_id)
     model.eval()
+
+    # dataloader
+    test_dataset = datasets.ImageFolder(root=test_dataroot,
+                                transform=transforms.Compose([
+                                transforms.ToTensor(),
+                                ]))
+
+    dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers,
+                                            pin_memory=True)
 
     z_list = []
     for batch_idx, (test_x, _) in enumerate(dataloader):
@@ -29,34 +42,49 @@ def test(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, use_cuda=True, 
          
     z = np.concatenate(z_list, axis=0)
 
+    # 25 images
+    sampled_rows = np.random.choice(z.shape[0], size=25, replace=False)
+    sampled_matrix = z[sampled_rows]
+    gen_z = Variable(torch.tensor(sampled_matrix), requires_grad=False)
+    if use_cuda:
+        gen_z = gen_z.cuda(gpu_id)
+    samples = model.decoder(gen_z)
+    samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
+    plt.imshow(convert_to_display(samples), cmap='plasma') # colormap: 'plasma', 'cubehelix' or 'jet'
+    # savefig_path = './test_results/fig_NOAGN.png' 
+    plt.savefig(savefig_path, dpi=300)
+    
     return z
 
 
-
 if __name__ == "__main__":
-    gpu_id = 6
+    gpu_id = 4
     workers = 4
-    batch_size = 200 # if batch size = 500, CUDA out of memory (500x500 image size)
-    # ??????????????????????
-    image_size = 64
+    batch_size = 500 # CUDA out of memory if 500x500 image size
+    image_size = 64 # downsample 500x500 test images to 64x64
     nc = 3
     nz = 32 # Size of z latent vector
     n_filters = 64
     after_conv = utils.conv_size_comp(image_size)
 
-    test_dataroot_1 = '../NOAGN'
-    test_dataset_1 = datasets.ImageFolder(root=test_dataroot_1,
-                                transform=transforms.Compose([
-                                transforms.ToTensor(),
-                                ]))
+    # z_NOAGN = test(test_dataroot='../NOAGN', savefig_path='./test_results/fig_NOAGN.png',
+    #             z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+    #             use_cuda=True, gpu_id=gpu_id, workers=4, batch_size=500)
 
-    test_dataloader_1 = torch.utils.data.DataLoader(test_dataset_1, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers,
-                                            pin_memory=True)
+    # z_AGN = test(test_dataroot='../AGN', savefig_path='./test_results/fig_AGN.png',
+    #             z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+    #             use_cuda=True, gpu_id=gpu_id, workers=4, batch_size=500)
 
-    z_1 = test(dataloader=test_dataloader_1, z_dim=nz,
-                nc=nc, n_filters=n_filters, after_conv=after_conv, 
-                use_cuda=True, gpu_id=gpu_id)
-    print(z_1.shape)
-    # with open("./test_result_txts/NOAGN.txt", "w") as output:
+    # z_n80 = test(test_dataroot='../n80', savefig_path='./test_results/fig_n80.png',
+    #             z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+    #             use_cuda=True, gpu_id=gpu_id, workers=4, batch_size=500)
+
+    z_UHD = test(test_dataroot='../UHD', savefig_path='./test_results/fig_UHD.png',
+                z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+                use_cuda=True, gpu_id=gpu_id, workers=4, batch_size=500)
+    
+    print(z_UHD.shape)
+    # with open("./test_results/NOAGN.txt", "w") as output:
     #     output.write(str(z_1.shape))
+
+    
