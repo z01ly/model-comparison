@@ -124,6 +124,8 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
         model = model.cuda(gpu_id)
 
     optimizer = torch.optim.Adam(model.parameters())
+    scheduler_patience = (int) patience / 2
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=scheduler_patience)
 
     train_losses = []
     val_losses = []
@@ -184,6 +186,9 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
         val_avg = sum_val_loss_epoch / itr
         avg_val_losses.append(val_avg)
 
+        # adaptive learning rate
+        scheduler.step(val_avg)
+
         # sample 100 images in each epoch
         gen_z = Variable(torch.randn(100, z_dim), requires_grad=False)
         if use_cuda:
@@ -220,14 +225,14 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
 if __name__ == "__main__":
     gpu_id = 1
     workers = 4
-    batch_size = 200
+    batch_size = 400
     image_size = 64 # sdss image size
     nc = 3 # number of input and output channels. 3 for color images.
     nz = 32 # Size of z latent vector
     n_filters = 64 # Size of feature maps
-    num_epochs = 10 # Number of training epochs
+    num_epochs = 50 # Number of training epochs
     after_conv = utils.conv_size_comp(image_size)
-    patience = 20
+    patience = 10
 
     train_dataroot = '../sdss_data/train'
     train_dataloader = utils.dataloader_func(train_dataroot, batch_size, workers, False)
