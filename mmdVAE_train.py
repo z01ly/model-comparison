@@ -1,6 +1,7 @@
 # Adapted from https://github.com/napsternxg/pytorch-practice/blob/master/Pytorch%20-%20MMD%20VAE.ipynb
 # and https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
 # and https://github.com/pratikm141/MMD-Variational-Autoencoder-Pytorch-InfoVAE/blob/master/mmd_vae_pytorchver.ipynb
+# and https://github.com/Bjarten/early-stopping-pytorch
 
 import torch
 from torch.autograd import Variable
@@ -61,7 +62,7 @@ class Decoder(torch.nn.Module):
             Reshape((2 * n_filters, after_conv, after_conv,)),
             torch.nn.ConvTranspose2d(n_filters * 2, n_filters, 4, 2, padding=1),
             torch.nn.ReLU(),
-            torch.nn.ConvTranspose2d(n_filters, 1, 4, 2, padding=1),
+            torch.nn.ConvTranspose2d(n_filters, nc, 4, 2, padding=1),
             torch.nn.Sigmoid()
         ])
         
@@ -116,21 +117,29 @@ def convert_to_display(samples):
 
 
 # Training
-def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, use_cuda=True, gpu_id=0):
+def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3, 
+        n_filters=64, after_conv=16, n_epochs=10, use_cuda=True, gpu_id=0):
     model = Model(z_dim, nc, n_filters, after_conv)
     if use_cuda:
         model = model.cuda(gpu_id)
 
     optimizer = torch.optim.Adam(model.parameters())
 
-    # i = -1
+    train_losses = []
+    val_losses = []
+    avg_train_losses = [] # average training loss per epoch
+    avg_val_losses = [] # average validation loss per epoch
+    early_stopping = utils.EarlyStopping(patience=patience, verbose=True)
+
     for epoch in range(n_epochs):
-        for batch_idx, (images, _) in enumerate(dataloader):
-            # i += 1
+        # train the model
+        model.train()
+        sum_train_loss_epoch = 0
+        itr = 0
+        for batch_idx, (images, _) in enumerate(train_dataloader):
             optimizer.zero_grad()
             x = Variable(images, requires_grad=False)
-            # sample: len(images)
-            true_samples = Variable(torch.randn(len(images), z_dim), requires_grad=False)
+            true_samples = Variable(torch.randn(len(images), z_dim), requires_grad=False) # len(images) samples
             if use_cuda:
                 x = x.cuda(gpu_id)
                 true_samples = true_samples.cuda(gpu_id)
@@ -144,14 +153,38 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
 
             optimizer.step()
 
-            # nll.data[0], mmd.data[0]: invalid index of a 0-dim tensor
-            # if i % print_every == 0:
-                # print("Negative log likelihood is {:.5f}, mmd loss is {:.5f}".format(nll.data, mmd.data))
-        text = "Negative log likelihood is {:.5f}, mmd loss is {:.5f}. epoch {} \n".format(nll.data, mmd.data, epoch)
-        with open("./sdss_model_param/loss.txt", "a") as loss_file:
-            loss_file.write(text)
+            train_losses.append(loss.item())
+            sum_train_loss_epoch += loss.item()
+            itr += 1
+        
+        # average train loss per epoch
+        train_avg = sum_train_loss_epoch / itr
+        avg_train_losses.append(train_avg)
+        
+        # validate the model
+        model.eval()
+        sum_val_loss_epoch = 0
+        itr = 0
+        for batch_idx, (images, _) in enumerate(val_dataloader):
+            x = Variable(images, requires_grad=False)
+            true_samples = Variable(torch.randn(len(images), z_dim), requires_grad=False)
+            if use_cuda:
+                x = x.cuda(gpu_id)
+            
+            z, x_reconstructed = model(x)
+            mmd = compute_mmd(true_samples, z)
+            nll = (x_reconstructed - x).pow(2).mean()
+            loss = nll + mmd
 
-        # 100 images
+            val_losses.append(loss.item())
+            sum_val_loss_epoch += loss.item()
+            itr += 1
+
+        # average val loss per epoch
+        val_avg = sum_val_loss_epoch / itr
+        avg_val_losses.append(val_avg)
+
+        # sample 100 images in each epoch
         gen_z = Variable(torch.randn(100, z_dim), requires_grad=False)
         if use_cuda:
             gen_z = gen_z.cuda(gpu_id)
@@ -159,11 +192,28 @@ def train(dataloader, z_dim=2, nc=3, n_filters=64, after_conv=16, n_epochs=10, u
         samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
         # colormap: 'plasma', 'cubehelix' and 'jet' are all ok
         plt.imshow(convert_to_display(samples), cmap='plasma')
-        savefig_path = './sdss_model_param/fig_epoch' + str(epoch) + '.png' 
+        savefig_path = './mmdVAE_save/fig_epoch' + str(epoch) + '.png' 
         plt.savefig(savefig_path, dpi=300)
         # plt.show()
 
-    return model
+        # print message during training
+        epoch_len = len(str(n_epochs))
+        print_msg = (f'[{epoch:>{epoch_len}}/{n_epochs:>{epoch_len}}] ' +
+                    f'train_avg: {train_avg:.5f} ' +
+                    f'val_avg: {val_avg:.5f}')
+        print(print_msg)
+
+        # early stopping
+        early_stopping(val_avg, model)
+        if early_stopping.early_stop:
+            print("Early stopping")
+            break
+
+    # load the last checkpoint
+    model.load_state_dict(torch.load('./mmdVAE_save/checkpoint.pt'))
+
+    return model, train_losses, val_losses, avg_train_losses, avg_val_losses
+
 
 
 # Main
@@ -172,26 +222,27 @@ if __name__ == "__main__":
     workers = 4
     batch_size = 200
     image_size = 64 # sdss image size
-    nc = 3 # Number of channels in the training images. For color images this is 3
+    nc = 3 # number of input and output channels. 3 for color images.
     nz = 32 # Size of z latent vector
     n_filters = 64 # Size of feature maps
     num_epochs = 10 # Number of training epochs
     after_conv = utils.conv_size_comp(image_size)
+    patience = 20
 
-    train_dataroot = '../sdss'
-    train_dataset = datasets.ImageFolder(root=train_dataroot,
-                                transform=transforms.Compose([
-                                transforms.ToTensor(),
-                                ]))
+    train_dataroot = '../sdss_data/train'
+    train_dataloader = utils.dataloader_func(train_dataroot, batch_size, workers, False)
 
-    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-
-
-    model = train(dataloader=train_dataloader, z_dim=nz,
-                nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
+    val_dataroot = '../sdss_data/val'
+    val_dataloader = utils.dataloader_func(val_dataroot, batch_size, workers, False)
+    
+    model, train_losses, val_losses, avg_train_losses, avg_val_losses = \
+            train(train_dataloader=train_dataloader, val_dataloader=val_dataloader, patience=patience, 
+                z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
                 use_cuda=True, gpu_id=gpu_id)
 
-    torch.save(model.state_dict(), './sdss_model_param/model_weights.pth')
+    utils.plot_avg_loss(avg_train_losses, avg_val_losses)
+    utils.plot_itr_loss(train_losses, val_losses)
+
+    # torch.save(model.state_dict(), './mmdVAE_save/model_weights.pth')
 
 
