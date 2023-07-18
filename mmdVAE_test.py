@@ -9,27 +9,20 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import utils
-from mmdVAE_train import Model, convert_to_display
+from mmdVAE_train import Model
 
 def test(test_dataroot, savefig_path, z_dim=2, 
         nc=3, n_filters=64, after_conv=16, use_cuda=True, 
         gpu_id=0, workers=4, batch_size=500):
     # model
     model = Model(z_dim, nc, n_filters, after_conv)
-    model.load_state_dict(torch.load('./sdss_model_param/model_weights.pth'))
+    model.load_state_dict(torch.load('./mmdVAE_save/checkpoint.pt'))
     if use_cuda:
         model = model.cuda(gpu_id)
     model.eval()
 
     # dataloader
-    test_dataset = datasets.ImageFolder(root=test_dataroot,
-                                transform=transforms.Compose([
-                                transforms.ToTensor(),
-                                ]))
-
-    dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers,
-                                            pin_memory=True)
+    dataloader = utils.dataloader_func(test_dataroot, batch_size, workers, True)
 
     z_list = []
     for batch_idx, (test_x, _) in enumerate(dataloader):
@@ -50,8 +43,7 @@ def test(test_dataroot, savefig_path, z_dim=2,
         gen_z = gen_z.cuda(gpu_id)
     samples = model.decoder(gen_z)
     samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
-    plt.imshow(convert_to_display(samples), cmap='plasma') # colormap: 'plasma', 'cubehelix' or 'jet'
-    # savefig_path = './test_results/fig_NOAGN.png' 
+    plt.imshow(utils.convert_to_display(samples))
     plt.savefig(savefig_path, dpi=300)
     
     return z

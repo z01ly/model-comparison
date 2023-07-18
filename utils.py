@@ -6,6 +6,8 @@ from PIL import Image
 import os
 import shutil
 import random
+import math
+import pickle
 
 import matplotlib
 matplotlib.use('Agg')
@@ -210,6 +212,8 @@ class EarlyStopping:
         elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
+            with open("./mmdVAE_save/output.txt", "a") as text_file:
+                text_file.write(f'EarlyStopping counter: {self.counter} out of {self.patience} \n')
             if self.counter >= self.patience:
                 self.early_stop = True
         else:
@@ -221,40 +225,62 @@ class EarlyStopping:
         '''Saves model when validation loss decrease.'''
         if self.verbose:
             self.trace_func(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
+            with open("./mmdVAE_save/output.txt", "a") as text_file:
+                text_file.write(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ... \n')  
         torch.save(model.state_dict(), self.path)
         self.val_loss_min = val_loss
 
 
-# copy from https://github.com/Bjarten/early-stopping-pytorch/blob/master/MNIST_Early_Stopping_example.ipynb
-def plot_avg_loss(avg_train_losses, avg_val_losses):
-    fig = plt.figure(figsize=(10,8))
-    plt.plot(range(1,len(avg_train_losses)+1), avg_train_losses, label='Training Loss')
-    plt.plot(range(1,len(avg_val_losses)+1),avg_val_losses,label='Validation Loss')
+# Convert a numpy array of shape [batch_size, height, width, nc=3] into a displayable array 
+# of shape [height*sqrt(batch_size), width*sqrt(batch_size)), nc=3] by tiling the images
+def convert_to_display(samples):
+    batch_size, height, width, nc = samples.shape
+    grid_size = int(math.floor(math.sqrt(batch_size)))
+    
+    samples = np.reshape(samples, (grid_size, grid_size, height, width, nc))
+    samples = np.transpose(samples, (0, 2, 1, 3, 4))
+    samples = np.reshape(samples, (grid_size * height, grid_size * width, nc))
 
-    # find position of lowest validation loss
-    minposs = avg_val_losses.index(min(avg_val_losses))+1 
-    plt.axvline(minposs, linestyle='--', color='r',label='Early Stopping Checkpoint')
-
-    plt.xlabel('epochs')
-    plt.ylabel('loss')
-    plt.ylim(0, 0.5) # consistent scale
-    plt.xlim(0, len(avg_train_losses)+1) # consistent scale
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    # plt.show()
-    fig.savefig('./mmdVAE_save/plot_avg_loss.png', bbox_inches='tight')
+    return samples
 
 
-def plot_itr_loss(train_losses, val_losses):
-    fig = plt.figure(figsize=(10,5))
-    plt.title("Training and Validation Loss During Training")
-    plt.plot(train_losses,label="train")
-    plt.plot(val_losses,label="val")
-    plt.xlabel("iterations")
-    plt.ylabel("loss")
-    plt.legend()
-    # plt.show()
-    fig.savefig('./mmdVAE_save/plot_itr_loss.png')
+def save_losses(train_losses, val_losses, avg_train_losses, avg_val_losses):
+    with open("./mmdVAE_save/loss_list/train_losses", "wb") as fp:
+        pickle.dump(train_losses, fp)
+
+    with open("./mmdVAE_save/loss_list/val_losses", "wb") as fp:
+        pickle.dump(val_losses, fp)
+
+    with open("./mmdVAE_save/loss_list/avg_train_losses", "wb") as fp:
+        pickle.dump(avg_train_losses, fp)
+
+    with open("./mmdVAE_save/loss_list/avg_val_losses", "wb") as fp:
+        pickle.dump(avg_val_losses, fp)
 
 
+def load_losses():
+    with open("./mmdVAE_save/loss_list/train_losses", "rb") as fp:
+        train_losses = pickle.load(fp)
+
+    with open("./mmdVAE_save/loss_list/val_losses", "rb") as fp:
+        val_losses = pickle.load(fp)
+
+    with open("./mmdVAE_save/loss_list/avg_train_losses", "rb") as fp:
+        avg_train_losses = pickle.load(fp)
+
+    with open("./mmdVAE_save/loss_list/avg_val_losses", "rb") as fp:
+        avg_val_losses = pickle.load(fp)
+
+    return train_losses, val_losses, avg_train_losses, avg_val_losses
+
+
+def sample_filename(folder_path):
+    filenames = os.listdir(folder_path)
+    num_samples = 10
+    sampled_filenames = random.sample(filenames, num_samples)
+
+    join_sampled_filenames = []
+    for sample in sampled_filenames:
+        join_sampled_filenames.append(os.path.join(folder_path, sample))
+    
+    return join_sampled_filenames

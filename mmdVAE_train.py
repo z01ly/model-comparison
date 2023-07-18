@@ -12,7 +12,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import math, os
+import math
+import os 
 
 import utils
 
@@ -52,7 +53,7 @@ class Encoder(torch.nn.Module):
     
 
 class Decoder(torch.nn.Module):
-    def __init__(self, z_dim, n_filters, after_conv):
+    def __init__(self, z_dim, nc, n_filters, after_conv):
         super(Decoder, self).__init__()
         self.model = torch.nn.ModuleList([
             torch.nn.Linear(z_dim, 1024),
@@ -97,23 +98,12 @@ class Model(torch.nn.Module):
     def __init__(self, z_dim, nc, n_filters, after_conv):
         super(Model, self).__init__()
         self.encoder = Encoder(z_dim, nc, n_filters, after_conv)
-        self.decoder = Decoder(z_dim, n_filters, after_conv)
+        self.decoder = Decoder(z_dim, nc, n_filters, after_conv)
         
     def forward(self, x):
         z = self.encoder(x)
         x_reconstructed = self.decoder(z)
         return z, x_reconstructed
-
-
-# Convert a numpy array of shape [batch_size, height, width, 1] into a displayable array 
-# of shape [height*sqrt(batch_size), width*sqrt(batch_size))] by tiling the images
-def convert_to_display(samples):
-    cnt, height, width = int(math.floor(math.sqrt(samples.shape[0]))), samples.shape[1], samples.shape[2]
-    samples = np.transpose(samples, axes=[1, 0, 2, 3])
-    samples = np.reshape(samples, [height, cnt, cnt, width])
-    samples = np.transpose(samples, axes=[1, 0, 2, 3])
-    samples = np.reshape(samples, [height*cnt, width*cnt])
-    return samples
 
 
 # Training
@@ -124,14 +114,14 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
         model = model.cuda(gpu_id)
 
     optimizer = torch.optim.Adam(model.parameters())
-    scheduler_patience = (int) patience / 2
+    scheduler_patience = int(patience / 2)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=scheduler_patience)
 
     train_losses = []
     val_losses = []
     avg_train_losses = [] # average training loss per epoch
     avg_val_losses = [] # average validation loss per epoch
-    early_stopping = utils.EarlyStopping(patience=patience, verbose=True)
+    early_stopping = utils.EarlyStopping(patience=patience, verbose=True, delta=0.000008)
 
     for epoch in range(n_epochs):
         # train the model
@@ -172,6 +162,7 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
             true_samples = Variable(torch.randn(len(images), z_dim), requires_grad=False)
             if use_cuda:
                 x = x.cuda(gpu_id)
+                true_samples = true_samples.cuda(gpu_id)
             
             z, x_reconstructed = model(x)
             mmd = compute_mmd(true_samples, z)
@@ -189,15 +180,14 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
         # adaptive learning rate
         scheduler.step(val_avg)
 
-        # sample 100 images in each epoch
-        gen_z = Variable(torch.randn(100, z_dim), requires_grad=False)
+        # sample 64 images in each epoch
+        gen_z = Variable(torch.randn(64, z_dim), requires_grad=False)
         if use_cuda:
             gen_z = gen_z.cuda(gpu_id)
         samples = model.decoder(gen_z)
         samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
-        # colormap: 'plasma', 'cubehelix' and 'jet' are all ok
-        plt.imshow(convert_to_display(samples), cmap='plasma')
-        savefig_path = './mmdVAE_save/fig_epoch' + str(epoch) + '.png' 
+        plt.imshow(utils.convert_to_display(samples)) # imshow for rgb images
+        savefig_path = './mmdVAE_save/samples_in_training/fig_epoch' + str(epoch) + '.png' 
         plt.savefig(savefig_path, dpi=300)
         # plt.show()
 
@@ -207,6 +197,10 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
                     f'train_avg: {train_avg:.5f} ' +
                     f'val_avg: {val_avg:.5f}')
         print(print_msg)
+        with open("./mmdVAE_save/output.txt", "a") as text_file:
+            text_file.write((f'[{epoch:>{epoch_len}}/{n_epochs:>{epoch_len}}] ' +
+                    f'train_avg: {train_avg:.5f} ' +
+                    f'val_avg: {val_avg:.5f} \n'))
 
         # early stopping
         early_stopping(val_avg, model)
@@ -230,7 +224,7 @@ if __name__ == "__main__":
     nc = 3 # number of input and output channels. 3 for color images.
     nz = 32 # Size of z latent vector
     n_filters = 64 # Size of feature maps
-    num_epochs = 50 # Number of training epochs
+    num_epochs = 100 # Number of training epochs
     after_conv = utils.conv_size_comp(image_size)
     patience = 10
 
@@ -244,9 +238,8 @@ if __name__ == "__main__":
             train(train_dataloader=train_dataloader, val_dataloader=val_dataloader, patience=patience, 
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
                 use_cuda=True, gpu_id=gpu_id)
-
-    utils.plot_avg_loss(avg_train_losses, avg_val_losses)
-    utils.plot_itr_loss(train_losses, val_losses)
+    
+    utils.save_losses(train_losses, val_losses, avg_train_losses, avg_val_losses)
 
     # torch.save(model.state_dict(), './mmdVAE_save/model_weights.pth')
 
