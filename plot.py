@@ -60,9 +60,14 @@ def plot_itr_loss(train_losses, val_losses):
 
 
 
-def plot_residual(model, folder_path, gpu_id, use_cuda=True):
+def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
+    if not sdss:
+        last_num = -6
+    else:
+        last_num = -14
+
     try:
-        shutil.rmtree(os.path.join('./test_results/residual/', folder_path[3: -6]))
+        shutil.rmtree(os.path.join('./test_results/residual/', folder_path[3: last_num]))
     except:
         pass
     os.makedirs(os.path.join('./test_results/residual/', folder_path[3:])) # e.g. './test_results/residual/NOAGN/test/'
@@ -146,7 +151,8 @@ if __name__ == '__main__':
     # residual plots
     folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
     for folder_path in folder_paths:
-        plot_residual(model, folder_path, gpu_id, use_cuda)
+        plot_residual(model, folder_path, gpu_id, use_cuda, False)
+    plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
     
 
     # training losses
