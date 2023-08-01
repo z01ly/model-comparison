@@ -2,8 +2,8 @@
 
 # classic & ell_wobh => NOAGN
 
-mkdir NOAGN
-cd NOAGN
+mkdir ../NOAGN
+cd ../NOAGN
 mkdir test
 cd ..
 
