@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import math
-import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -21,9 +19,9 @@ from xgboost import XGBClassifier
 from sklearn.calibration import calibration_curve
 
 
-def classification(encoder_key, classifier_key):
+def load_data_train():
     AGN_data = np.load('../infoVAE/test_results/latent/AGN.npy')
-    AGN_labels = np.full(AGN_data.shape[0], 'AGN') 
+    AGN_labels = np.full(AGN_data.shape[0], 'AGN')
 
     NOAGN_data = np.load('../infoVAE/test_results/latent/NOAGN.npy')
     NOAGN_labels = np.full(NOAGN_data.shape[0], 'NOAGN') 
@@ -41,13 +39,15 @@ def classification(encoder_key, classifier_key):
     X = X[random_indices]
     y = y[random_indices]
 
+    return X, y
 
+
+def classification(X, y, encoder_key, classifier_key):
     if encoder_key == 'one-hot':
         label_binarizer = LabelBinarizer()
-        y_onehot = label_binarizer.fit_transform(y)
     elif encoder_key == 'integer':
         label_binarizer = LabelEncoder()
-        y_onehot = label_binarizer.fit_transform(y)
+    y_onehot = label_binarizer.fit_transform(y)
 
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
@@ -59,7 +59,7 @@ def classification(encoder_key, classifier_key):
         clf = BalancedRandomForestClassifier(n_estimators=100, random_state=42, \
                 sampling_strategy='all', replacement=True)
     elif classifier_key == 'xgboost':
-        clf = XGBClassifier(objective='multi:softmax')
+        clf = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
     elif classifier_key == 'logistic-regression':
         clf = LogisticRegression(multi_class='multinomial', class_weight='balanced', max_iter=500, solver='lbfgs')
     elif classifier_key == 'gradient-boosting':
@@ -75,7 +75,7 @@ def classification(encoder_key, classifier_key):
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     # kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
     n_splits = 5
-    n_repeats = 5
+    n_repeats = 3
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
 
     confusion_matrices = []
@@ -94,7 +94,7 @@ def classification(encoder_key, classifier_key):
     
         y_pred_onehot = clf.predict(X_test)
         y_pred = label_binarizer.inverse_transform(y_pred_onehot)
-        cm = confusion_matrix(y_test, y_pred)
+        cm = confusion_matrix(y_test, y_pred, normalize='true')
         confusion_matrices.append(cm)
 
         fold_probabilities = clf.predict_proba(X_test)
@@ -123,12 +123,12 @@ def classification(encoder_key, classifier_key):
 
 
     # average_cm = np.mean(confusion_matrices, axis=0)
-    sum_cm = np.int64(np.sum(confusion_matrices, axis=0) / n_repeats)
+    sum_cm = np.sum(confusion_matrices, axis=0) / n_repeats / n_splits
 
     disp = ConfusionMatrixDisplay(confusion_matrix=sum_cm, display_labels=label_binarizer.classes_)
 
     fig, ax = plt.subplots(figsize=(8, 6))
-    disp.plot(cmap='Blues', ax=ax, values_format='d')
+    disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
     plt.savefig('./confusion-matrix/' + classifier_key + '-cm.png')
@@ -140,12 +140,14 @@ def classification(encoder_key, classifier_key):
 
 if __name__ == "__main__":
     # imbalanced data
-    # classification('integer', 'random-forest')
-    # classification('integer', 'balanced-random-forest')
-    # classification('integer', 'xgboost')
-    # classification('integer', 'logistic-regression')
-    # classification('integer', 'gradient-boosting')
-    # classification('integer', 'svc')
-    # classification('integer', 'knn')
-    classification('integer', 'naive-bayes')
+    X, y = load_data_train()
+
+    classification(X, y, 'integer', 'random-forest')
+    classification(X, y, 'integer', 'balanced-random-forest')
+    classification(X, y, 'integer', 'xgboost')
+    classification(X, y, 'integer', 'logistic-regression')
+    classification(X, y, 'integer', 'gradient-boosting')
+    classification(X, y, 'integer', 'svc')
+    classification(X, y, 'integer', 'knn')
+    classification(X, y, 'integer', 'naive-bayes')
     
