@@ -11,16 +11,14 @@ import pickle
 
 import main
 
-def test(classifier_key):
+def train(classifier_key):
     X, y = main.load_data_train()
-    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
 
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
-    print('\n')
 
     if classifier_key == 'balanced-random-forest':
         clf = BalancedRandomForestClassifier(n_estimators=100, random_state=42, \
@@ -30,6 +28,20 @@ def test(classifier_key):
 
     clf.fit(X, y_onehot)
 
+    pickle.dump(clf, open('./save-model/' + classifier_key + '-model.pickle', 'wb'))
+
+    
+
+def test(classifier_key):
+    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+
+    clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
+
+    label_binarizer = LabelEncoder().fit(['AGN', 'NOAGN', 'UHD', 'n80'])
+    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    
+
     sdss_pred_onehot = clf.predict(sdss_test_data)
     sdss_pred = label_binarizer.inverse_transform(sdss_pred_onehot)
 
@@ -38,9 +50,16 @@ def test(classifier_key):
     for target_class in ['AGN', 'NOAGN', 'UHD', 'n80']:
         class_count = np.count_nonzero(sdss_pred == target_class)
         percentage = (class_count / total_elements) * 100
-        print(f"In {classifier_key} test, the percentage of occurrence of class {target_class}: {percentage:.2f}%")
+        with open("test-output.txt", "a") as text_file:
+            text_file.write(f"In {classifier_key} test, the percentage of occurrence of class {target_class}: {percentage:.2f}% \n")
+
+    
+
 
 
 if __name__ == "__main__":
+    # train('balanced-random-forest')
+    # train('svc')
+
     test('balanced-random-forest')
-    # test('svc')
+    test('svc')
