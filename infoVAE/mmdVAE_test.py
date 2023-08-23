@@ -63,6 +63,7 @@ if __name__ == "__main__":
         model = model.cuda(gpu_id)
     model.eval()
 
+    
     test_dataroots = ['../NOAGN', '../AGN', '../n80', '../UHD']
     for test_dataroot in test_dataroots:
         savefig_path = './test_results/images_in_testing/fig_' + test_dataroot[3: ] + '.png'
@@ -70,9 +71,21 @@ if __name__ == "__main__":
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                 use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
         np.save('./test_results/latent/' + test_dataroot[3: ] + '.npy', z) 
+    
+
+    sdss_test_dataroot = '../sdss_data/test'
+    savefig_path = './test_results/images_in_testing/fig_sdss_test.png'
+    z = test(model, test_dataroot=sdss_test_dataroot, savefig_path=savefig_path,
+                z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+                use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
+    np.save('./test_results/latent/sdss_test.npy', z) 
+
 
     for filename_latent in os.listdir('./test_results/latent/'):
         latent_z = np.load('./test_results/latent/' + filename_latent)
         print(latent_z.shape)
+
+    
+
 
     
