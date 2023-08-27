@@ -12,14 +12,6 @@ import matplotlib.pyplot as plt
 import os
 
 
-
-# random sample 10 latent vectors from each model and sdss_test
-# for each latent vector, 
-#   for each dimension of 32 dims,
-#       change it within a range and use decoder to produce image
-# mmdVAE_train and plot is helpful
-
-
 def load_latent_codes():
     AGN_data = np.load('./test_results/latent/AGN.npy')
     NOAGN_data = np.load('./test_results/latent/NOAGN.npy')
@@ -32,6 +24,11 @@ def load_latent_codes():
  
 def check_range_each(input_data, current_dir):
     print(input_data.shape)
+
+    with open(os.path.join("./dim_meaning", current_dir, "range.txt"), "w") as text_file:
+        text_file.write(f"global min: {np.min(input_data)}, global max: {np.max(input_data)} \n")
+        text_file.write(f"\n")
+
 
     for i in range(32):
         with open(os.path.join("./dim_meaning", current_dir, "range.txt"), "a") as text_file:
@@ -48,15 +45,17 @@ def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data):
 
 
 def main(input_data, current_dir, model, gpu_id, use_cuda=True, dimension=32):
-    sampled_indices = np.random.choice(input_data.shape[0], size=10, replace=False)
-    sampled_vectors = input_data[sampled_indices] # shape: (10, dimension)
+    sampled_indices = np.random.choice(input_data.shape[0], size=5, replace=False)
+    sampled_vectors = input_data[sampled_indices] # shape: (5, dimension)
 
-    for i in range(10):
+    for i in range(5):
         os.makedirs(os.path.join(current_dir, f"vector_{i}"), exist_ok=True)
         vec = sampled_vectors[i]
 
-        start_range = int(np.min(input_data) - 3)
-        end_range = int(np.max(input_data) + 3)
+        # start_range = int(np.min(input_data) - 3)
+        # end_range = int(np.max(input_data) + 3)
+        start_range = -5
+        end_range = 5
 
         for j in range(dimension):
             fig, axes = plt.subplots(1, 15, figsize=(25, 3))
@@ -90,7 +89,7 @@ def main(input_data, current_dir, model, gpu_id, use_cuda=True, dimension=32):
 
 if __name__ == '__main__':
     AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data = load_latent_codes()
-    # check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data)
+    check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data)
 
     gpu_id = 1
     image_size = 64
@@ -108,3 +107,8 @@ if __name__ == '__main__':
     model.eval()
 
     main(AGN_data, './dim_meaning/AGN', model, gpu_id, use_cuda=True, dimension=32)
+    main(NOAGN_data, './dim_meaning/NOAGN', model, gpu_id, use_cuda=True, dimension=32)
+    main(UHD_data, './dim_meaning/UHD', model, gpu_id, use_cuda=True, dimension=32)
+    main(n80_data, './dim_meaning/n80', model, gpu_id, use_cuda=True, dimension=32)
+    main(sdss_test_data, './dim_meaning/sdss_test', model, gpu_id, use_cuda=True, dimension=32)
+
