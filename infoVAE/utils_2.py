@@ -138,6 +138,22 @@ def sdss_split():
 
 
 
+def oversample_minority(source_folder, destination_folder, repeat):
+    os.makedirs(destination_folder, exist_ok=True)
+
+    for image in os.listdir(source_folder):
+        image_path = os.path.join(source_folder, image)
+        filename, extension = os.path.splitext(image)
+
+        for i in range(repeat):
+            new_filename = f"{filename}_copy{i}{extension}"
+            new_image_path = os.path.join(destination_folder, new_filename)
+            shutil.copy(image_path, new_image_path)
+    
+
+
+
+
 if __name__ == '__main__':
     # sdss_size() 64 x 64
     # NOAGN_size() 500 x 500 -> 64 x 64
@@ -152,3 +168,10 @@ if __name__ == '__main__':
 
     # sdss_split()
 
+    # source_folder = '../UHD/test'
+    # destination_folder = '../UHD_10times/test'
+    # oversample_minority(source_folder, destination_folder, 10)
+
+    # source_folder = '../n80/test'
+    # destination_folder = '../n80_5times/test'
+    # oversample_minority(source_folder, destination_folder, 5)
