@@ -11,10 +11,13 @@ from sklearn.calibration import calibration_curve
 
 from sklearn.neural_network import MLPClassifier
 
+import pickle
+
 import main
 
 
-def cross_val(classifier_key):
+
+def cross_val(classifier_key, hidden_layer):
     X, y = main.load_data_train()
     
     label_binarizer = LabelEncoder()
@@ -23,7 +26,8 @@ def cross_val(classifier_key):
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-    clf = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', random_state=42)
+    clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
+        alpha=0.01, learning_rate='adaptive', max_iter=500, random_state=42)
 
     scaler = StandardScaler()
 
@@ -92,7 +96,66 @@ def cross_val(classifier_key):
 
 
 
+def train(classifier_key, hidden_layer):
+    X, y = main.load_data_train()
+
+    label_binarizer = LabelEncoder()
+    y_onehot = label_binarizer.fit_transform(y)
+
+    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+
+    clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
+        alpha=0.01, learning_rate='adaptive', max_iter=500, random_state=42)
+
+    scaler = StandardScaler()
+
+    # scaling
+    X_scaled = scaler.fit_transform(X)
+
+    clf.fit(X_scaled, y_onehot)
+
+    pickle.dump(clf, open('./save-model/' + classifier_key + '-model.pickle', 'wb'))
+
+    return scaler
+
+
+
+def test(scaler, classifier_key):
+    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+
+    clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
+
+    label_binarizer = LabelEncoder().fit(['AGN', 'NOAGN', 'UHD', 'n80'])
+    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+
+    # scaling
+    sdss_test_scaled = scaler.transform(sdss_test_data)
+
+    sdss_pred_onehot = clf.predict(sdss_test_scaled)
+    sdss_pred = label_binarizer.inverse_transform(sdss_pred_onehot)
+
+    total_elements = sdss_pred.shape[0]
+    
+    for target_class in ['AGN', 'NOAGN', 'UHD', 'n80']:
+        class_count = np.count_nonzero(sdss_pred == target_class)
+        percentage = (class_count / total_elements) * 100
+        with open("test-output.txt", "a") as text_file:
+            text_file.write(f"In {classifier_key} test, the percentage of occurrence of class {target_class}: {percentage:.2f}% \n")
+
+
+
+
 
 
 if __name__ == "__main__":
-    cross_val('MLP')
+    candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
+    
+    for i in range(len(candidate_architectures)):
+        classifier_key = f'MLP-v{i}'
+        hidden_layer = candidate_architectures[i]
+
+        cross_val(classifier_key, hidden_layer)
+        scaler = train(classifier_key, hidden_layer)
+        test(scaler, classifier_key)
