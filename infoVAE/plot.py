@@ -145,6 +145,9 @@ def plot_tsne(dim=2, include_sdss=False):
         if (not include_sdss) and (filename_latent == 'sdss_test.npy'):
             continue
 
+        if (filename_latent == 'UHD_10times.npy') or (filename_latent == 'n80_5times.npy'):
+            continue
+
         latent_z = np.load('./test_results/latent/' + filename_latent) # e.g. shape of UHD: (126, 32)
         z_embedded = TSNE(n_components=dim, perplexity=100, init='pca', random_state=42).fit_transform(latent_z)
 
@@ -193,10 +196,11 @@ if __name__ == '__main__':
 
 
     # residual plots
-    folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
-    for folder_path in folder_paths:
-        plot_residual(model, folder_path, gpu_id, use_cuda, False)
-    plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
+    with torch.no_grad():
+        folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
+        for folder_path in folder_paths:
+            plot_residual(model, folder_path, gpu_id, use_cuda, False)
+        plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
     
 
     # training losses

@@ -10,8 +10,11 @@ import pickle
 
 
 def sdss_size():
-    filepath = "../cutouts_1000/cutouts_1000_train/3000.png"
-    img = Image.open(filepath)
+    folder_path = '../sdss_data/test/cutouts'
+    for filename in os.listdir(folder_path):
+        filepath = f"{folder_path}/{filename}"
+        img = Image.open(filepath)
+        break
 
     print("{} x {}".format(img.height, img.width))
 
@@ -149,8 +152,6 @@ def oversample_minority(source_folder, destination_folder, repeat):
             new_filename = f"{filename}_copy{i}{extension}"
             new_image_path = os.path.join(destination_folder, new_filename)
             shutil.copy(image_path, new_image_path)
-    
-
 
 
 

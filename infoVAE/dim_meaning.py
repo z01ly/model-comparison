@@ -12,14 +12,17 @@ import matplotlib.pyplot as plt
 import os
 
 
+
 def load_latent_codes():
     AGN_data = np.load('./test_results/latent/AGN.npy')
     NOAGN_data = np.load('./test_results/latent/NOAGN.npy')
     UHD_data = np.load('./test_results/latent/UHD.npy')
     n80_data = np.load('./test_results/latent/n80.npy')
+
     sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
 
     return AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data
+
 
  
 def check_range_each(input_data, current_dir):
@@ -91,7 +94,7 @@ if __name__ == '__main__':
     AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data = load_latent_codes()
     check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data)
 
-    gpu_id = 1
+    gpu_id = 2
     image_size = 64
     nc = 3
     nz = 32
@@ -106,9 +109,10 @@ if __name__ == '__main__':
         model = model.cuda(gpu_id)
     model.eval()
 
-    main(AGN_data, './dim_meaning/AGN', model, gpu_id, use_cuda=True, dimension=32)
-    main(NOAGN_data, './dim_meaning/NOAGN', model, gpu_id, use_cuda=True, dimension=32)
-    main(UHD_data, './dim_meaning/UHD', model, gpu_id, use_cuda=True, dimension=32)
-    main(n80_data, './dim_meaning/n80', model, gpu_id, use_cuda=True, dimension=32)
-    main(sdss_test_data, './dim_meaning/sdss_test', model, gpu_id, use_cuda=True, dimension=32)
+    with torch.no_grad():
+        main(AGN_data, './dim_meaning/AGN', model, gpu_id, use_cuda=True, dimension=32)
+        main(NOAGN_data, './dim_meaning/NOAGN', model, gpu_id, use_cuda=True, dimension=32)
+        main(UHD_data, './dim_meaning/UHD', model, gpu_id, use_cuda=True, dimension=32)
+        main(n80_data, './dim_meaning/n80', model, gpu_id, use_cuda=True, dimension=32)
+        main(sdss_test_data, './dim_meaning/sdss_test', model, gpu_id, use_cuda=True, dimension=32)
 

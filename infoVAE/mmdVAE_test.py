@@ -45,7 +45,7 @@ def test(model, test_dataroot, savefig_path, z_dim=2,
 
 
 if __name__ == "__main__":
-    gpu_id = 2
+    gpu_id = 5
     workers = 4
     batch_size = 500 # CUDA out of memory if 500x500 image size
     image_size = 64 # downsample 500x500 test images to 64x64
@@ -63,29 +63,28 @@ if __name__ == "__main__":
         model = model.cuda(gpu_id)
     model.eval()
 
-    
-    test_dataroots = ['../NOAGN', '../AGN', '../n80', '../UHD']
-    for test_dataroot in test_dataroots:
-        savefig_path = './test_results/images_in_testing/fig_' + test_dataroot[3: ] + '.png'
-        z = test(model, test_dataroot=test_dataroot, savefig_path=savefig_path,
-                z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
-                use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-        np.save('./test_results/latent/' + test_dataroot[3: ] + '.npy', z) 
+    with torch.no_grad():
+        test_dataroots = ['../NOAGN', '../AGN', '../UHD', '../n80', '../UHD_10times', '../n80_5times']
+        for test_dataroot in test_dataroots:
+            savefig_path = './test_results/images_in_testing/fig_' + test_dataroot[3: ] + '.png'
+            z = test(model, test_dataroot=test_dataroot, savefig_path=savefig_path,
+                    z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
+                    use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
+            np.save('./test_results/latent/' + test_dataroot[3: ] + '.npy', z)
+            np.savetxt('./test_results/latent_txt/' + test_dataroot[3: ] + '.txt', z, delimiter=',', fmt='%s')
     
 
-    sdss_test_dataroot = '../sdss_data/test'
-    savefig_path = './test_results/images_in_testing/fig_sdss_test.png'
-    z = test(model, test_dataroot=sdss_test_dataroot, savefig_path=savefig_path,
+        sdss_test_dataroot = '../sdss_data/test'
+        savefig_path = './test_results/images_in_testing/fig_sdss_test.png'
+        z = test(model, test_dataroot=sdss_test_dataroot, savefig_path=savefig_path,
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                 use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-    np.save('./test_results/latent/sdss_test.npy', z) 
+        np.save('./test_results/latent/sdss_test.npy', z)
+        np.savetxt('./test_results/latent_txt/sdss_test.txt', z, delimiter=',', fmt='%s')
 
 
     for filename_latent in os.listdir('./test_results/latent/'):
         latent_z = np.load('./test_results/latent/' + filename_latent)
         print(latent_z.shape)
-
-    
-
 
     
