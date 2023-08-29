@@ -4,8 +4,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
-from imblearn.ensemble import BalancedRandomForestClassifier
-from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 
 import pickle
 
@@ -20,11 +20,10 @@ def train(classifier_key):
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-    if classifier_key == 'balanced-random-forest':
-        clf = BalancedRandomForestClassifier(n_estimators=100, random_state=42, \
-                sampling_strategy='all', replacement=True)
-    elif classifier_key == 'svc':
-        clf = SVC(kernel='rbf', class_weight='balanced', random_state=42, decision_function_shape='ovr', probability=False)
+    if classifier_key == 'random-forest':
+        clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
+    elif classifier_key == 'xgboost':
+        clf = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
 
     clf.fit(X, y_onehot)
 
@@ -58,8 +57,8 @@ def test(classifier_key):
 
 
 if __name__ == "__main__":
-    # train('balanced-random-forest')
-    # train('svc')
+    # train('random-forest')
+    # train('xgboost') 
 
-    test('balanced-random-forest')
-    test('svc')
+    test('random-forest')
+    test('xgboost')

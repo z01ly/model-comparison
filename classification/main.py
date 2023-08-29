@@ -44,7 +44,7 @@ def load_data_train():
     return X, y
 
 
-def classification(X, y, encoder_key, classifier_key):
+def cross_val(X, y, encoder_key, classifier_key):
     if encoder_key == 'one-hot':
         label_binarizer = LabelBinarizer()
     elif encoder_key == 'integer':
@@ -144,12 +144,12 @@ if __name__ == "__main__":
     # imbalanced data
     X, y = load_data_train()
 
-    # classification(X, y, 'integer', 'random-forest')
-    classification(X, y, 'integer', 'balanced-random-forest')
-    # classification(X, y, 'integer', 'xgboost')
-    # classification(X, y, 'integer', 'logistic-regression')
-    # classification(X, y, 'integer', 'gradient-boosting')
-    # classification(X, y, 'integer', 'svc')
-    # classification(X, y, 'integer', 'knn')
-    # classification(X, y, 'integer', 'naive-bayes')
+    cross_val(X, y, 'integer', 'random-forest')
+    cross_val(X, y, 'integer', 'balanced-random-forest')
+    cross_val(X, y, 'integer', 'xgboost')
+    cross_val(X, y, 'integer', 'logistic-regression')
+    cross_val(X, y, 'integer', 'gradient-boosting')
+    cross_val(X, y, 'integer', 'svc')
+    cross_val(X, y, 'integer', 'knn')
+    cross_val(X, y, 'integer', 'naive-bayes')
     
