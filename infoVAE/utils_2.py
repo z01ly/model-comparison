@@ -155,6 +155,7 @@ def oversample_minority(source_folder, destination_folder, repeat):
 
 
 
+
 if __name__ == '__main__':
     # sdss_size() 64 x 64
     # NOAGN_size() 500 x 500 -> 64 x 64
@@ -169,10 +170,10 @@ if __name__ == '__main__':
 
     # sdss_split()
 
-    # source_folder = '../UHD/test'
-    # destination_folder = '../UHD_10times/test'
-    # oversample_minority(source_folder, destination_folder, 10)
+    source_folder = '../UHD/test'
+    destination_folder = '../UHD_2times/test'
+    oversample_minority(source_folder, destination_folder, 2)
 
-    # source_folder = '../n80/test'
-    # destination_folder = '../n80_5times/test'
-    # oversample_minority(source_folder, destination_folder, 5)
+    source_folder = '../n80/test'
+    destination_folder = '../n80_2times/test'
+    oversample_minority(source_folder, destination_folder, 2)

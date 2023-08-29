@@ -145,7 +145,7 @@ def plot_tsne(dim=2, include_sdss=False):
         if (not include_sdss) and (filename_latent == 'sdss_test.npy'):
             continue
 
-        if (filename_latent == 'UHD_10times.npy') or (filename_latent == 'n80_5times.npy'):
+        if (filename_latent == 'UHD_2times.npy') or (filename_latent == 'n80_2times.npy'):
             continue
 
         latent_z = np.load('./test_results/latent/' + filename_latent) # e.g. shape of UHD: (126, 32)
