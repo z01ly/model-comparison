@@ -26,11 +26,13 @@ def load_data_train():
     NOAGN_data = np.load('../infoVAE/test_results/latent/NOAGN.npy')
     NOAGN_labels = np.full(NOAGN_data.shape[0], 'NOAGN') 
 
-    UHD_data = np.load('../infoVAE/test_results/latent/UHD.npy')
+    # load oversampled UHD
+    UHD_data = np.load('../infoVAE/test_results/latent/UHD_2times.npy')
     UHD_labels = np.full(UHD_data.shape[0], 'UHD') 
 
-    n80_data = np.load('../infoVAE/test_results/latent/n80.npy')
-    n80_labels = np.full(n80_data.shape[0], 'n80') 
+    # load oversampled n80
+    n80_data = np.load('../infoVAE/test_results/latent/n80_2times.npy')
+    n80_labels = np.full(n80_data.shape[0], 'n80')
 
     X = np.concatenate((AGN_data, NOAGN_data, UHD_data, n80_data), axis=0)
     y = np.concatenate((AGN_labels, NOAGN_labels, UHD_labels, n80_labels), axis=0)
@@ -142,12 +144,12 @@ if __name__ == "__main__":
     # imbalanced data
     X, y = load_data_train()
 
-    classification(X, y, 'integer', 'random-forest')
+    # classification(X, y, 'integer', 'random-forest')
     classification(X, y, 'integer', 'balanced-random-forest')
-    classification(X, y, 'integer', 'xgboost')
-    classification(X, y, 'integer', 'logistic-regression')
-    classification(X, y, 'integer', 'gradient-boosting')
-    classification(X, y, 'integer', 'svc')
-    classification(X, y, 'integer', 'knn')
-    classification(X, y, 'integer', 'naive-bayes')
+    # classification(X, y, 'integer', 'xgboost')
+    # classification(X, y, 'integer', 'logistic-regression')
+    # classification(X, y, 'integer', 'gradient-boosting')
+    # classification(X, y, 'integer', 'svc')
+    # classification(X, y, 'integer', 'knn')
+    # classification(X, y, 'integer', 'naive-bayes')
     

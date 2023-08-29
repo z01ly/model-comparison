@@ -17,7 +17,7 @@ import main
 
 
 
-def cross_val(classifier_key, hidden_layer):
+def cross_val(classifier_key, hidden_layer, max_iter=300):
     X, y = main.load_data_train()
     
     label_binarizer = LabelEncoder()
@@ -27,7 +27,7 @@ def cross_val(classifier_key, hidden_layer):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
     clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
-        alpha=0.01, learning_rate='adaptive', max_iter=500, random_state=42)
+        alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
 
     scaler = StandardScaler()
 
@@ -96,7 +96,7 @@ def cross_val(classifier_key, hidden_layer):
 
 
 
-def train(classifier_key, hidden_layer):
+def train(classifier_key, hidden_layer, max_iter=300):
     X, y = main.load_data_train()
 
     label_binarizer = LabelEncoder()
@@ -106,7 +106,7 @@ def train(classifier_key, hidden_layer):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
     clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
-        alpha=0.01, learning_rate='adaptive', max_iter=500, random_state=42)
+        alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
 
     scaler = StandardScaler()
 
@@ -150,7 +150,8 @@ def test(scaler, classifier_key):
 
 
 if __name__ == "__main__":
-    candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
+    # candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
+    candidate_architectures = [(128, 64)]
     
     for i in range(len(candidate_architectures)):
         classifier_key = f'MLP-v{i}'
