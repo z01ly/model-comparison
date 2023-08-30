@@ -9,10 +9,11 @@ from xgboost import XGBClassifier
 
 import pickle
 
-import main
+import utils
+
 
 def train(classifier_key):
-    X, y = main.load_data_train()
+    X, y = utils.load_data_train()
 
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)

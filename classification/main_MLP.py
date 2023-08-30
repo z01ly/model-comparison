@@ -10,15 +10,19 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.calibration import calibration_curve
 
 from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+
+from sklearn.ensemble import VotingClassifier, StackingClassifier, AdaBoostClassifier
 
 import pickle
 
-import main
+import utils
 
 
 
-def cross_val(classifier_key, hidden_layer, max_iter=300):
-    X, y = main.load_data_train()
+def cross_val(oversample_key, classifier_key, max_iter=400):
+    X, y = utils.load_data_train(oversample_key)
     
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
@@ -26,8 +30,34 @@ def cross_val(classifier_key, hidden_layer, max_iter=300):
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-    clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
-        alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
+    
+    clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
+
+    clf_RF = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
+
+    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
+
+    if (classifier_key == 'adaboost-RF-oversample') or (classifier_key == 'adaboost-RF'):
+        clf = AdaBoostClassifier(estimator=clf_RF, n_estimators=50, random_state=42)
+    elif (classifier_key == 'adaboost-XGB-oversample') or (classifier_key == 'adaboost-XGB'):
+        clf = AdaBoostClassifier(estimator=clf_XGB, n_estimators=50, random_state=42)
+    elif (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+        meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
+        clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
+    elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
+        clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0)
+        clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1)
+        # predict_proba is not available when voting='hard'
+        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
+    elif (classifier_key == 'voting-MLP-RF-XGB-oversample') or (classifier_key == 'voting-MLP-RF-XGB'):
+        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
+    elif (classifier_key == 'single-MLP-oversample'):
+        clf = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
+
 
     scaler = StandardScaler()
 
@@ -96,8 +126,8 @@ def cross_val(classifier_key, hidden_layer, max_iter=300):
 
 
 
-def train(classifier_key, hidden_layer, max_iter=300):
-    X, y = main.load_data_train()
+def train(oversample_key, classifier_key, max_iter=400):
+    X, y = utils.load_data_train(oversample_key)
 
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
@@ -105,8 +135,34 @@ def train(classifier_key, hidden_layer, max_iter=300):
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-    clf = MLPClassifier(hidden_layer_sizes=hidden_layer, activation='relu', solver='adam', \
-        alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
+
+    clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
+
+    clf_RF = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
+
+    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
+
+    if (classifier_key == 'adaboost-RF-oversample') or (classifier_key == 'adaboost-RF'):
+        clf = AdaBoostClassifier(estimator=clf_RF, n_estimators=50, random_state=42)
+    elif (classifier_key == 'adaboost-XGB-oversample') or (classifier_key == 'adaboost-XGB'):
+        clf = AdaBoostClassifier(estimator=clf_XGB, n_estimators=50, random_state=42)
+    elif (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+        meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
+        clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
+    elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
+        clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0, early_stopping=True)
+        clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1, early_stopping=True)
+        # predict_proba is not available when voting='hard'
+        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
+    elif (classifier_key == 'voting-MLP-RF-XGB-oversample') or (classifier_key == 'voting-MLP-RF-XGB'):
+        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
+    elif (classifier_key == 'single-MLP-oversample'):
+        clf = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
+
 
     scaler = StandardScaler()
 
@@ -146,17 +202,49 @@ def test(scaler, classifier_key):
 
 
 
+def ensemble_test(oversample_key, classifier_key):
+    cross_val(oversample_key, classifier_key)
+    scaler = train(oversample_key, classifier_key)
+    test(scaler, classifier_key)
+
 
 
 
 if __name__ == "__main__":
     # candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
-    candidate_architectures = [(128, 64)]
-    
-    for i in range(len(candidate_architectures)):
-        classifier_key = f'MLP-v{i}'
-        hidden_layer = candidate_architectures[i]
+    # ensemble_test(oversample_key = True, classifier_key = 'single-MLP-oversample')
 
-        cross_val(classifier_key, hidden_layer)
-        scaler = train(classifier_key, hidden_layer)
-        test(scaler, classifier_key)
+
+    # ensemble
+
+    # adaboost: RF with oversampled data
+    # ensemble_test(oversample_key = True, classifier_key = 'adaboost-RF-oversample')
+
+    # adaboost: RF with data
+    # ensemble_test(oversample_key = False, classifier_key = 'adaboost-RF')
+
+    # adaboost: XGB with oversampled data
+    # ensemble_test(oversample_key = True,  classifier_key = 'adaboost-XGB-oversample')
+
+    # adaboost: XGB with data
+    # ensemble_test(oversample_key = False, classifier_key = 'adaboost-XGB')
+
+    # stacking: MLP-RF-XGB with oversampled data
+    ensemble_test(oversample_key = True, classifier_key = 'stacking-MLP-RF-XGB-oversample')
+
+    # stacking: MLP-RF-XGB with data
+    ensemble_test(oversample_key = False, classifier_key = 'stacking-MLP-RF-XGB')
+
+    # voting: 3 MLPS with oversampled data
+    ensemble_test(oversample_key = True, classifier_key = 'voting-3MLPs-oversample')
+
+    # voting: 3 MLPS with data
+    ensemble_test(oversample_key = False, classifier_key = 'voting-3MLPs')
+
+    # voting: MLP-RF-XGB with oversampled data
+    ensemble_test(oversample_key = True, classifier_key = 'voting-MLP-RF-XGB-oversample')
+
+    # voting: MLP-RF-XGB with data
+    ensemble_test(oversample_key = False, classifier_key = 'voting-MLP-RF-XGB')
+    
+    
