@@ -12,18 +12,6 @@ import matplotlib.pyplot as plt
 import os
 
 
-
-def load_latent_codes():
-    AGN_data = np.load('./test_results/latent/AGN.npy')
-    NOAGN_data = np.load('./test_results/latent/NOAGN.npy')
-    UHD_data = np.load('./test_results/latent/UHD.npy')
-    n80_data = np.load('./test_results/latent/n80.npy')
-
-    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
-
-    return AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data
-
-
  
 def check_range_each(input_data, current_dir):
     print(input_data.shape)
@@ -39,12 +27,18 @@ def check_range_each(input_data, current_dir):
                 text_file.write(f"min: {np.min(input_data[:, i])}, max: {np.max(input_data[:, i])}, average: {np.mean(input_data[:, i])} \n")
 
 
-def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data):
+
+def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data):
     check_range_each(AGN_data, "AGN")
     check_range_each(NOAGN_data, "NOAGN")
     check_range_each(UHD_data, "UHD")
     check_range_each(n80_data, "n80")
+
+    check_range_each(UHD_2times_data, "UHD_2times")
+    check_range_each(n80_2times_data, "n80_2times")
+
     check_range_each(sdss_test_data, "sdss_test")
+
 
 
 def main(input_data, current_dir, model, gpu_id, use_cuda=True, dimension=32):
@@ -91,9 +85,10 @@ def main(input_data, current_dir, model, gpu_id, use_cuda=True, dimension=32):
 
 
 if __name__ == '__main__':
-    AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data = load_latent_codes()
-    check_range(AGN_data, NOAGN_data, UHD_data, n80_data, sdss_test_data)
+    AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data = utils.load_latent_codes()
+    check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data)
 
+    """
     gpu_id = 2
     image_size = 64
     nc = 3
@@ -115,4 +110,5 @@ if __name__ == '__main__':
         main(UHD_data, './dim_meaning/UHD', model, gpu_id, use_cuda=True, dimension=32)
         main(n80_data, './dim_meaning/n80', model, gpu_id, use_cuda=True, dimension=32)
         main(sdss_test_data, './dim_meaning/sdss_test', model, gpu_id, use_cuda=True, dimension=32)
+    """
 

@@ -26,14 +26,31 @@ def conv_size_comp(img_size):
 # print(conv_size_comp(64))
 
 
+class ImageFolderWithFilenames(torch.utils.data.Dataset):
+    def __init__(self, image_folder_dataset):
+        self.image_folder_dataset = image_folder_dataset
 
-def dataloader_func(dataroot, batch_size, workers, pin_memory):
+    def __len__(self):
+        return len(self.image_folder_dataset)
+
+    def __getitem__(self, index):
+        image, label = self.image_folder_dataset[index]
+        filename = self.image_folder_dataset.imgs[index][0]
+        return image, label, filename
+
+
+def dataloader_func(dataroot, batch_size, workers, pin_memory, with_filename=False):
     dataset = datasets.ImageFolder(root=dataroot,
                             transform=transforms.Compose([
                             transforms.ToTensor(),
                             ]))
 
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+    if with_filename:
+        custom_dataset = ImageFolderWithFilenames(dataset)
+    else:
+        custom_dataset = dataset
+
+    dataloader = torch.utils.data.DataLoader(custom_dataset, batch_size=batch_size,
                                         shuffle=True, num_workers=workers,
                                         pin_memory=pin_memory)
 
@@ -153,3 +170,15 @@ def sample_filename(folder_path):
 
 
 
+def load_latent_codes():
+    AGN_data = np.load('./test_results/latent/AGN.npy')
+    NOAGN_data = np.load('./test_results/latent/NOAGN.npy')
+    UHD_data = np.load('./test_results/latent/UHD.npy')
+    n80_data = np.load('./test_results/latent/n80.npy')
+
+    UHD_2times_data = np.load('./test_results/latent/UHD_2times.npy')
+    n80_2times_data = np.load('./test_results/latent/n80_2times.npy')
+
+    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+
+    return AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data
