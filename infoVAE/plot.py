@@ -133,49 +133,6 @@ def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
         plt.close(fig)
 
 
-def plot_tsne(dim=2, include_sdss=False):
-    fig = plt.figure(figsize=(10,10))
-    if dim == 3:
-        ax = fig.add_subplot(111, projection='3d')
-
-    colors = ['b', 'r', 'g', 'k', 'y']
-    markers = ['o', 'v', 's', '*', '+']
-    i = 0
-    for filename_latent in os.listdir('./test_results/latent/'):
-        if (not include_sdss) and (filename_latent == 'sdss_test.npy'):
-            continue
-
-        if (filename_latent == 'UHD_2times.npy') or (filename_latent == 'n80_2times.npy'):
-            continue
-
-        latent_z = np.load('./test_results/latent/' + filename_latent) # e.g. shape of UHD: (126, 32)
-        z_embedded = TSNE(n_components=dim, perplexity=100, init='pca', random_state=42).fit_transform(latent_z)
-
-        if dim == 2:
-            plt.scatter(z_embedded[:, 0], z_embedded[:, 1], s=5, c=colors[i], marker=markers[i], label=filename_latent[: -4])
-        elif dim == 3:
-            ax.scatter(z_embedded[:, 0], z_embedded[:, 1], z_embedded[:, 2], s=5, c=colors[i], \
-            marker=markers[i], label=filename_latent[: -4])
-        i += 1
-
-    if dim == 2:
-        plt.xlabel('Dimension 1')
-        plt.ylabel('Dimension 2')
-        plt.title("Applying tsne to latent z")
-        plt.legend()
-    elif dim == 3:
-        ax.set_xlabel('X-axis')
-        ax.set_ylabel('Y-axis')
-        ax.set_zlabel('Z-axis')
-        ax.set_title('3D Scatter Plot')
-        ax.legend()
-    
-    if not include_sdss:
-        fig.savefig('./test_results/plot_tsne_models.png')
-    else:
-        fig.savefig('./test_results/plot_tsne_all.png')
-
-
 
 
 if __name__ == '__main__':
@@ -208,12 +165,5 @@ if __name__ == '__main__':
     plot_avg_loss(avg_train_losses, avg_val_losses, 22)
     plot_itr_loss(train_losses, val_losses)
     
-    
-    # tsne
-    plot_tsne(2)
-    plot_tsne(2, True)
-
-
-
 
 
