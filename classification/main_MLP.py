@@ -13,11 +13,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from sklearn.ensemble import VotingClassifier, StackingClassifier, AdaBoostClassifier
+from sklearn.ensemble import VotingClassifier, StackingClassifier
 
 import pickle
 
 import utils
+import bayesflow_calibration
 
 
 
@@ -38,11 +39,8 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
 
     clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
 
-    if (classifier_key == 'adaboost-RF-oversample') or (classifier_key == 'adaboost-RF'):
-        clf = AdaBoostClassifier(estimator=clf_RF, n_estimators=50, random_state=42)
-    elif (classifier_key == 'adaboost-XGB-oversample') or (classifier_key == 'adaboost-XGB'):
-        clf = AdaBoostClassifier(estimator=clf_XGB, n_estimators=50, random_state=42)
-    elif (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+    
+    if (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
     elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
@@ -216,18 +214,6 @@ if __name__ == "__main__":
 
 
     # ensemble
-
-    # adaboost: RF with oversampled data
-    # ensemble_test(oversample_key = True, classifier_key = 'adaboost-RF-oversample')
-
-    # adaboost: RF with data
-    # ensemble_test(oversample_key = False, classifier_key = 'adaboost-RF')
-
-    # adaboost: XGB with oversampled data
-    # ensemble_test(oversample_key = True,  classifier_key = 'adaboost-XGB-oversample')
-
-    # adaboost: XGB with data
-    # ensemble_test(oversample_key = False, classifier_key = 'adaboost-XGB')
 
     # stacking: MLP-RF-XGB with oversampled data
     ensemble_test(oversample_key = True, classifier_key = 'stacking-MLP-RF-XGB-oversample')

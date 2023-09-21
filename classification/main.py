@@ -19,6 +19,7 @@ from xgboost import XGBClassifier
 from sklearn.calibration import calibration_curve
 
 import utils
+import bayesflow_calibration
 
 
 
@@ -85,6 +86,12 @@ def cross_val(X, y, encoder_key, classifier_key):
     probabilities = np.concatenate(all_probabilities, axis=0)
     true_labels = np.concatenate(all_true_labels, axis=0)
 
+    true_labels_onehot = LabelBinarizer().fit_transform(true_labels)
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities)
+    plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
+    plt.close()
+
+    """
     plt.figure(figsize=(10, 10))
     markers = ['o', 'v', 's', 'p']
     linestyles = ['solid', 'dotted', 'dashed', 'dashdot']
@@ -100,6 +107,7 @@ def cross_val(X, y, encoder_key, classifier_key):
     plt.legend()
     plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
     plt.close()
+    """
 
 
     # average_cm = np.mean(confusion_matrices, axis=0)
@@ -123,11 +131,12 @@ if __name__ == "__main__":
     X, y = utils.load_data_train()
 
     cross_val(X, y, 'integer', 'random-forest')
-    cross_val(X, y, 'integer', 'balanced-random-forest')
     cross_val(X, y, 'integer', 'xgboost')
-    cross_val(X, y, 'integer', 'logistic-regression')
-    cross_val(X, y, 'integer', 'gradient-boosting')
-    cross_val(X, y, 'integer', 'svc')
-    cross_val(X, y, 'integer', 'knn')
-    cross_val(X, y, 'integer', 'naive-bayes')
+
+    # cross_val(X, y, 'integer', 'balanced-random-forest')
+    # cross_val(X, y, 'integer', 'logistic-regression')
+    # cross_val(X, y, 'integer', 'gradient-boosting')
+    # cross_val(X, y, 'integer', 'svc')
+    # cross_val(X, y, 'integer', 'knn')
+    # cross_val(X, y, 'integer', 'naive-bayes')
     
