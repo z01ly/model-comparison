@@ -30,8 +30,9 @@ def cross_val(X, y, encoder_key, classifier_key):
         label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
-    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
-        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    # 'AGN' -> 0, 'NOAGN' -> 1, 'UHD' -> 2, 'n80' -> 3
+    # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+    #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
 
     if classifier_key == 'random-forest':
@@ -86,8 +87,12 @@ def cross_val(X, y, encoder_key, classifier_key):
     probabilities = np.concatenate(all_probabilities, axis=0)
     true_labels = np.concatenate(all_true_labels, axis=0)
 
-    true_labels_onehot = LabelBinarizer().fit_transform(true_labels)
-    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities)
+    bayesflow_onehot = LabelBinarizer()
+    true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
+    # 'AGN' -> [1 0 0 0], 'NOAGN' -> [0 1 0 0], 'UHD' -> [0 0 1 0], 'n80' -> [0 0 0 1]
+    # for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
+    #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, ['AGN', 'NOAGN', 'UHD', 'n80'])
     plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
     plt.close()
 

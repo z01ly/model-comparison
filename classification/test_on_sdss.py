@@ -33,7 +33,9 @@ def train(classifier_key):
     
 
 def test(classifier_key):
-    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+    # current: selected sdss
+    sdss_test_data = np.load('../infoVAE/test_results/latent/selected_sdss_test.npy')
+    print(sdss_test_data.shape)
 
     clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
 
@@ -58,8 +60,8 @@ def test(classifier_key):
 
 
 if __name__ == "__main__":
-    # train('random-forest')
-    # train('xgboost') 
+    train('random-forest')
+    train('xgboost') 
 
     test('random-forest')
     test('xgboost')

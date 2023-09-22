@@ -94,6 +94,13 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
     probabilities = np.concatenate(all_probabilities, axis=0)
     true_labels = np.concatenate(all_true_labels, axis=0)
 
+    bayesflow_onehot = LabelBinarizer()
+    true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, ['AGN', 'NOAGN', 'UHD', 'n80'])
+    plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
+    plt.close()
+
+    """
     plt.figure(figsize=(10, 10))
     markers = ['o', 'v', 's', 'p']
     linestyles = ['solid', 'dotted', 'dashed', 'dashdot']
@@ -108,6 +115,7 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
     plt.legend()
     plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
     plt.close()
+    """
 
 
     # average_cm = np.mean(confusion_matrices, axis=0)
@@ -141,11 +149,8 @@ def train(oversample_key, classifier_key, max_iter=400):
 
     clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
 
-    if (classifier_key == 'adaboost-RF-oversample') or (classifier_key == 'adaboost-RF'):
-        clf = AdaBoostClassifier(estimator=clf_RF, n_estimators=50, random_state=42)
-    elif (classifier_key == 'adaboost-XGB-oversample') or (classifier_key == 'adaboost-XGB'):
-        clf = AdaBoostClassifier(estimator=clf_XGB, n_estimators=50, random_state=42)
-    elif (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+
+    if (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
     elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
@@ -176,7 +181,9 @@ def train(oversample_key, classifier_key, max_iter=400):
 
 
 def test(scaler, classifier_key):
-    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+    # current: selected sdss
+    sdss_test_data = np.load('../infoVAE/test_results/latent/selected_sdss_test.npy')
+    print(sdss_test_data.shape)
 
     clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
 
@@ -201,7 +208,7 @@ def test(scaler, classifier_key):
 
 
 def ensemble_test(oversample_key, classifier_key):
-    cross_val(oversample_key, classifier_key)
+    # cross_val(oversample_key, classifier_key)
     scaler = train(oversample_key, classifier_key)
     test(scaler, classifier_key)
 
@@ -210,7 +217,7 @@ def ensemble_test(oversample_key, classifier_key):
 
 if __name__ == "__main__":
     # candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
-    # ensemble_test(oversample_key = True, classifier_key = 'single-MLP-oversample')
+    ensemble_test(oversample_key = True, classifier_key = 'single-MLP-oversample')
 
 
     # ensemble
