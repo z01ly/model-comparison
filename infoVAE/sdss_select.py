@@ -146,6 +146,8 @@ def main(center, major_axis_length, minor_axis_length, angle):
 
     selected_sdss_embedded = sdss_tsne[indices]
     selected_sdss_latent = sdss_latent[indices]
+    np.save('./test_results/latent/selected_sdss_test.npy', selected_sdss_latent)
+    np.savetxt('./test_results/latent_txt/selected_sdss_test.txt', selected_sdss_latent, delimiter=',', fmt='%s')
     selected_sdss_filenames = sdss_filenames[indices]
     np.savetxt('./tsne/selected_sdss_filenames.txt', selected_sdss_filenames, fmt="%s")
 
