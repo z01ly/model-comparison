@@ -154,16 +154,19 @@ if __name__ == '__main__':
 
     # residual plots
     with torch.no_grad():
-        folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
+        # folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
+        folder_paths = ['../mockobs_0915/test']
         for folder_path in folder_paths:
             plot_residual(model, folder_path, gpu_id, use_cuda, False)
-        plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
+        # plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
     
 
+    """
     # training losses
     train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses()
     plot_avg_loss(avg_train_losses, avg_val_losses, 22)
     plot_itr_loss(train_losses, val_losses)
+    """
     
 
 

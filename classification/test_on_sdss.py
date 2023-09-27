@@ -39,7 +39,7 @@ def test(classifier_key):
 
     clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
 
-    label_binarizer = LabelEncoder().fit(['AGN', 'NOAGN', 'UHD', 'n80'])
+    label_binarizer = LabelEncoder().fit(['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80'])
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
     
@@ -49,7 +49,7 @@ def test(classifier_key):
 
     total_elements = sdss_pred.shape[0]
 
-    for target_class in ['AGN', 'NOAGN', 'UHD', 'n80']:
+    for target_class in ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']:
         class_count = np.count_nonzero(sdss_pred == target_class)
         percentage = (class_count / total_elements) * 100
         with open("test-output.txt", "a") as text_file:

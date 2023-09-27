@@ -179,6 +179,9 @@ def load_latent_codes():
     UHD_2times_data = np.load('./test_results/latent/UHD_2times.npy')
     n80_2times_data = np.load('./test_results/latent/n80_2times.npy')
 
-    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+    sdss_test_data = np.load('./test_results/latent/sdss_test.npy')
 
-    return AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data
+    mockobs_0915_data = np.load('./test_results/latent/mockobs_0915.npy')
+
+    return AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, \
+        n80_2times_data, sdss_test_data, mockobs_0915_data

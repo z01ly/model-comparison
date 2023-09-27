@@ -20,73 +20,16 @@ def sdss_size():
 
 
 
-def NOAGN_size():
-    filepath_1 = "../NOAGN/test/classic_faceon_g1.05e11.png"
-    img_1 = Image.open(filepath_1)
+def mock_images_size():
+    filepaths = ["../NOAGN/test/classic_faceon_g1.05e11.png",
+        "../AGN/test/bh_g1.18e10_08.png",
+        "../n80/test/n80_faceon_g2.57e11_n80.0_e0.13.png",
+        "../UHD/test/UHD_1.12e12_06.png",
+        "../mockobs_0915/test/g1.08e11_01.png"]
 
-    filepath_2 = "../NOAGN/test/classic_g1.08e11_10.png"
-    img_2 = Image.open(filepath_2)
-
-    filepath_3 = "../NOAGN/test/ell_wobh_faceon_g1.27e12.png"
-    img_3 = Image.open(filepath_3)
-
-    filepath_4 = "../NOAGN/test/ell_wobh_g1.17e13_01.png"
-    img_4 = Image.open(filepath_4)
-
-
-    print("{} x {} \n".format(img_1.height, img_1.width))
-    print("{} x {} \n".format(img_2.height, img_2.width))
-    print("{} x {} \n".format(img_3.height, img_3.width))
-    print("{} x {} \n".format(img_4.height, img_4.width))
-
-
-
-def AGN_size():
-    filepath_1 = "../AGN/test/bh_faceon_g1.05e11.png"
-    img_1 = Image.open(filepath_1)
-
-    filepath_2 = "../AGN/test/bh_g1.18e10_08.png"
-    img_2 = Image.open(filepath_2)
-
-    filepath_3 = "../AGN/test/ell_bh_faceon_g6.53e12.png"
-    img_3 = Image.open(filepath_3)
-
-    filepath_4 = "../AGN/test/ell_bh_g1.14e13_01.png"
-    img_4 = Image.open(filepath_4)
-
-
-    print("{} x {} \n".format(img_1.height, img_1.width))
-    print("{} x {} \n".format(img_2.height, img_2.width))
-    print("{} x {} \n".format(img_3.height, img_3.width))
-    print("{} x {} \n".format(img_4.height, img_4.width))
-
-
-
-def n80_size():
-    filepath_1 = "../n80/test/g1.37e11_n80.0_e0.13_15.png"
-    img_1 = Image.open(filepath_1)
-
-    filepath_2 = "../n80/test/g7.66e11_n80.0_e0.13_Cstar0.13_06.png"
-    img_2 = Image.open(filepath_2)
-
-    filepath_3 = "../n80/test/n80_faceon_g2.57e11_n80.0_e0.13.png"
-    img_3 = Image.open(filepath_3)
-
-    print("{} x {} \n".format(img_1.height, img_1.width))
-    print("{} x {} \n".format(img_2.height, img_2.width))
-    print("{} x {} \n".format(img_3.height, img_3.width))
-
-
-
-def UHD_size():
-    filepath_1 = "../UHD/test/UHD_1.12e12_06.png"
-    img_1 = Image.open(filepath_1)
-
-    filepath_2 = "../UHD/test/UHD_faceon_2.79e12.png"
-    img_2 = Image.open(filepath_2)
-
-    print("{} x {} \n".format(img_1.height, img_1.width))
-    print("{} x {} \n".format(img_2.height, img_2.width))
+    for filepath in filepaths:
+        img = Image.open(filepath)
+        print("{} x {} \n".format(img.height, img.width))
 
 
 
@@ -158,18 +101,17 @@ def oversample_minority(source_folder, destination_folder, repeat):
 
 if __name__ == '__main__':
     # sdss_size() 64 x 64
-    # NOAGN_size() 500 x 500 -> 64 x 64
-    # AGN_size() 500 x 500 -> 64 x 64
-    # n80_size() 500 x 500 -> 64 x 64
-    # UHD_size() 500 x 500 -> 64 x 64
+    # mock_images_size() 500 x 500 -> 64 x 64
 
     # downsample_mock('../NOAGN/test')
     # downsample_mock('../AGN/test')
     # downsample_mock('../n80/test')
     # downsample_mock('../UHD/test')
+    # downsample_mock('../mockobs_0915/test')
 
     # sdss_split()
 
+    """
     source_folder = '../UHD/test'
     destination_folder = '../UHD_2times/test'
     oversample_minority(source_folder, destination_folder, 2)
@@ -177,3 +119,4 @@ if __name__ == '__main__':
     source_folder = '../n80/test'
     destination_folder = '../n80_2times/test'
     oversample_minority(source_folder, destination_folder, 2)
+    """

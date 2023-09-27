@@ -16,7 +16,8 @@ def apply_tsne_once():
 
 
 def save_tsne_results():
-    filename_latent_list = ['AGN.npy', 'NOAGN.npy', 'UHD.npy', 'n80.npy', 'UHD_2times.npy', 'n80_2times.npy','sdss_test.npy']
+    filename_latent_list = ['AGN.npy', 'NOAGN.npy', 'UHD.npy', 'n80.npy', 'UHD_2times.npy', \
+        'n80_2times.npy', 'sdss_test.npy', 'mockobs_0915.npy']
     for filename_latent in filename_latent_list:
         latent_z = np.load('./test_results/latent/' + filename_latent)
         z_embedded = TSNE(n_components=2, perplexity=100, init='pca', random_state=42).fit_transform(latent_z)
@@ -27,11 +28,11 @@ def save_tsne_results():
 def plot_tsne(include_oversample=False, include_sdss=False):
     fig = plt.figure(figsize=(10,10))
 
-    colors = ['b', 'r', 'g', 'k', 'y']
-    markers = ['o', 'v', 's', '*', '+']
+    colors = ['b', 'r', 'g', 'k', 'y', 'm']
+    markers = ['o', 'v', 's', '*', '+', 'h']
     i = 0
-    filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', \
-        'tsne_UHD_2times.npy', 'tsne_n80_2times.npy', 'tsne_sdss_test.npy']
+    filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_UHD_2times.npy', \
+        'tsne_n80_2times.npy', 'tsne_sdss_test.npy', 'tsne_mockobs_0915.npy']
     for filename_embedded in filename_embedded_list:
         if (not include_sdss) and (filename_embedded == 'tsne_sdss_test.npy'):
             continue
@@ -175,14 +176,13 @@ def main(center, major_axis_length, minor_axis_length, angle):
 
 
 if __name__ == "__main__":
-    # save_tsne_results()
+    save_tsne_results()
 
-    # plot_tsne(False, False)
-    # plot_tsne(True, False)
-    # plot_tsne(False, True)
+    plot_tsne(False, False)
+    plot_tsne(True, False)
+    plot_tsne(False, True)
 
-    center, major_axis_length, minor_axis_length, angle = find_cover_range()
-    main(center, major_axis_length, minor_axis_length, angle)
+    # center, major_axis_length, minor_axis_length, angle = find_cover_range()
+    # main(center, major_axis_length, minor_axis_length, angle)
 
 
-    

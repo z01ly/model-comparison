@@ -93,7 +93,8 @@ if __name__ == "__main__":
     model.eval()
 
     with torch.no_grad():
-        test_dataroots = ['../NOAGN', '../AGN', '../UHD', '../n80', '../UHD_2times', '../n80_2times']
+        # test_dataroots = ['../NOAGN', '../AGN', '../UHD', '../n80', '../UHD_2times', '../n80_2times']
+        test_dataroots = ['../mockobs_0915']
         for test_dataroot in test_dataroots:
             savefig_path = './test_results/images_in_testing/fig_' + test_dataroot[3: ] + '.png'
             z = test(model, test_dataroot=test_dataroot, savefig_path=savefig_path,
@@ -112,12 +113,14 @@ if __name__ == "__main__":
         np.savetxt('./test_results/latent_txt/sdss_test.txt', z, delimiter=',', fmt='%s')
         """
 
+        """
         z, filename_arr = sdss_test_with_filename(model, 
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                 use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
         np.save('./test_results/latent/sdss_test.npy', z)
         np.save('./test_results/latent/sdss_test_filenames.npy', filename_arr)
         np.savetxt('./test_results/latent_txt/sdss_test.txt', z, delimiter=',', fmt='%s')
+        """
     
 
     for filename_latent in os.listdir('./test_results/latent/'):

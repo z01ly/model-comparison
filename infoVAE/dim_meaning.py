@@ -16,6 +16,12 @@ import os
 def check_range_each(input_data, current_dir):
     print(input_data.shape)
 
+    check_dir = os.path.join("./dim_meaning", current_dir)
+    if not os.path.exists(check_dir):
+        os.makedirs(check_dir)
+    else:
+        print(f"Directory already exists: {check_dir}")
+
     with open(os.path.join("./dim_meaning", current_dir, "range.txt"), "w") as text_file:
         text_file.write(f"global min: {np.min(input_data)}, global max: {np.max(input_data)} \n")
         text_file.write(f"\n")
@@ -28,7 +34,8 @@ def check_range_each(input_data, current_dir):
 
 
 
-def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data):
+def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data,
+        n80_2times_data, sdss_test_data, mockobs_0915_data):
     check_range_each(AGN_data, "AGN")
     check_range_each(NOAGN_data, "NOAGN")
     check_range_each(UHD_data, "UHD")
@@ -38,6 +45,8 @@ def check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2
     check_range_each(n80_2times_data, "n80_2times")
 
     check_range_each(sdss_test_data, "sdss_test")
+
+    check_range_each(mockobs_0915_data, "mockobs_0915")
 
 
 
@@ -85,10 +94,12 @@ def main(input_data, current_dir, model, gpu_id, use_cuda=True, dimension=32):
 
 
 if __name__ == '__main__':
-    AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data = utils.load_latent_codes()
-    check_range(AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, n80_2times_data, sdss_test_data)
+    AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, \
+        n80_2times_data, sdss_test_data, mockobs_0915_data = utils.load_latent_codes()
+    check_range(AGN_data, NOAGN_data, UHD_data, n80_data, 
+        UHD_2times_data, n80_2times_data, sdss_test_data, mockobs_0915_data)
 
-    """
+
     gpu_id = 2
     image_size = 64
     nc = 3
@@ -105,10 +116,12 @@ if __name__ == '__main__':
     model.eval()
 
     with torch.no_grad():
+        """
         main(AGN_data, './dim_meaning/AGN', model, gpu_id, use_cuda=True, dimension=32)
         main(NOAGN_data, './dim_meaning/NOAGN', model, gpu_id, use_cuda=True, dimension=32)
         main(UHD_data, './dim_meaning/UHD', model, gpu_id, use_cuda=True, dimension=32)
         main(n80_data, './dim_meaning/n80', model, gpu_id, use_cuda=True, dimension=32)
         main(sdss_test_data, './dim_meaning/sdss_test', model, gpu_id, use_cuda=True, dimension=32)
-    """
+        """
+        main(mockobs_0915_data, './dim_meaning/mockobs_0915', model, gpu_id, use_cuda=True, dimension=32)
 
