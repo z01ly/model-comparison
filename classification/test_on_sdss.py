@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
@@ -43,7 +45,7 @@ def test(classifier_key):
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
     
-
+    """
     sdss_pred_onehot = clf.predict(sdss_test_data)
     sdss_pred = label_binarizer.inverse_transform(sdss_pred_onehot)
 
@@ -54,14 +56,26 @@ def test(classifier_key):
         percentage = (class_count / total_elements) * 100
         with open("test-output.txt", "a") as text_file:
             text_file.write(f"In {classifier_key} test, the percentage of occurrence of class {target_class}: {percentage:.2f}% \n")
+    """
 
+    sdss_pred_prob = clf.predict_proba(sdss_test_data)
+    model_names = ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']
+    sdss_pred_prob_df = pd.DataFrame(sdss_pred_prob, columns=model_names)
+
+    plt.figure(figsize=(12, 6))
+    sns.violinplot(data=sdss_pred_prob_df, palette="Set3")
+    plt.xlabel("Models")
+    plt.ylabel("Probability")
+    plt.title("Violin Plot of Predicted Probabilities")
+    plt.savefig('./violin-plot/' + classifier_key + '-violin.png')
+    plt.close()
     
 
 
 
 if __name__ == "__main__":
-    train('random-forest')
-    train('xgboost') 
+    # train('random-forest')
+    # train('xgboost') 
 
     test('random-forest')
     test('xgboost')

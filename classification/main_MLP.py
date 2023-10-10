@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
@@ -195,6 +197,7 @@ def test(scaler, classifier_key):
     # scaling
     sdss_test_scaled = scaler.transform(sdss_test_data)
 
+    """
     sdss_pred_onehot = clf.predict(sdss_test_scaled)
     sdss_pred = label_binarizer.inverse_transform(sdss_pred_onehot)
 
@@ -205,11 +208,24 @@ def test(scaler, classifier_key):
         percentage = (class_count / total_elements) * 100
         with open("test-output.txt", "a") as text_file:
             text_file.write(f"In {classifier_key} test, the percentage of occurrence of class {target_class}: {percentage:.2f}% \n")
+    """
+
+    sdss_pred_prob = clf.predict_proba(sdss_test_scaled)
+    model_names = ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']
+    sdss_pred_prob_df = pd.DataFrame(sdss_pred_prob, columns=model_names)
+
+    plt.figure(figsize=(12, 6))
+    sns.violinplot(data=sdss_pred_prob_df, palette="Set3")
+    plt.xlabel("Models")
+    plt.ylabel("Probability")
+    plt.title("Violin Plot of Predicted Probabilities")
+    plt.savefig('./violin-plot/' + classifier_key + '-violin.png')
+    plt.close()
 
 
 
 def ensemble_test(oversample_key, classifier_key):
-    cross_val(oversample_key, classifier_key)
+    # cross_val(oversample_key, classifier_key)
     scaler = train(oversample_key, classifier_key)
     test(scaler, classifier_key)
 
