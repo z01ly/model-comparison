@@ -1,10 +1,16 @@
+# This file is from Zehao and Tobias
+# sys.argv[1]: name_file_path variable
+# sys.argv[2]: imsave folder path
+# sys.argv[3]: folder_path variable (data source)
+
+
 # This code makes mock observation images using Faucher's SKIRT radiative transfer result.
 # includes: add PSF, add poisson noise, add guassian sky, and lupton rgb
 
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy.io import fits
-import os
+import os, sys
 from astropy.visualization import make_lupton_rgb
 from astropy.cosmology import WMAP9 as cosmo
 from astropy import units as u
@@ -26,14 +32,16 @@ band_names = ['FUV', 'NUV', 'u', 'g', 'r', 'i', 'z', '2MASS_J', '2MASS_H', '2MAS
 #             'g3.71e11','g4.90e11','g5.02e11','g5.31e11','g5.36e11','g5.38e11','g5.46e11','g5.55e11','g6.96e11',
 #             'g7.08e11','g7.44e11','g7.55e11','g7.66e11','g8.06e11','g8.13e11','g8.26e11','g8.28e11','g1.12e12',
 #             'g1.77e12','g1.92e12','g2.79e12']
-names = ['17009']
-"""
-name_file_path = '../sdss/snapnum_135/subfind_ids.txt'
+
+# names = ['397866','17009','99155','324171','599084']
+# name_file_path = '../sdss/snapnum_135/subfind_ids.txt'
+names = []
+name_file_path = sys.argv[1]
 with open(name_file_path, 'r') as txt_file:
     for line in txt_file:
         num = line.strip()
         names.append(num)
-"""
+
 
 
 ### Realsim params
@@ -57,7 +65,7 @@ Sigseeing = {'u':0.243, 'g':0.221, 'r':0.221, 'i':0.222, 'z':0.204}
 ### some unit conversion
 # https://www.cs.princeton.edu/~rpa/pubs/regier2019approximate.pdf
 # 1 nanomaggy is equivalent to 3.631×10^−6 Jansky
-# nanomaggy_to_Jy = 3.631e-6
+nanomaggy_to_Jy = 3.631e-6
 
 # kpc/arcsec
 # mean,min,max,median of SDSS sample redshift (0.10777628, 0.00500689, 0.843643, 0.1015725)
@@ -78,8 +86,8 @@ def makeImages(name,g, r, i, kpc_per_pixel):
     img = {'i':i, 'r':r, 'g':g}
 
     # kpc/pixel
-    # kpc_per_pixel = width*u.pc.to(u.kpc)/img['i'].shape[0]
-
+    #kpc_per_pixel = width*u.pc.to(u.kpc)/img['i'].shape[0]
+    print("kpc_per_pixel", kpc_per_pixel)
 
     for band in ['i','r','g']:
         # convert to nanomaggies
@@ -90,6 +98,7 @@ def makeImages(name,g, r, i, kpc_per_pixel):
         psfsize = seeing[band] # use mean seeing
 
         # in kpc
+        print("kpc_per_arcsec", kpc_per_arcsec)
         psf_FWHM=kpc_per_arcsec*psfsize
         psf_sigma=psf_FWHM/2.35482004503 #https://en.wikipedia.org/wiki/Full_width_at_half_maximum
 
@@ -100,19 +109,19 @@ def makeImages(name,g, r, i, kpc_per_pixel):
         kernel = kernel.array  # we only need the numpy array
         # convolve with PSF
         img[band] = convolve(img[band], kernel)
-
-
-
+        
         ### add poisson noise to image ###
         # conversion factor from nanomaggies to counts
         counts_per_nanomaggy = exptime*10**(-0.4*(22.5+aa[band]+kk[band]*airmass[band]))
+        print("counts_per_nanomaggy", counts_per_nanomaggy)
         # image in counts for given field properties
         img_counts = np.clip(img[band] * counts_per_nanomaggy,a_min=0,a_max=None)
+        #img_counts = np.clip(img[band],a_min=0,a_max=None) #np.copy(img[band])
         # poisson noise [adu] computed accounting for gain [e/adu]
         img_counts = np.random.poisson(lam=img_counts*gain[band])/gain[band]
         # convert back to nanomaggies
         img[band] = img_counts / counts_per_nanomaggy
-
+         
         ### add gaussian sky to image ###
         # sky sig in AB mag/arcsec2
         # draw a random sky noise from the distribution of typical skies in SDSS
@@ -127,14 +136,15 @@ def makeImages(name,g, r, i, kpc_per_pixel):
         sky = false_sky_sig*np.random.randn(*img[band].shape)
         # add false sky to image in nanomaggies
         img[band] += sky
-
+        
         # back to Jansky
-        #img[band] *= nanomaggy_to_Jy
-            
+        img[band] *= nanomaggy_to_Jy
+        
     # make rgb image
     image = make_lupton_rgb(img['i'],img['r'],img['g'],Q=20,stretch=np.array([img['i'].mean(),img['r'].mean(),img['g'].mean()]).mean()/0.5)
     # plt.imsave('mockobs_0915/'+galaxy+'_'+str(i).zfill(2)+'.png',image,origin='lower')
-    plt.imsave('../mock_sdss_135/'+'broadband_' + name+ '.png',image,origin='lower')
+    # plt.imsave('../mock_illustris_1_sdss_135/'+'broadband_' + name+ '.png',image,origin='lower')
+    plt.imsave(sys.argv[2] +'broadband_' + name + '.png',image,origin='lower')
 
     return None
 
@@ -147,7 +157,8 @@ def makeImages(name,g, r, i, kpc_per_pixel):
 
 
 ### main
-folder_path = '../sdss/snapnum_135/data/'
+# folder_path = '../sdss/snapnum_135/data/'
+folder_path = sys.argv[3]
 
 for name in tqdm(names,total=len(names),desc='names'):
     # with fits.open('NIHAO_SKIRT/'+galaxy+'_nihao-resolved-photometry.fits') as hdulist:
@@ -158,20 +169,32 @@ for name in tqdm(names,total=len(names),desc='names'):
         g_r_i_z = hdulist[0].data
     # conversion to nanomaggies: https://www.illustris-project.org/data/forum/topic/304/converting-mock-image-counts-to-flux-magnitudes/    
     # 
-    g = g_r_i_z[0] #  / 2.40238e+10 / 3.631e-6 
-    r = g_r_i_z[1]  #/ 2.3826e+10 / 3.631e-6 
-    i = g_r_i_z[2] # / 1.59001e+10 / 3.631e-6 
+    counts_per_nanomaggy = exptime*10**(-0.4*(22.5+aa['g']+kk['g']*airmass['g']))
+    g = g_r_i_z[0] / counts_per_nanomaggy / nanomaggy_to_Jy #/ 2.40238e+10 #/ 3.631e-6 
+    counts_per_nanomaggy = exptime*10**(-0.4*(22.5+aa['r']+kk['r']*airmass['r']))
+    r = g_r_i_z[1] / counts_per_nanomaggy / nanomaggy_to_Jy #/ 2.3826e+10 #/ 3.631e-6 
+    counts_per_nanomaggy = exptime*10**(-0.4*(22.5+aa['i']+kk['i']*airmass['i']))
+    i = g_r_i_z[2] / counts_per_nanomaggy / nanomaggy_to_Jy #/ 1.59001e+10 #/ 3.631e-6 
     # flux = summary['flux']
     # width = summary['size'].mean()
-    kpc_per_pixel = hdulist[0].header["PIXSCALE"]
-    makeImages(name,g, r, i,kpc_per_pixel)
+    #width = hdulist[0].header["CDELT1"]
+    #print("width", width)
+    kpc_per_pixel = hdulist[0].header["CDELT1"]/1000.
+    #arcsec_per_pixel = kpc_per_pixel / kpc_per_arcsec
+    #print("arcsec_per_pixel", arcsec_per_pixel)
+    #print("image shape: ", g.shape)
+    #makeImages(name,g/arcsec_per_pixel**2, r/arcsec_per_pixel**2, i/arcsec_per_pixel**2,kpc_per_pixel)
+    makeImages(name, g, r, i, kpc_per_pixel)
 
 
 
-with fits.open(folder_path +'broadband_17009.fits') as hdulist:
+
+"""
+with fits.open('../sdss/snapnum_095/data/' +'broadband_120.fits') as hdulist:
     header = hdulist[0].header
     data = hdulist[0].data
     for keyword, value in header.items():
         print(f"{keyword}: {value}")
-
     print(data.shape)
+"""
+

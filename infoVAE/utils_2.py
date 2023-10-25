@@ -33,19 +33,19 @@ def mock_images_size():
 
 
 
-def downsample_mock(folder_path):
+def sample_mock(folder_path): # for upsampling and downsampling
     for filename in os.listdir(folder_path):
         image_path = os.path.join(folder_path, filename)
         image = Image.open(image_path)
 
         image_array = np.array(image)
 
-        # Downsample the image to 64x64 using scipy.ndimage.zoom
+        # sample the image to 64x64 using scipy.ndimage.zoom
         downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
 
         downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
 
-        # Save the downsampled image, overwriting the original file
+        # Save the sampled image, overwriting the original file
         downsampled_image.save(image_path)
 
 
@@ -103,11 +103,15 @@ if __name__ == '__main__':
     # sdss_size() 64 x 64
     # mock_images_size() 500 x 500 -> 64 x 64
 
-    # downsample_mock('../NOAGN/test')
-    # downsample_mock('../AGN/test')
-    # downsample_mock('../n80/test')
-    # downsample_mock('../UHD/test')
-    # downsample_mock('../mockobs_0915/test')
+    # sample_mock('../NOAGN/test')
+    # sample_mock('../AGN/test')
+    # sample_mock('../n80/test')
+    # sample_mock('../UHD/test')
+    # sample_mock('../mockobs_0915/test')
+
+    sample_mock('../mock_illustris_1_sdss_135/test')
+    sample_mock('../mock_TNG100_1_sdss_099/test')
+    sample_mock('../mock_TNG50_1_sdss_095/test')
 
     # sdss_split()
 
