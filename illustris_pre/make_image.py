@@ -34,7 +34,7 @@ band_names = ['FUV', 'NUV', 'u', 'g', 'r', 'i', 'z', '2MASS_J', '2MASS_H', '2MAS
 #             'g1.77e12','g1.92e12','g2.79e12']
 
 # names = ['397866','17009','99155','324171','599084']
-# name_file_path = '../sdss/snapnum_135/subfind_ids.txt'
+# name_file_path = 'sdss/snapnum_135/subfind_ids.txt'
 names = []
 name_file_path = sys.argv[1]
 with open(name_file_path, 'r') as txt_file:
@@ -157,7 +157,7 @@ def makeImages(name,g, r, i, kpc_per_pixel):
 
 
 ### main
-# folder_path = '../sdss/snapnum_135/data/'
+# folder_path = 'sdss/snapnum_135/data/'
 folder_path = sys.argv[3]
 
 for name in tqdm(names,total=len(names),desc='names'):
