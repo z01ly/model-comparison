@@ -109,9 +109,9 @@ if __name__ == '__main__':
     # sample_mock('../UHD/test')
     # sample_mock('../mockobs_0915/test')
 
-    sample_mock('../mock_illustris_1_sdss_135/test')
-    sample_mock('../mock_TNG100_1_sdss_099/test')
-    sample_mock('../mock_TNG50_1_sdss_095/test')
+    sample_mock('../illustris-1_snapnum_135')
+    sample_mock('../TNG100-1_snapnum_099')
+    sample_mock('../TNG50-1_snapnum_099')
 
     # sdss_split()
 
