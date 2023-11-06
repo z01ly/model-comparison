@@ -10,3 +10,5 @@ rsync -avz
 wc -l
 
 du -sh
+
+tar -xvf

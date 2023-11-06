@@ -20,16 +20,15 @@ def sdss_size():
 
 
 
-def mock_images_size():
-    filepaths = ["../NOAGN/test/classic_faceon_g1.05e11.png",
-        "../AGN/test/bh_g1.18e10_08.png",
-        "../n80/test/n80_faceon_g2.57e11_n80.0_e0.13.png",
-        "../UHD/test/UHD_1.12e12_06.png",
-        "../mockobs_0915/test/g1.08e11_01.png"]
-
-    for filepath in filepaths:
-        img = Image.open(filepath)
+def mock_images_size(dir_path):
+    files_in_dir = os.listdir(dir_path)
+    if files_in_dir:
+        random_file = random.choice(files_in_dir)
+        img = Image.open(os.path.join(dir_path, random_file))
         print("{} x {} \n".format(img.height, img.width))
+        print(f"Randomly sampled file: {random_file}")
+    else:
+        print(f"The directory '{dir_path}' is empty.")
 
 
 
@@ -98,10 +97,64 @@ def oversample_minority(source_folder, destination_folder, repeat):
 
 
 
+def add_dir_move_files(base_dir, new_dir):
+    path = os.path.join(base_dir, new_dir)
+
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+        print(f"Directory '{path}' created.")
+    else:
+        print(f"'{path}' already exists within '{base_dir}'.")
+
+    for filename in os.listdir(base_dir):
+        source_file = os.path.join(base_dir, filename)
+        if os.path.isdir(source_file):
+            continue
+        destination_file = os.path.join(path, filename)
+        shutil.move(source_file, destination_file)
+
+
+
+def mock_split(source_directory):
+    train_directory = '../mock_trainset/' + source_directory[3: ]
+    val_directory = '../mock_valset/' + source_directory[3: ]
+
+    os.makedirs(train_directory, exist_ok=True)
+    os.makedirs(val_directory, exist_ok=True)
+
+    files_in_source_directory = os.listdir(source_directory)
+
+    total_files = len(files_in_source_directory)
+    train_count = int(total_files * 0.85)
+    val_count = total_files - train_count
+
+    random.shuffle(files_in_source_directory)
+
+    train_files = files_in_source_directory[:train_count]
+    val_files = files_in_source_directory[train_count:]
+
+    for file in train_files:
+        source_path = os.path.join(source_directory, file)
+        dest_path = os.path.join(train_directory, file)
+        shutil.move(source_path, dest_path)
+
+    for file in val_files:
+        source_path = os.path.join(source_directory, file)
+        dest_path = os.path.join(val_directory, file)
+        shutil.move(source_path, dest_path)
+
+    print(f"{len(os.listdir(train_directory))} files moved to the training set.")
+    print(f"{len(os.listdir(val_directory))} files moved to the validation set.")
+
+
+
+
 
 if __name__ == '__main__':
     # sdss_size() 64 x 64
-    # mock_images_size() 500 x 500 -> 64 x 64
+    # mock_images_size("../NOAGN/test/")
+
+
 
     # sample_mock('../NOAGN/test')
     # sample_mock('../AGN/test')
@@ -109,18 +162,32 @@ if __name__ == '__main__':
     # sample_mock('../UHD/test')
     # sample_mock('../mockobs_0915/test')
 
-    sample_mock('../illustris-1_snapnum_135')
-    sample_mock('../TNG100-1_snapnum_099')
-    sample_mock('../TNG50-1_snapnum_099')
+    # sample_mock('../illustris-1_snapnum_135')
+    # sample_mock('../TNG100-1_snapnum_099')
+    # sample_mock('../TNG50-1_snapnum_099')
+
+    # add_dir_move_files('../illustris-1_snapnum_135', 'test')
+    # add_dir_move_files('../TNG100-1_snapnum_099', 'test')
+    # add_dir_move_files('../TNG50-1_snapnum_099', 'test')
+
+
 
     # sdss_split()
 
-    """
-    source_folder = '../UHD/test'
-    destination_folder = '../UHD_2times/test'
-    oversample_minority(source_folder, destination_folder, 2)
 
-    source_folder = '../n80/test'
-    destination_folder = '../n80_2times/test'
-    oversample_minority(source_folder, destination_folder, 2)
-    """
+
+    # source_folder = '../UHD/test'
+    # destination_folder = '../UHD_2times/test'
+    # oversample_minority(source_folder, destination_folder, 2)
+
+    # source_folder = '../n80/test'
+    # destination_folder = '../n80_2times/test'
+    # oversample_minority(source_folder, destination_folder, 2)
+
+
+
+    model_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs_0915', 'TNG50-1_snapnum_099', 'TNG100-1_snapnum_099', 'illustris-1_snapnum_135']
+    # for model_name in model_list:
+    #     mock_split('../' + model_name + '/test')
+    for model_name in model_list:
+        shutil.rmtree('../' + model_name)
