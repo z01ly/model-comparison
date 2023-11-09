@@ -170,18 +170,26 @@ def sample_filename(folder_path):
 
 
 
-def load_latent_codes():
-    AGN_data = np.load('./test_results/latent/AGN.npy')
-    NOAGN_data = np.load('./test_results/latent/NOAGN.npy')
-    UHD_data = np.load('./test_results/latent/UHD.npy')
-    n80_data = np.load('./test_results/latent/n80.npy')
+def stack_train_val(model_str):
+    data_dict = {'train': None, 'val': None}
 
-    UHD_2times_data = np.load('./test_results/latent/UHD_2times.npy')
-    n80_2times_data = np.load('./test_results/latent/n80_2times.npy')
+    directory_path = './test_results/latent/'
 
-    sdss_test_data = np.load('./test_results/latent/sdss_test.npy')
+    for filename in os.listdir(directory_path):
+        file_type = filename.split('_')[1].split('.')[0]
+        if file_type == model_str:
+            data_type = 'train' if filename.startswith('trainset') else 'val'
+            data_dict[data_type] = np.load(os.path.join(directory_path, filename))
 
-    mockobs_0915_data = np.load('./test_results/latent/mockobs_0915.npy')
+    stacked_data = np.vstack((data_dict['train'], data_dict['val']))
+    # np.random.shuffle(stacked_data)
+    print("stacked data shape:", stacked_data.shape)
 
-    return AGN_data, NOAGN_data, UHD_data, n80_data, UHD_2times_data, \
-        n80_2times_data, sdss_test_data, mockobs_0915_data
+    return stacked_data
+    
+
+
+
+if __name__ == '__main__':
+    # file_type_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs', 'TNG50-1', 'TNG100-1', 'illustris-1']
+    stacked_data = stack_train_val('mockobs')

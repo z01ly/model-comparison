@@ -9,43 +9,35 @@ from matplotlib.patches import Ellipse
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-
-def apply_tsne_once():
-    pass
+import utils
 
 
-
-def save_tsne_results():
-    filename_latent_list = ['AGN.npy', 'NOAGN.npy', 'UHD.npy', 'n80.npy', 'UHD_2times.npy', \
-        'n80_2times.npy', 'sdss_test.npy', 'mockobs_0915.npy']
-    for filename_latent in filename_latent_list:
-        latent_z = np.load('./test_results/latent/' + filename_latent)
+def save_tsne_results(model_list):
+    for model_str in model_list:
+        latent_z = utils.stack_train_val(model_str)
         z_embedded = TSNE(n_components=2, perplexity=100, init='pca', random_state=42).fit_transform(latent_z)
-        np.save('./tsne/tsne_' + filename_latent, z_embedded)
+        np.save('./tsne/tsne_' + model_str, z_embedded)
 
 
 
-def plot_tsne(include_oversample=False, include_sdss=False):
+def plot_tsne(key, include_sdss=False): 
+    # key = 'illustris' or 'nihao'
+    if key == 'illustris':
+        filename_embedded_list = ['tsne_illustris-1.npy', 'tsne_TNG100-1.npy', 'tsne_TNG50-1.npy']
+    elif key == 'nihao':
+        filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_mockobs_0915.npy']
+
+    if include_sdss:
+        filename_embedded_list.append('tsne_sdss_test.npy')
+
     fig = plt.figure(figsize=(10,10))
 
-    colors = ['b', 'r', 'g', 'k', 'y', 'm']
+    colors = ['b', 'r', 'g', 'y', 'm', 'c']
     markers = ['o', 'v', 's', '*', '+', 'h']
     i = 0
-    filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_UHD_2times.npy', \
-        'tsne_n80_2times.npy', 'tsne_sdss_test.npy', 'tsne_mockobs_0915.npy']
     for filename_embedded in filename_embedded_list:
-        if (not include_sdss) and (filename_embedded == 'tsne_sdss_test.npy'):
-            continue
-
-        if (not include_oversample) and ((filename_embedded == 'tsne_UHD_2times.npy') or (filename_embedded == 'tsne_n80_2times.npy')):
-            continue
-        elif include_oversample and ((filename_embedded == 'tsne_UHD.npy') or (filename_embedded == 'tsne_n80.npy')):
-            continue
-        
         z_embedded = np.load('./tsne/' + filename_embedded)
-
         plt.scatter(z_embedded[:, 0], z_embedded[:, 1], s=5, c=colors[i], marker=markers[i], label=filename_embedded[: -4])
-
         i += 1
 
     plt.xlabel('Dimension 1')
@@ -53,25 +45,49 @@ def plot_tsne(include_oversample=False, include_sdss=False):
     plt.title("Applying tsne to latent z")
     plt.legend()
 
-    
+
     if include_sdss:
-        fig.savefig('./tsne/plot_all.png')
+        fig.savefig('./tsne/' + key + '_and_sdss.png')
     else:
-        if include_oversample:
-            fig.savefig('./tsne/plot_models_oversample.png')
-        else:
-            fig.savefig('./tsne/plot_models.png')
+        fig.savefig('./tsne/' + key + '.png')
+
+    
+
+def plot_compare():
+    illustris = ['tsne_illustris-1.npy', 'tsne_TNG100-1.npy', 'tsne_TNG50-1.npy']
+    nihao = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_mockobs_0915.npy']
+    load_illustris = [np.load('./tsne/' + model) for model in illustris]
+    load_nihao = [np.load('./tsne/' + model) for model in nihao]
+    all_illustris = np.concatenate(load_illustris, axis=0)
+    all_nihao = np.concatenate(load_nihao, axis=0)
+
+    fig = plt.figure(figsize=(10,10))
+
+    plt.scatter(all_illustris[:, 0], all_illustris[:, 1], s=5, c='y', marker='o', label='illustris')
+    plt.scatter(all_nihao[:, 0], all_nihao[:, 1], s=5, c='b', marker='v', label='nihao')
+
+    plt.xlabel('Dimension 1')
+    plt.ylabel('Dimension 2')
+    plt.title("Applying tsne to latent z")
+    plt.legend()
+
+    fig.savefig('./tsne/compare_illustris_nihao.png')
 
 
 
-def find_cover_range():
+def find_cover_range(key):
+    if key == 'illustris':
+        filename_embedded_list = ['tsne_illustris-1.npy', 'tsne_TNG100-1.npy', 'tsne_TNG50-1.npy']
+    elif key == 'nihao':
+        filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_mockobs_0915.npy']
+
+
     fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
 
-    colors = ['b', 'r', 'g', 'k', 'y']
+    colors = ['b', 'r', 'g', 'y', 'k']
     markers = ['o', 'v', 's', '*', '+']
     i = 0
-    filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy']
     arrays = []
     for filename_embedded in filename_embedded_list:
         z_embedded = np.load('./tsne/' + filename_embedded)
@@ -102,18 +118,6 @@ def find_cover_range():
         facecolor='none'
     )
     ax.add_patch(ellipse)
-
-    """
-    ellipse2 = Ellipse(
-        xy=center,
-        width=major_axis_length + 5,
-        height=minor_axis_length + 5,
-        angle=np.degrees(angle),
-        edgecolor='m',
-        facecolor='none'
-    )
-    ax.add_patch(ellipse2)
-    """
     
     ax.set_aspect('equal', adjustable='box') # Set aspect ratio to equal
     
@@ -122,17 +126,16 @@ def find_cover_range():
     plt.title("Fitting an ellipse to tsne data")
     plt.legend()
 
-    fig.savefig('./tsne/find_cover_range.png')
+    fig.savefig('./tsne/' + key + '_cover_range.png')
 
     return center, major_axis_length, minor_axis_length, angle
 
 
 
 
-def main(center, major_axis_length, minor_axis_length, angle):
+def main(key, center, major_axis_length, minor_axis_length, angle):
     sdss_latent = np.load('./test_results/latent/sdss_test.npy')
     sdss_filenames = np.load('./test_results/latent/sdss_test_filenames.npy')
-
     sdss_tsne = np.load('./tsne/tsne_sdss_test.npy')
 
     xc, yc = center
@@ -147,16 +150,22 @@ def main(center, major_axis_length, minor_axis_length, angle):
 
     selected_sdss_embedded = sdss_tsne[indices]
     selected_sdss_latent = sdss_latent[indices]
-    np.save('./test_results/latent/selected_sdss_test.npy', selected_sdss_latent)
-    np.savetxt('./test_results/latent_txt/selected_sdss_test.txt', selected_sdss_latent, delimiter=',', fmt='%s')
     selected_sdss_filenames = sdss_filenames[indices]
-    np.savetxt('./tsne/selected_sdss_filenames.txt', selected_sdss_filenames, fmt="%s")
+
+    np.save('./test_results/latent/' + key + '_selected_sdss_test.npy', selected_sdss_latent)
+    np.savetxt('./test_results/latent_txt/' + key + '_selected_sdss_test.txt', selected_sdss_latent, delimiter=',', fmt='%s')
+    np.savetxt('./tsne/' + key + '_selected_sdss_filenames.txt', selected_sdss_filenames, fmt="%s")
+
+
+    if key == 'illustris':
+        filename_embedded_list = ['tsne_illustris-1.npy', 'tsne_TNG100-1.npy', 'tsne_TNG50-1.npy']
+    elif key == 'nihao':
+        filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy', 'tsne_mockobs_0915.npy']
 
     fig = plt.figure(figsize=(10,10))
     colors = ['b', 'r', 'g', 'k']
     markers = ['o', 'v', 's', '*']
     i = 0
-    filename_embedded_list = ['tsne_AGN.npy', 'tsne_NOAGN.npy', 'tsne_UHD.npy', 'tsne_n80.npy']
     for filename_embedded in filename_embedded_list:
         z_embedded = np.load('./tsne/' + filename_embedded)
         plt.scatter(z_embedded[:, 0], z_embedded[:, 1], s=5, c=colors[i], marker=markers[i], label=filename_embedded[: -4])
@@ -169,20 +178,24 @@ def main(center, major_axis_length, minor_axis_length, angle):
     plt.title("Selected sdss test")
     plt.legend()
 
-    fig.savefig('./tsne/select_sdss_test.png')
+    fig.savefig('./tsne/' + key + '_select_sdss_test.png')
+
 
 
 
 
 
 if __name__ == "__main__":
-    save_tsne_results()
+    # model_list = ['TNG50-1', 'TNG100-1', 'illustris-1']
+    # save_tsne_results(model_list)
 
-    plot_tsne(False, False)
-    plot_tsne(True, False)
-    plot_tsne(False, True)
+    # plot_tsne(key='illustris')
+    # plot_tsne(key='illustris', include_sdss=True)
+    # plot_tsne(key='nihao')
+    # plot_tsne(key='nihao', include_sdss=True)
+    # plot_compare()
 
-    # center, major_axis_length, minor_axis_length, angle = find_cover_range()
-    # main(center, major_axis_length, minor_axis_length, angle)
+    center, major_axis_length, minor_axis_length, angle = find_cover_range(key='illustris')
+    main('illustris', center, major_axis_length, minor_axis_length, angle)
 
 

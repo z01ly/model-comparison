@@ -12,10 +12,8 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import os
 import shutil
-from sklearn.manifold import TSNE
 
 
 
@@ -64,18 +62,17 @@ def plot_itr_loss(train_losses, val_losses):
 
 
 def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
+    # e.g. '../sdss_data/test/cutouts/', '../mock_trainset/AGN/test'
+    directory_names = folder_path.split(os.path.sep)
+
     if not sdss:
-        last_num = -6
+        shutil.rmtree(os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}"))
+        os.makedirs(os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}"))
     else:
-        last_num = -14
+        shutil.rmtree(os.path.join('./test_results/residual', f"{directory_names[1]}"))
+        os.makedirs(os.path.join('./test_results/residual', f"{directory_names[1]}"))
 
-    try:
-        shutil.rmtree(os.path.join('./test_results/residual/', folder_path[3: last_num]))
-    except:
-        pass
-    os.makedirs(os.path.join('./test_results/residual/', folder_path[3:])) # e.g. './test_results/residual/NOAGN/test/'
-
-    sampled_filenames = utils.sample_filename(folder_path) # e.g. '../NOAGN/test/classic_g3.67e10_18.png'
+    sampled_filenames = utils.sample_filename(folder_path)
 
     for filename in sampled_filenames:
         original_img = Image.open(filename).convert('RGB') # Image.open() 4 channels
@@ -127,7 +124,11 @@ def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
 
         plt.tight_layout()
 
-        savefig_path = os.path.join('./test_results/residual/', filename[3:])
+        file_names = filename.split(os.path.sep)
+        if not sdss:
+            savefig_path = os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}", f"{file_names[-1]}")
+        else:
+            savefig_path = os.path.join('./test_results/residual', f"{directory_names[1]}", f"{file_names[-1]}")
         plt.savefig(savefig_path, dpi=300)
 
         plt.close(fig)
@@ -136,7 +137,7 @@ def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
 
 
 if __name__ == '__main__':
-    gpu_id = 2
+    gpu_id = 1
     image_size = 64
     nc = 3
     nz = 32
@@ -154,11 +155,12 @@ if __name__ == '__main__':
 
     # residual plots
     with torch.no_grad():
-        # folder_paths = ['../NOAGN/test/', '../AGN/test/', '../n80/test/', '../UHD/test/']
-        folder_paths = ['../mockobs_0915/test']
+        folder_paths = [os.path.join('../mock_trainset', subdir, 'test') for subdir in os.listdir('../mock_trainset')]
+        folder_paths.extend([os.path.join('../mock_valset', subdir, 'test') for subdir in os.listdir('../mock_valset')])
+
         for folder_path in folder_paths:
             plot_residual(model, folder_path, gpu_id, use_cuda, False)
-        # plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
+        plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
     
 
     """

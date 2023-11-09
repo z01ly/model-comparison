@@ -31,8 +31,8 @@ def test(model, test_dataroot, savefig_path, z_dim=2,
          
     z = np.concatenate(z_list, axis=0)
 
-    # 25 images
-    sampled_rows = np.random.choice(z.shape[0], size=25, replace=False)
+    # 16 images
+    sampled_rows = np.random.choice(z.shape[0], size=16, replace=False)
     sampled_matrix = z[sampled_rows]
     gen_z = Variable(torch.tensor(sampled_matrix), requires_grad=False)
     if use_cuda:
@@ -93,16 +93,23 @@ if __name__ == "__main__":
     model.eval()
 
     with torch.no_grad():
-        # test_dataroots = ['../NOAGN', '../AGN', '../UHD', '../n80', '../UHD_2times', '../n80_2times']
-        test_dataroots = ['../mockobs_0915']
+        test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in os.listdir('../mock_trainset')]
+        test_dataroots.extend([os.path.join('../mock_valset', subdir) for subdir in os.listdir('../mock_valset')])
+
         for test_dataroot in test_dataroots:
-            savefig_path = './test_results/images_in_testing/fig_' + test_dataroot[3: ] + '.png'
+            directory_names = test_dataroot.split(os.path.sep)
+            extraction = f"{directory_names[-2][5: ]}_{directory_names[-1]}"
+
+            savefig_path = './test_results/images_in_testing/fig_' + extraction + '.png'
             z = test(model, test_dataroot=test_dataroot, savefig_path=savefig_path,
                     z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                     use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-            np.save('./test_results/latent/' + test_dataroot[3: ] + '.npy', z)
-            np.savetxt('./test_results/latent_txt/' + test_dataroot[3: ] + '.txt', z, delimiter=',', fmt='%s')
+
+            np.save('./test_results/latent/' + extraction + '.npy', z)
+            np.savetxt('./test_results/latent_txt/' + extraction + '.txt', z, delimiter=',', fmt='%s')
         
+        
+
         """
         sdss_test_dataroot = '../sdss_data/test'
         savefig_path = './test_results/images_in_testing/fig_sdss_test.png'
