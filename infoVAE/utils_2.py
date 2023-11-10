@@ -155,7 +155,6 @@ if __name__ == '__main__':
     # mock_images_size("../NOAGN/test/")
 
 
-
     # sample_mock('../NOAGN/test')
     # sample_mock('../AGN/test')
     # sample_mock('../n80/test')
@@ -171,23 +170,18 @@ if __name__ == '__main__':
     # add_dir_move_files('../TNG50-1_snapnum_099', 'test')
 
 
-
     # sdss_split()
 
 
-
-    # source_folder = '../UHD/test'
-    # destination_folder = '../UHD_2times/test'
-    # oversample_minority(source_folder, destination_folder, 2)
-
-    # source_folder = '../n80/test'
-    # destination_folder = '../n80_2times/test'
-    # oversample_minority(source_folder, destination_folder, 2)
+    minority_list = ['UHD', 'n80', 'TNG50-1_snapnum_099']
+    for minority in minority_list:
+        source_folder = '../mock_trainset/' + minority + '/test'
+        destination_folder = '../mock_trainset/' + minority +'_2times/test'
+        oversample_minority(source_folder, destination_folder, 2)
 
 
-
-    model_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs_0915', 'TNG50-1_snapnum_099', 'TNG100-1_snapnum_099', 'illustris-1_snapnum_135']
+    # model_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs_0915', 'TNG50-1_snapnum_099', 'TNG100-1_snapnum_099', 'illustris-1_snapnum_135']
     # for model_name in model_list:
     #     mock_split('../' + model_name + '/test')
-    for model_name in model_list:
-        shutil.rmtree('../' + model_name)
+    # for model_name in model_list:
+    #     shutil.rmtree('../' + model_name)
