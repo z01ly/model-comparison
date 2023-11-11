@@ -17,16 +17,14 @@ from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
-import pickle
+import pickle, os
 
 import utils
 import bayesflow_calibration
 
 
 
-def cross_val(oversample_key, classifier_key, max_iter=400):
-    X, y = utils.load_data_train(oversample_key)
-    
+def cross_val(key, model_names, X, y, classifier_key, max_iter=400):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
@@ -42,19 +40,19 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
     clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
 
     
-    if (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+    if classifier_key == 'stacking-MLP-RF-XGB':
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
-    elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
+    elif classifier_key == 'voting-3MLPs':
         clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0)
         clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1)
         # predict_proba is not available when voting='hard'
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
-    elif (classifier_key == 'voting-MLP-RF-XGB-oversample') or (classifier_key == 'voting-MLP-RF-XGB'):
+    elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
-    elif (classifier_key == 'single-MLP-oversample'):
+    elif classifier_key == 'single-MLP':
         clf = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
 
@@ -98,9 +96,8 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
 
     bayesflow_onehot = LabelBinarizer()
     true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
-    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, 
-                    ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80'])
-    plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
+    plt.savefig(os.path.join('./calibration-curve', key, classifier_key + '-cc.png'))
     plt.close()
 
     """
@@ -130,14 +127,12 @@ def cross_val(oversample_key, classifier_key, max_iter=400):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig('./confusion-matrix/' + classifier_key + '-cm.png')
+    plt.savefig(os.path.join('./confusion-matrix', key, classifier_key + '-cm.png'))
     plt.close()
 
 
 
-def train(oversample_key, classifier_key, max_iter=400):
-    X, y = utils.load_data_train(oversample_key)
-
+def train(key, classifier_key, X, y, max_iter=400):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
@@ -153,19 +148,19 @@ def train(oversample_key, classifier_key, max_iter=400):
     clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
 
 
-    if (classifier_key == 'stacking-MLP-RF-XGB-oversample') or (classifier_key == 'stacking-MLP-RF-XGB'):
+    if classifier_key == 'stacking-MLP-RF-XGB':
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
-    elif (classifier_key == 'voting-3MLPs-oversample') or (classifier_key == 'voting-3MLPs'):
+    elif classifier_key == 'voting-3MLPs':
         clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0, early_stopping=True)
         clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1, early_stopping=True)
         # predict_proba is not available when voting='hard'
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
-    elif (classifier_key == 'voting-MLP-RF-XGB-oversample') or (classifier_key == 'voting-MLP-RF-XGB'):
+    elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
-    elif (classifier_key == 'single-MLP-oversample'):
+    elif classifier_key == 'single-MLP':
         clf = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
 
@@ -177,20 +172,16 @@ def train(oversample_key, classifier_key, max_iter=400):
 
     clf.fit(X_scaled, y_onehot)
 
-    pickle.dump(clf, open('./save-model/' + classifier_key + '-model.pickle', 'wb'))
+    pickle.dump(clf, open(os.path.join('./save-model/', key, classifier_key + '-model.pickle'), 'wb'))
 
     return scaler
 
 
 
-def test(scaler, classifier_key):
-    # current: selected sdss
-    sdss_test_data = np.load('../infoVAE/test_results/latent/selected_sdss_test.npy')
-    print(sdss_test_data.shape)
+def test(scaler, key, model_names, classifier_key, sdss_test_data):
+    clf = pickle.load(open(os.path.join('./save-model/', key, classifier_key + '-model.pickle'), "rb"))
 
-    clf = pickle.load(open('./save-model/' + classifier_key + '-model.pickle', "rb"))
-
-    label_binarizer = LabelEncoder().fit(['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80'])
+    label_binarizer = LabelEncoder().fit(model_names)
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
@@ -211,7 +202,7 @@ def test(scaler, classifier_key):
     """
 
     sdss_pred_prob = clf.predict_proba(sdss_test_scaled)
-    model_names = ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']
+    # model_names = ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']
     sdss_pred_prob_df = pd.DataFrame(sdss_pred_prob, columns=model_names)
 
     plt.figure(figsize=(12, 6))
@@ -219,42 +210,31 @@ def test(scaler, classifier_key):
     plt.xlabel("Models")
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
-    plt.savefig('./violin-plot/' + classifier_key + '-violin.png')
+    plt.savefig(os.path.join('./violin-plot/', key, classifier_key + '-violin.png'))
     plt.close()
 
 
-
-def ensemble_test(oversample_key, classifier_key):
-    # cross_val(oversample_key, classifier_key)
-    scaler = train(oversample_key, classifier_key)
-    test(scaler, classifier_key)
 
 
 
 
 if __name__ == "__main__":
+    utils.pre_makedirs()
+
+    # nihao_list = ['AGN', 'NOAGN', 'UHD_2times', 'mockobs_0915', 'n80_2times']
+    illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
+    X, y = utils.load_data_train(illustris_list)
+
+    classifier_keys = ['single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
+    print(sdss_test_data.shape)
+    for classifier_key in classifier_keys:
+        # cross_val('illustris', [s.split('_')[0] for s in illustris_list], X, y, classifier_key)
+        scaler = train('illustris', classifier_key, X, y)
+        test(scaler, 'illustris', [s.split('_')[0] for s in illustris_list], classifier_key, sdss_test_data)
+
+
     # candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
-    ensemble_test(oversample_key = True, classifier_key = 'single-MLP-oversample')
 
 
-    # ensemble
-
-    # stacking: MLP-RF-XGB with oversampled data
-    ensemble_test(oversample_key = True, classifier_key = 'stacking-MLP-RF-XGB-oversample')
-
-    # stacking: MLP-RF-XGB with data
-    ensemble_test(oversample_key = False, classifier_key = 'stacking-MLP-RF-XGB')
-
-    # voting: 3 MLPS with oversampled data
-    ensemble_test(oversample_key = True, classifier_key = 'voting-3MLPs-oversample')
-
-    # voting: 3 MLPS with data
-    ensemble_test(oversample_key = False, classifier_key = 'voting-3MLPs')
-
-    # voting: MLP-RF-XGB with oversampled data
-    ensemble_test(oversample_key = True, classifier_key = 'voting-MLP-RF-XGB-oversample')
-
-    # voting: MLP-RF-XGB with data
-    ensemble_test(oversample_key = False, classifier_key = 'voting-MLP-RF-XGB')
-    
     

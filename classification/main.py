@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
@@ -23,7 +24,7 @@ import bayesflow_calibration
 
 
 
-def cross_val(X, y, encoder_key, classifier_key):
+def cross_val(key, model_names, X, y, encoder_key, classifier_key):
     if encoder_key == 'one-hot':
         label_binarizer = LabelBinarizer()
     elif encoder_key == 'integer':
@@ -31,8 +32,8 @@ def cross_val(X, y, encoder_key, classifier_key):
     y_onehot = label_binarizer.fit_transform(y)
 
     # 'AGN' -> 0, 'NOAGN' -> 1, 'UHD' -> 2, 'mockobs_0915' -> 3, 'n80' -> 4
-    # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
-    #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
 
     if classifier_key == 'random-forest':
@@ -90,11 +91,10 @@ def cross_val(X, y, encoder_key, classifier_key):
     bayesflow_onehot = LabelBinarizer()
     true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
     # 'AGN' -> [1 0 0 0 0], 'NOAGN' -> [0 1 0 0 0], 'UHD' -> [0 0 1 0 0], 'mockobs_0915' -> [0 0 0 1 0], 'n80' -> [0 0 0 0 1]
-    # for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
-    #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
-    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, 
-                    ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80'])
-    plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
+    for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
+        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
+    plt.savefig(os.path.join('./calibration-curve', key, classifier_key + '-cc.png'))
     plt.close()
 
     """
@@ -125,7 +125,7 @@ def cross_val(X, y, encoder_key, classifier_key):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig('./confusion-matrix/' + classifier_key + '-cm.png')
+    plt.savefig(os.path.join('./confusion-matrix', key, classifier_key + '-cm.png'))
     plt.close()
 
     
@@ -133,11 +133,15 @@ def cross_val(X, y, encoder_key, classifier_key):
 
 
 if __name__ == "__main__":
+    utils.pre_makedirs()
     # imbalanced data
-    X, y = utils.load_data_train()
 
-    cross_val(X, y, 'integer', 'random-forest')
-    cross_val(X, y, 'integer', 'xgboost')
+    # nihao_list = ['AGN', 'NOAGN', 'UHD_2times', 'mockobs_0915', 'n80_2times']
+    illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
+    X, y = utils.load_data_train(illustris_list)
+
+    cross_val('illustris', [s.split('_')[0] for s in illustris_list], X, y, 'integer', 'random-forest')
+    cross_val('illustris', [s.split('_')[0] for s in illustris_list], X, y, 'integer', 'xgboost')
 
     # cross_val(X, y, 'integer', 'balanced-random-forest')
     # cross_val(X, y, 'integer', 'logistic-regression')
