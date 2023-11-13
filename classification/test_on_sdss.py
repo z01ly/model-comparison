@@ -71,14 +71,16 @@ def test(key, model_names, classifier_key, sdss_test_data):
 
 
 if __name__ == "__main__":
-    illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
+    # keep list order
+    # illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135']
+    compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
 
-    # X, y = utils.load_data_train(illustris_list)
-    # train('illustris', 'random-forest', X, y)
-    # train('illustris', 'xgboost', X, y)
+    X, y = utils.load_data_train(compare_list)
+    train('compare', 'random-forest', X, y)
+    train('compare', 'xgboost', X, y)
 
     # current: all sdss test data
     sdss_test_data = np.load('../infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
-    test('illustris', [s.split('_')[0] for s in illustris_list], 'random-forest', sdss_test_data)
-    test('illustris', [s.split('_')[0] for s in illustris_list], 'xgboost', sdss_test_data)
+    test('compare', [s.split('_')[0] for s in compare_list], 'random-forest', sdss_test_data)
+    test('compare', [s.split('_')[0] for s in compare_list], 'xgboost', sdss_test_data)

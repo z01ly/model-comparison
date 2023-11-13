@@ -136,12 +136,14 @@ if __name__ == "__main__":
     utils.pre_makedirs()
     # imbalanced data
 
+    # keep list order
     # nihao_list = ['AGN', 'NOAGN', 'UHD_2times', 'mockobs_0915', 'n80_2times']
-    illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
-    X, y = utils.load_data_train(illustris_list)
+    # illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
+    compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
+    X, y = utils.load_data_train(compare_list)
 
-    cross_val('illustris', [s.split('_')[0] for s in illustris_list], X, y, 'integer', 'random-forest')
-    cross_val('illustris', [s.split('_')[0] for s in illustris_list], X, y, 'integer', 'xgboost')
+    cross_val('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'random-forest')
+    cross_val('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'xgboost')
 
     # cross_val(X, y, 'integer', 'balanced-random-forest')
     # cross_val(X, y, 'integer', 'logistic-regression')

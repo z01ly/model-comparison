@@ -95,8 +95,9 @@ if __name__ == "__main__":
     with torch.no_grad():
         # test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in os.listdir('../mock_trainset')]
         # test_dataroots.extend([os.path.join('../mock_valset', subdir) for subdir in os.listdir('../mock_valset')])
-        test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in ['UHD_2times', 'n80_2times', 'TNG50-1_snapnum_099_2times']]
 
+        # test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in ['UHD_2times', 'n80_2times', 'TNG50-1_snapnum_099_2times']]
+        test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in ['mockobs_0915_2times']]
         for test_dataroot in test_dataroots:
             directory_names = test_dataroot.split(os.path.sep)
             extraction = f"{directory_names[-2][5: ]}_{directory_names[-1]}"

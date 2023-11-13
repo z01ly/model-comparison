@@ -173,7 +173,8 @@ if __name__ == '__main__':
     # sdss_split()
 
 
-    minority_list = ['UHD', 'n80', 'TNG50-1_snapnum_099']
+    # minority_list = ['UHD', 'n80', 'TNG50-1_snapnum_099']
+    minority_list = ['mockobs_0915']
     for minority in minority_list:
         source_folder = '../mock_trainset/' + minority + '/test'
         destination_folder = '../mock_trainset/' + minority +'_2times/test'
