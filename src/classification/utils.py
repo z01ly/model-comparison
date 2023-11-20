@@ -6,7 +6,7 @@ def load_data_train(model_list):
     X_list = []
     y_list = []
     for model_str in model_list:
-        data = np.load('../infoVAE/test_results/latent/trainset_' + model_str + '.npy')
+        data = np.load('src/infoVAE/test_results/latent/trainset_' + model_str + '.npy')
         X_list.append(data)
         y_list.append(np.full(data.shape[0], model_str.split('_')[0])) # make model name shorter
 
