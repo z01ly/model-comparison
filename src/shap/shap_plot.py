@@ -11,12 +11,21 @@ import shap
 
 
 def global_plot(key, classifier_key):
-    shap_values = np.load(os.path.join('src/shap/save-shap-values', key, classifier_key + '-shap.npy'))
+    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
 
-    # shap.plots.bar(shap_values)
-    shap.plots.beeswarm(shap_values)
-    plt.savefig(os.path.join('src/shap/plot', key, classifier_key, 'global', 'beeswarm.png'))
+    with open(os.path.join('src/shap/save-shap-values', key, classifier_key + '-shap.sav'), 'rb') as f:
+        shap_values = pickle.load(f)
+
+    fig = plt.figure()
+
+    # shap.plots.beeswarm(shap_values[:, :, 0], max_display=20, show=False)
+    # shap.summary_plot(shap_values, class_names=clf.classes_)
+    shap.summary_plot(shap_values[:, :, 0], class_names=['TNG100-1', 'TNG50-1', 'mockobs'])
+
+    plt.tight_layout()
+    plt.savefig(os.path.join('src/shap/plot', key, classifier_key, 'global', 'summary.png'))
     plt.close()
+
 
 
 def local_plot(key):
