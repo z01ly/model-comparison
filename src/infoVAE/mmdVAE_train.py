@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import math
 import os 
 
-import utils
+import src.infoVAE.utils as utils
 
 # utils layer
 class Flatten(torch.nn.Module):

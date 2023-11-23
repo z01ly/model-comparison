@@ -173,7 +173,7 @@ def sample_filename(folder_path):
 def stack_train_val(model_str):
     data_dict = {'train': None, 'val': None}
 
-    directory_path = './test_results/latent/'
+    directory_path = 'src/infoVAE/test_results/latent/'
 
     for filename in os.listdir(directory_path):
         file_type = filename.split('_')[1].split('.')[0]
