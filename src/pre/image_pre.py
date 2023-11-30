@@ -8,27 +8,17 @@ import math
 import pickle
 
 
-
-def sdss_size():
-    folder_path = '../sdss_data/test/cutouts'
-    for filename in os.listdir(folder_path):
-        filepath = f"{folder_path}/{filename}"
-        img = Image.open(filepath)
-        break
-
-    print("{} x {}".format(img.height, img.width))
-
-
-
-def mock_images_size(dir_path):
+def check_image_size(dir_path):
     files_in_dir = os.listdir(dir_path)
     if files_in_dir:
         random_file = random.choice(files_in_dir)
         img = Image.open(os.path.join(dir_path, random_file))
-        print("{} x {} \n".format(img.height, img.width))
-        print(f"Randomly sampled file: {random_file}")
+
+        print(f"The size of randomly sampled file {random_file} is {img.height} x {img.width}")
     else:
         print(f"The directory '{dir_path}' is empty.")
+
+    return img.height
 
 
 
@@ -95,9 +85,12 @@ def oversample_minority(source_folder, destination_folder, repeat):
             new_image_path = os.path.join(destination_folder, new_filename)
             shutil.copy(image_path, new_image_path)
 
+    print(f"{source_folder}: {len(os.listdir(source_folder))}")
+    print(f"{destination_folder}: {len(os.listdir(destination_folder))}")
 
 
-def add_dir_move_files(base_dir, new_dir):
+
+def add_subdir_move_files(base_dir, new_dir):
     path = os.path.join(base_dir, new_dir)
 
     if not os.path.exists(path):
@@ -115,9 +108,9 @@ def add_dir_move_files(base_dir, new_dir):
 
 
 
-def mock_split(source_directory):
-    train_directory = '../mock_trainset/' + source_directory[3: ]
-    val_directory = '../mock_valset/' + source_directory[3: ]
+def mock_split(source_directory, rate=0.85):
+    train_directory = 'src/data/mock_trainset/' + source_directory[9: ] # exclude 'src/data/'
+    val_directory = 'src/data/mock_valset/' + source_directory[9: ]
 
     os.makedirs(train_directory, exist_ok=True)
     os.makedirs(val_directory, exist_ok=True)
@@ -125,7 +118,7 @@ def mock_split(source_directory):
     files_in_source_directory = os.listdir(source_directory)
 
     total_files = len(files_in_source_directory)
-    train_count = int(total_files * 0.85)
+    train_count = int(total_files * rate)
     val_count = total_files - train_count
 
     random.shuffle(files_in_source_directory)
@@ -136,53 +129,22 @@ def mock_split(source_directory):
     for file in train_files:
         source_path = os.path.join(source_directory, file)
         dest_path = os.path.join(train_directory, file)
-        shutil.move(source_path, dest_path)
+        shutil.copy2(source_path, dest_path)
 
     for file in val_files:
         source_path = os.path.join(source_directory, file)
         dest_path = os.path.join(val_directory, file)
-        shutil.move(source_path, dest_path)
+        shutil.copy2(source_path, dest_path)
 
-    print(f"{len(os.listdir(train_directory))} files moved to the training set.")
-    print(f"{len(os.listdir(val_directory))} files moved to the validation set.")
+    print(f"current model: {source_directory[9: ]}")
+    print(f"{len(os.listdir(train_directory))} files copied to the training set.")
+    print(f"{len(os.listdir(val_directory))} files copied to the validation set.")
 
 
 
 
 
 if __name__ == '__main__':
-    # sdss_size() 64 x 64
-    # mock_images_size("../NOAGN/test/")
-
-
-    # sample_mock('../NOAGN/test')
-    # sample_mock('../AGN/test')
-    # sample_mock('../n80/test')
-    # sample_mock('../UHD/test')
-    # sample_mock('../mockobs_0915/test')
-
-    # sample_mock('../illustris-1_snapnum_135')
-    # sample_mock('../TNG100-1_snapnum_099')
-    # sample_mock('../TNG50-1_snapnum_099')
-
-    # add_dir_move_files('../illustris-1_snapnum_135', 'test')
-    # add_dir_move_files('../TNG100-1_snapnum_099', 'test')
-    # add_dir_move_files('../TNG50-1_snapnum_099', 'test')
-
+    pass
 
     # sdss_split()
-
-
-    # minority_list = ['UHD', 'n80', 'TNG50-1_snapnum_099']
-    minority_list = ['mockobs_0915']
-    for minority in minority_list:
-        source_folder = '../mock_trainset/' + minority + '/test'
-        destination_folder = '../mock_trainset/' + minority +'_2times/test'
-        oversample_minority(source_folder, destination_folder, 2)
-
-
-    # model_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs_0915', 'TNG50-1_snapnum_099', 'TNG100-1_snapnum_099', 'illustris-1_snapnum_135']
-    # for model_name in model_list:
-    #     mock_split('../' + model_name + '/test')
-    # for model_name in model_list:
-    #     shutil.rmtree('../' + model_name)

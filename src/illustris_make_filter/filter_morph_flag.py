@@ -12,7 +12,7 @@ def find_unreliable_idx(simulation, snapnum):
     for band in band_list:
         if (band == "morphs_r.hdf5") and (simulation != "TNG50-1"):
             continue
-        with h5py.File(os.path.join(simulation, snapnum, band), "r") as f:
+        with h5py.File(os.path.join('src', 'illustris_make_filter', simulation, snapnum, band), "r") as f:
             flag_dataset = f['flag']
             flag_data = flag_dataset[()]
             # print(f"flag_data shape of {band}: {flag_data.shape}")
@@ -41,13 +41,13 @@ def find_unreliable_idx(simulation, snapnum):
 def filter(simulation, snapnum): # discard those unreliable images
     unreliable_idx = find_unreliable_idx(simulation, snapnum)
     # print(unreliable_idx)
-    subfind_ids = np.loadtxt(os.path.join(simulation, snapnum, "subfind_ids.txt"), dtype=int)
+    subfind_ids = np.loadtxt(os.path.join('src', 'illustris_make_filter', simulation, snapnum, "subfind_ids.txt"), dtype=int)
     unreliable_broadband = subfind_ids[unreliable_idx]
     print(unreliable_broadband.shape)
 
-    destination_dir = '../' + simulation + '_' + snapnum
+    destination_dir = 'src/data' + simulation + '_' + snapnum
     os.makedirs(destination_dir, exist_ok=True)
-    source_dir = '../mock_images/' + simulation + '_' + snapnum
+    source_dir = 'mock_images/' + simulation + '_' + snapnum
 
     for filename in os.listdir(source_dir):
         match = re.match(r'broadband_(\d+)\.png', filename)
@@ -61,8 +61,8 @@ def filter(simulation, snapnum): # discard those unreliable images
 
 
 
-def manual_deletion(simulation, snapnum): # TNG50-1 snapnum_099
-    destination_dir = '../' + simulation + '_' + snapnum
+def manual_deletion(simulation, snapnum): # only used for TNG50-1_snapnum_099
+    destination_dir = 'src/data' + simulation + '_' + snapnum
 
     num_list = [51, 52, 60, 66, 79, 101]
     broken_images = ['broadband_' + str(num) + '.png' for num in num_list]
@@ -77,8 +77,9 @@ def manual_deletion(simulation, snapnum): # TNG50-1 snapnum_099
 
 
 if __name__ == '__main__':
+    pass
     # filter("TNG50-1", "snapnum_099")
     # filter("TNG100-1", "snapnum_099")
     # filter("illustris-1", "snapnum_135")
 
-    manual_deletion("TNG50-1", "snapnum_099")
+    # manual_deletion("TNG50-1", "snapnum_099")

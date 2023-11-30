@@ -197,5 +197,5 @@ if __name__ == '__main__':
         a = illustrisAPI(api_key = key, particle_type="stars", simulation = t[0], snapshot = t[1])
         ids = a.filter_masses(log_M_min = 9.0, log_M_max = 13)
         print(len(ids))
-        np.save('./api_filter_mass_id/' + t[0][: -2] + '_1_snap' + str(t[1]) + '.npy', ids)
+        np.save('src/illustris_make_filter/api_filter_mass_id/' + t[0] + '_snapnum_' + str(t[1]).zfill(3) + '.npy', ids)
 
