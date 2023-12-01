@@ -61,7 +61,7 @@ def dataloader_func(dataroot, batch_size, workers, pin_memory, with_filename=Fal
 # copy from https://github.com/Bjarten/early-stopping-pytorch/blob/master/pytorchtools.py
 class EarlyStopping:
     """Early stops the training if validation loss doesn't improve after a given patience."""
-    def __init__(self, patience=7, verbose=False, delta=0, path='./mmdVAE_save/checkpoint.pt', trace_func=print):
+    def __init__(self, patience=7, verbose=False, delta=0, path='src/infoVAE/mmdVAE_save/checkpoint.pt', trace_func=print):
         """
         Args:
             patience (int): How long to wait after last time validation loss improved.
@@ -95,7 +95,7 @@ class EarlyStopping:
         elif score < self.best_score + self.delta:
             self.counter += 1
             self.trace_func(f'EarlyStopping counter: {self.counter} out of {self.patience}')
-            with open("./mmdVAE_save/output.txt", "a") as text_file:
+            with open("src/infoVAE/mmdVAE_save/output.txt", "a") as text_file:
                 text_file.write(f'EarlyStopping counter: {self.counter} out of {self.patience} \n')
             if self.counter >= self.patience:
                 self.early_stop = True
@@ -108,7 +108,7 @@ class EarlyStopping:
         '''Saves model when validation loss decrease.'''
         if self.verbose:
             self.trace_func(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ...')
-            with open("./mmdVAE_save/output.txt", "a") as text_file:
+            with open("src/infoVAE/mmdVAE_save/output.txt", "a") as text_file:
                 text_file.write(f'Validation loss decreased ({self.val_loss_min:.6f} --> {val_loss:.6f}).  Saving model ... \n')  
         torch.save(model.state_dict(), self.path)
         self.val_loss_min = val_loss
@@ -128,30 +128,30 @@ def convert_to_display(samples):
 
 
 def save_losses(train_losses, val_losses, avg_train_losses, avg_val_losses):
-    with open("./mmdVAE_save/loss_list/train_losses", "wb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/train_losses", "wb") as fp:
         pickle.dump(train_losses, fp)
 
-    with open("./mmdVAE_save/loss_list/val_losses", "wb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/val_losses", "wb") as fp:
         pickle.dump(val_losses, fp)
 
-    with open("./mmdVAE_save/loss_list/avg_train_losses", "wb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/avg_train_losses", "wb") as fp:
         pickle.dump(avg_train_losses, fp)
 
-    with open("./mmdVAE_save/loss_list/avg_val_losses", "wb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/avg_val_losses", "wb") as fp:
         pickle.dump(avg_val_losses, fp)
 
 
 def load_losses():
-    with open("./mmdVAE_save/loss_list/train_losses", "rb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/train_losses", "rb") as fp:
         train_losses = pickle.load(fp)
 
-    with open("./mmdVAE_save/loss_list/val_losses", "rb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/val_losses", "rb") as fp:
         val_losses = pickle.load(fp)
 
-    with open("./mmdVAE_save/loss_list/avg_train_losses", "rb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/avg_train_losses", "rb") as fp:
         avg_train_losses = pickle.load(fp)
 
-    with open("./mmdVAE_save/loss_list/avg_val_losses", "rb") as fp:
+    with open("src/infoVAE/mmdVAE_save/loss_list/avg_val_losses", "rb") as fp:
         avg_val_losses = pickle.load(fp)
 
     return train_losses, val_losses, avg_train_losses, avg_val_losses
@@ -172,18 +172,28 @@ def sample_filename(folder_path):
 
 def stack_train_val(model_str):
     data_dict = {'train': None, 'val': None}
+    directory = 'src/infoVAE/test_results/latent/'
 
-    directory_path = 'src/infoVAE/test_results/latent/'
+    npy_files = [file for file in os.listdir(directory) if file.endswith('.npy')]
+    # this function should only be used for non-oversampled data
+    trainset_files = [file for file in npy_files if file.startswith('trainset') and not file.endswith('times.npy')]
+    valset_files = [file for file in npy_files if file.startswith('valset') and not file.endswith('times.npy')]
+    # print(trainset_files)
 
-    for filename in os.listdir(directory_path):
-        file_type = filename.split('_')[1].split('.')[0]
-        if file_type == model_str:
-            data_type = 'train' if filename.startswith('trainset') else 'val'
-            data_dict[data_type] = np.load(os.path.join(directory_path, filename))
+    for trainset_file in trainset_files:
+        split_string = trainset_file.split('_')[1: ]
+        result_string = '_'.join(split_string)
+        common_part = result_string.split('.')[0]
 
+        if common_part == model_str:
+            valset_file = f"valset_{common_part}.npy"
+            data_dict['train'] = np.load(os.path.join(directory, trainset_file))
+            data_dict['val'] = np.load(os.path.join(directory, valset_file))
+            print(f"file names: {trainset_file}, {valset_file}")
+                
+    
     stacked_data = np.vstack((data_dict['train'], data_dict['val']))
-    # np.random.shuffle(stacked_data)
-    print("stacked data shape:", stacked_data.shape)
+    print(f"stacked data shape: {stacked_data.shape}")
 
     return stacked_data
     
@@ -191,5 +201,6 @@ def stack_train_val(model_str):
 
 
 if __name__ == '__main__':
-    # file_type_list = ['AGN', 'NOAGN', 'UHD', 'n80', 'mockobs', 'TNG50-1', 'TNG100-1', 'illustris-1']
-    stacked_data = stack_train_val('mockobs')
+    # stacked_data = stack_train_val('TNG50-1_snapnum_099')
+    stacked_data = stack_train_val('AGNrt')
+    stacked_data = stack_train_val('n80rt')
