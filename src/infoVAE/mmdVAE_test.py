@@ -9,8 +9,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 
-import utils
-from mmdVAE_train import Model
+import src.infoVAE.utils as utils
+from src.infoVAE.mmdVAE_train import Model
 
 
 def test(model, test_dataroot, savefig_path, z_dim=2, 
@@ -49,7 +49,7 @@ def test(model, test_dataroot, savefig_path, z_dim=2,
 def sdss_test_with_filename(model, z_dim=2, nc=3, n_filters=64, 
         after_conv=16, use_cuda=True, gpu_id=0, workers=4, batch_size=500):
     
-    dataloader = utils.dataloader_func('../sdss_data/test', batch_size, workers, True, with_filename=True)
+    dataloader = utils.dataloader_func('src/data/sdss_data/test', batch_size, workers, True, with_filename=True)
 
     z_list = []
     filename_list = []
@@ -87,54 +87,51 @@ if __name__ == "__main__":
 
     # model
     model = Model(z_dim, nc, n_filters, after_conv)
-    model.load_state_dict(torch.load('./mmdVAE_save/checkpoint.pt'))
+    model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
     if use_cuda:
         model = model.cuda(gpu_id)
     model.eval()
 
     with torch.no_grad():
-        # test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in os.listdir('../mock_trainset')]
-        # test_dataroots.extend([os.path.join('../mock_valset', subdir) for subdir in os.listdir('../mock_valset')])
+        # test_dataroots = [os.path.join('src/data/mock_trainset', subdir) for subdir in os.listdir('src/data/mock_trainset')]
+        # test_dataroots.extend([os.path.join('src/data/mock_valset', subdir) for subdir in os.listdir('src/data/mock_valset')])
 
-        # test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in ['UHD_2times', 'n80_2times', 'TNG50-1_snapnum_099_2times']]
-        test_dataroots = [os.path.join('../mock_trainset', subdir) for subdir in ['mockobs_0915_2times']]
+        # test_dataroots = [os.path.join('src/data/mock_trainset', subdir) for subdir in ['UHD_2times', 'n80_2times', 'TNG50-1_snapnum_099_2times']]
+        test_dataroots = [os.path.join('src/data/mock_trainset', subdir) for subdir in ['mockobs_0915_2times']]
         for test_dataroot in test_dataroots:
             directory_names = test_dataroot.split(os.path.sep)
             extraction = f"{directory_names[-2][5: ]}_{directory_names[-1]}"
 
-            savefig_path = './test_results/images_in_testing/fig_' + extraction + '.png'
+            savefig_path = 'src/infoVAE/test_results/images_in_testing/fig_' + extraction + '.png'
             z = test(model, test_dataroot=test_dataroot, savefig_path=savefig_path,
                     z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                     use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
 
-            np.save('./test_results/latent/' + extraction + '.npy', z)
-            np.savetxt('./test_results/latent_txt/' + extraction + '.txt', z, delimiter=',', fmt='%s')
+            np.save('src/infoVAE/test_results/latent/' + extraction + '.npy', z)
         
         
 
         """
-        sdss_test_dataroot = '../sdss_data/test'
-        savefig_path = './test_results/images_in_testing/fig_sdss_test.png'
+        sdss_test_dataroot = 'src/data/sdss_data/test'
+        savefig_path = 'src/infoVAE/test_results/images_in_testing/fig_sdss_test.png'
         z = test(model, test_dataroot=sdss_test_dataroot, savefig_path=savefig_path,
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                 use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-        np.save('./test_results/latent/sdss_test.npy', z)
-        np.savetxt('./test_results/latent_txt/sdss_test.txt', z, delimiter=',', fmt='%s')
+        np.save('src/infoVAE/test_results/latent/sdss_test.npy', z)
         """
 
         """
         z, filename_arr = sdss_test_with_filename(model, 
                 z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, 
                 use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-        np.save('./test_results/latent/sdss_test.npy', z)
-        np.save('./test_results/latent/sdss_test_filenames.npy', filename_arr)
-        np.savetxt('./test_results/latent_txt/sdss_test.txt', z, delimiter=',', fmt='%s')
+        np.save('src/infoVAE/test_results/latent/sdss_test.npy', z)
+        np.save('src/infoVAE/test_results/latent/sdss_test_filenames.npy', filename_arr)
         """
     
 
-    for filename_latent in os.listdir('./test_results/latent/'):
+    for filename_latent in os.listdir('src/infoVAE/test_results/latent/'):
         if filename_latent[-3: ] == 'npy':
-            latent_z = np.load('./test_results/latent/' + filename_latent)
+            latent_z = np.load('src/infoVAE/test_results/latent/' + filename_latent)
             print(latent_z.shape)
     print('\n')
 

@@ -187,7 +187,7 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
         samples = model.decoder(gen_z)
         samples = samples.permute(0,2,3,1).contiguous().cpu().data.numpy()
         plt.imshow(utils.convert_to_display(samples)) # imshow for rgb images
-        savefig_path = './mmdVAE_save/samples_in_training/fig_epoch' + str(epoch) + '.png' 
+        savefig_path = 'src/infoVAE/mmdVAE_save/samples_in_training/fig_epoch' + str(epoch) + '.png' 
         plt.savefig(savefig_path, dpi=300)
         # plt.show()
 
@@ -197,7 +197,7 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
                     f'train_avg: {train_avg:.5f} ' +
                     f'val_avg: {val_avg:.5f}')
         print(print_msg)
-        with open("./mmdVAE_save/output.txt", "a") as text_file:
+        with open("src/infoVAE/mmdVAE_save/output.txt", "a") as text_file:
             text_file.write((f'[{epoch:>{epoch_len}}/{n_epochs:>{epoch_len}}] ' +
                     f'train_avg: {train_avg:.5f} ' +
                     f'val_avg: {val_avg:.5f} \n'))
@@ -209,7 +209,7 @@ def train(train_dataloader, val_dataloader, patience, z_dim=2, nc=3,
             break
 
     # load the last checkpoint
-    model.load_state_dict(torch.load('./mmdVAE_save/checkpoint.pt'))
+    model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
 
     return model, train_losses, val_losses, avg_train_losses, avg_val_losses
 
@@ -228,10 +228,10 @@ if __name__ == "__main__":
     after_conv = utils.conv_size_comp(image_size)
     patience = 10
 
-    train_dataroot = '../sdss_data/train'
+    train_dataroot = 'src/data/sdss_data/train'
     train_dataloader = utils.dataloader_func(train_dataroot, batch_size, workers, False)
 
-    val_dataroot = '../sdss_data/val'
+    val_dataroot = 'src/data/sdss_data/val'
     val_dataloader = utils.dataloader_func(val_dataroot, batch_size, workers, False)
     
     model, train_losses, val_losses, avg_train_losses, avg_val_losses = \
@@ -241,6 +241,6 @@ if __name__ == "__main__":
     
     utils.save_losses(train_losses, val_losses, avg_train_losses, avg_val_losses)
 
-    # torch.save(model.state_dict(), './mmdVAE_save/model_weights.pth')
+    # torch.save(model.state_dict(), 'src/infoVAE/mmdVAE_save/model_weights.pth')
 
 

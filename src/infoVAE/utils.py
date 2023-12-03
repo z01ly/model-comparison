@@ -190,7 +190,6 @@ def stack_train_val(model_str):
             data_dict['train'] = np.load(os.path.join(directory, trainset_file))
             data_dict['val'] = np.load(os.path.join(directory, valset_file))
             print(f"file names: {trainset_file}, {valset_file}")
-                
     
     stacked_data = np.vstack((data_dict['train'], data_dict['val']))
     print(f"stacked data shape: {stacked_data.shape}")

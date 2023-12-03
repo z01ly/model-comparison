@@ -1,11 +1,8 @@
-import utils
 import pickle
-from mmdVAE_train import Model
 from PIL import Image
 
 import torch
 from torch.autograd import Variable
-
 from torchvision import transforms, datasets
 
 import numpy as np
@@ -14,6 +11,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import shutil
+
+import src.infoVAE.utils as utils
+from src.infoVAE.mmdVAE_train import Model
 
 
 
@@ -35,7 +35,7 @@ def plot_avg_loss(avg_train_losses, avg_val_losses, pos):
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
-    fig.savefig('./mmdVAE_save/plot_avg_loss.png', bbox_inches='tight')
+    fig.savefig('src/infoVAE/mmdVAE_save/plot_avg_loss.png', bbox_inches='tight')
 
 
 def plot_itr_loss(train_losses, val_losses):
@@ -57,20 +57,22 @@ def plot_itr_loss(train_losses, val_losses):
     ax2.set_ylim(0, 0.003)
     ax2.legend()
 
-    fig.savefig('./mmdVAE_save/plot_itr_loss.png')
+    fig.savefig('src/infoVAE/mmdVAE_save/plot_itr_loss.png')
 
 
 
 def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
-    # e.g. '../sdss_data/test/cutouts/', '../mock_trainset/AGN/test'
+    # e.g. 'src/data/sdss_data/test/cutouts/', 'src/data/mock_trainset/AGN/test'
     directory_names = folder_path.split(os.path.sep)
 
     if not sdss:
-        shutil.rmtree(os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}"))
-        os.makedirs(os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}"))
+        current = os.path.join('src/infoVAE/test_results/residual', f"{directory_names[2]}", f"{directory_names[3]}")
     else:
-        shutil.rmtree(os.path.join('./test_results/residual', f"{directory_names[1]}"))
-        os.makedirs(os.path.join('./test_results/residual', f"{directory_names[1]}"))
+        current = os.path.join('src/infoVAE/test_results/residual', f"{directory_names[2]}")
+    
+    if os.path.exists(current):
+        shutil.rmtree(current)
+    os.makedirs(current)
 
     sampled_filenames = utils.sample_filename(folder_path)
 
@@ -126,9 +128,9 @@ def plot_residual(model, folder_path, gpu_id, use_cuda=True, sdss=False):
 
         file_names = filename.split(os.path.sep)
         if not sdss:
-            savefig_path = os.path.join('./test_results/residual', f"{directory_names[1]}", f"{directory_names[2]}", f"{file_names[-1]}")
+            savefig_path = os.path.join('src/infoVAE/test_results/residual', f"{directory_names[2]}", f"{directory_names[3]}", f"{file_names[-1]}")
         else:
-            savefig_path = os.path.join('./test_results/residual', f"{directory_names[1]}", f"{file_names[-1]}")
+            savefig_path = os.path.join('src/infoVAE/test_results/residual', f"{directory_names[2]}", f"{file_names[-1]}")
         plt.savefig(savefig_path, dpi=300)
 
         plt.close(fig)
@@ -147,7 +149,7 @@ if __name__ == '__main__':
     use_cuda = True
 
     model = Model(z_dim, nc, n_filters, after_conv)
-    model.load_state_dict(torch.load('./mmdVAE_save/checkpoint.pt'))
+    model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
     if use_cuda:
         model = model.cuda(gpu_id)
     model.eval()
@@ -155,20 +157,20 @@ if __name__ == '__main__':
 
     # residual plots
     with torch.no_grad():
-        folder_paths = [os.path.join('../mock_trainset', subdir, 'test') for subdir in os.listdir('../mock_trainset')]
-        folder_paths.extend([os.path.join('../mock_valset', subdir, 'test') for subdir in os.listdir('../mock_valset')])
+        folder_paths = [os.path.join('src/data/mock_trainset', subdir, 'test') for subdir in os.listdir('src/data/mock_trainset')]
+        folder_paths.extend([os.path.join('src/data/mock_valset', subdir, 'test') for subdir in os.listdir('src/data/mock_valset')])
 
         for folder_path in folder_paths:
             plot_residual(model, folder_path, gpu_id, use_cuda, False)
-        plot_residual(model, '../sdss_data/test/cutouts/', gpu_id, use_cuda, True)
+        plot_residual(model, 'src/data/sdss_data/test/cutouts/', gpu_id, use_cuda, True)
     
 
-    """
+
     # training losses
-    train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses()
-    plot_avg_loss(avg_train_losses, avg_val_losses, 22)
-    plot_itr_loss(train_losses, val_losses)
-    """
+    # train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses()
+    # plot_avg_loss(avg_train_losses, avg_val_losses, 22)
+    # plot_itr_loss(train_losses, val_losses)
+
     
 
 
