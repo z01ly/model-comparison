@@ -21,17 +21,17 @@ def load_data_train(model_list):
 
 
 
-def pre_makedirs():
+def pre_makedirs(key):
     dir_list = ['calibration-curve', 'confusion-matrix', 'save-model', 'violin-plot']
-    model_list = ['illustris', 'nihao', 'compare']
+    # model_list = ['illustris', 'nihao', 'compare']
     for directory in dir_list:
-        for model in model_list:
-            os.makedirs(os.path.join(directory, model), exist_ok=True)
+        os.makedirs(os.path.join('src/classification', directory, key), exist_ok=True)
 
 
 
 if __name__ == '__main__':
-    pre_makedirs()
+    pass
+    # pre_makedirs()
     
     # default oversample
     # nihao_list = ['AGN', 'NOAGN', 'UHD_2times', 'mockobs_0915', 'n80_2times']

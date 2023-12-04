@@ -19,12 +19,12 @@ from xgboost import XGBClassifier
 
 from sklearn.calibration import calibration_curve
 
-import utils
-import bayesflow_calibration
+import src.classification.utils as utils
+import src.classification.bayesflow_calibration as bayesflow_calibration
 
 
 
-def cross_val(key, model_names, X, y, encoder_key, classifier_key):
+def main(key, model_names, X, y, encoder_key, classifier_key):
     if encoder_key == 'one-hot':
         label_binarizer = LabelBinarizer()
     elif encoder_key == 'integer':
@@ -58,7 +58,7 @@ def cross_val(key, model_names, X, y, encoder_key, classifier_key):
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
     # kf = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
     n_splits = 5
-    n_repeats = 3
+    n_repeats = 2
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
 
     confusion_matrices = []
@@ -94,7 +94,7 @@ def cross_val(key, model_names, X, y, encoder_key, classifier_key):
     for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
     cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
-    plt.savefig(os.path.join('./calibration-curve', key, classifier_key + '-cc.png'))
+    plt.savefig(os.path.join('src/classification/calibration-curve', key, classifier_key + '-cc.png'))
     plt.close()
 
     """
@@ -111,7 +111,7 @@ def cross_val(key, model_names, X, y, encoder_key, classifier_key):
     plt.ylabel('Empirical Probability')
     plt.title('Calibration Curve: ' + classifier_key)
     plt.legend()
-    plt.savefig('./calibration-curve/' + classifier_key + '-cc.png')
+    plt.savefig('src/classification/calibration-curve/' + classifier_key + '-cc.png')
     plt.close()
     """
 
@@ -125,7 +125,7 @@ def cross_val(key, model_names, X, y, encoder_key, classifier_key):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig(os.path.join('./confusion-matrix', key, classifier_key + '-cm.png'))
+    plt.savefig(os.path.join('src/classification/confusion-matrix', key, classifier_key + '-cm.png'))
     plt.close()
 
     
@@ -142,13 +142,8 @@ if __name__ == "__main__":
     compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
     X, y = utils.load_data_train(compare_list)
 
-    cross_val('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'random-forest')
-    cross_val('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'xgboost')
+    main('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'random-forest')
+    main('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'xgboost')
 
-    # cross_val(X, y, 'integer', 'balanced-random-forest')
-    # cross_val(X, y, 'integer', 'logistic-regression')
-    # cross_val(X, y, 'integer', 'gradient-boosting')
-    # cross_val(X, y, 'integer', 'svc')
-    # cross_val(X, y, 'integer', 'knn')
-    # cross_val(X, y, 'integer', 'naive-bayes')
+    # 'balanced-random-forest', 'logistic-regression', 'gradient-boosting', 'svc', 'knn', 'naive-bayes'
     

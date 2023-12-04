@@ -11,8 +11,11 @@ import src.infoVAE.plot
 import src.infoVAE.dim_meaning
 import src.infoVAE.tsne_range
 
-import src.classification.main
-import src.
+import src.classification.cross_val
+import src.classification.test_sdss
+import src.classification.cross_val_MLP
+import src.classification.test_sdss_MLP
+import src.classification.utils
 
 
 
@@ -119,6 +122,32 @@ def step2_infoVAE(trainset_list, valset_list, model_str_list, tsne_key, compare_
 
 
 
+def step3_classification(key, model_names):
+    # make directories
+    src.classification.utils.pre_makedirs(key)
+
+    # load useful data
+    X, y = src.classification.utils.load_data_train(model_names)
+    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+    print(sdss_test_data.shape)
+
+    # cross validation
+    src.classification.cross_val.main(key, [s.split('_')[0] for s in model_names], X, y, 'integer', 'random-forest')
+    src.classification.cross_val.main(key, [s.split('_')[0] for s in model_names], X, y, 'integer', 'xgboost')
+
+    classifier_keys = ['single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    for classifier_key in classifier_keys:
+        src.classification.cross_val_MLP.main(key, [s.split('_')[0] for s in model_names], X, y, classifier_key, max_iter=500)
+
+    # test on sdss
+    src.classification.test_sdss.train(key, 'random-forest', X, y)
+    src.classification.test_sdss.train(key, 'xgboost', X, y)
+    src.classification.test_sdss.test(key, [s.split('_')[0] for s in model_names], 'random-forest', sdss_test_data)
+    src.classification.test_sdss.test(key, [s.split('_')[0] for s in model_names], 'xgboost', sdss_test_data)
+
+    for classifier_key in classifier_keys:
+        scaler = src.classification.test_sdss_MLP.train(key, classifier_key, X, y, max_iter=500)
+        src.classification.test_sdss_MLP.test(scaler, key, [s.split('_')[0] for s in model_names], classifier_key, sdss_test_data)
 
 
 
@@ -147,3 +176,7 @@ if __name__ == '__main__':
     compare_dict = {'NIHAOrt': ['AGNrt', 'NOAGNrt', 'UHDrt', 'n80rt'], 'TNG': ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099']}
     step2_infoVAE(trainset_list, valset_list, model_str_list, tsne_key, compare_dict=compare_dict)
     """
+
+    key = 'NIHAOrt_TNG'
+    model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
+    step3_classification(key, model_names)

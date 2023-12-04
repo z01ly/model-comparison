@@ -11,7 +11,7 @@ from xgboost import XGBClassifier
 
 import pickle, os
 
-import utils
+import src.classification.utils as utils
 
 
 def train(key, classifier_key, X, y):
@@ -28,14 +28,14 @@ def train(key, classifier_key, X, y):
 
     clf.fit(X, y_onehot)
 
-    pickle.dump(clf, open(os.path.join('./save-model/', key, classifier_key + '-model.pickle'), 'wb'))
+    pickle.dump(clf, open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), 'wb'))
 
     
 
     
 
 def test(key, model_names, classifier_key, sdss_test_data):
-    clf = pickle.load(open(os.path.join('./save-model/', key, classifier_key + '-model.pickle'), "rb"))
+    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
 
     label_binarizer = LabelEncoder().fit(model_names)
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
@@ -63,7 +63,7 @@ def test(key, model_names, classifier_key, sdss_test_data):
     plt.xlabel("Models")
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
-    plt.savefig(os.path.join('./violin-plot/', key, classifier_key + '-violin.png'))
+    plt.savefig(os.path.join('src/classification/violin-plot/', key, classifier_key + '-violin.png'))
 
     plt.close()
     
