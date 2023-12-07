@@ -17,6 +17,11 @@ import src.classification.cross_val_MLP
 import src.classification.test_sdss_MLP
 import src.classification.utils
 
+import src.shap.utils
+import src.shap.shap_main
+import src.shap.shap_plot
+import src.shap.plot_processing
+
 
 
 def step1_image_pre(mock_dir_list, minority_dir_list=[]):
@@ -151,6 +156,39 @@ def step3_classification(key, model_names):
 
 
 
+def step4_shap(key, model_names, model_pos_list):
+    """
+    # make directories
+    src.shap.utils.mkdirs(key)
+
+    # compute shap values and save them
+    X, y = src.classification.utils.load_data_train(model_names)
+    X_sampled = src.shap.shap_main.background_sample(X, y, percent=0.5)
+    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+    src.shap.shap_main.save_shap_values(X_sampled, sdss_test_data, key, 'xgboost', 'TreeExplainer')
+    # src.shap.shap_main.save_shap_values(X, sdss_test_data, key, 'random-forest', 'TreeExplainer')
+    """
+    
+    classifier_key = 'xgboost'
+    # classifier_key = 'random-forest'
+    for i, model_str in enumerate(model_names):
+        # plot global shap results
+        src.shap.shap_plot.global_plot(key, classifier_key, model_str, model_pos_list[i])
+
+        # shap plot processing
+        shap_plot_path = os.path.join('src/shap/plot', key, classifier_key + '-beeswarm-' + model_str.split('_')[0] + '.png')
+        temporary_path = os.path.join('src/shap/plot', key, 'left_half.png')
+        feature_list = src.shap.plot_processing.ocr(shap_plot_path, temporary_path)
+
+        split_model_name = model_str.split('_')[: -1] if model_str.endswith("times") else model_str.split('_')
+        source_dir = os.path.join('src/infoVAE/dim_meaning/', '_'.join(split_model_name), 'vector_0')
+        output_dir = os.path.join('src/shap/plot', key)
+        output_name = classifier_key + '-beeswarm-' + model_str.split('_')[0] + '.png'
+        tempo_stack = 'tempo_image.png'
+        src.shap.plot_processing.stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path, tempo_stack)
+    
+
+
 
 if __name__ == '__main__':
     # keep a copy of original images in directory mock_images before preprocessing
@@ -179,4 +217,12 @@ if __name__ == '__main__':
 
     key = 'NIHAOrt_TNG'
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
+    # when all model strs are present
+    model_pos_list = list(range(len(model_names))) 
+    """
     step3_classification(key, model_names)
+    """
+    step4_shap(key, model_names, model_pos_list)
+    
+
+

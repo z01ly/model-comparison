@@ -4,22 +4,23 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import pickle
-# import keras_ocr
 import easyocr
+import shap
 from PIL import Image, ImageOps
 
 
 def ocr(shap_plot_path, temporary_path):
     image = Image.open(shap_plot_path)
-    width, height = image.size
-    left_half = image.crop((0, 0, width // 2, height)) # crop the left half of the image
-    left_half.save(temporary_path)
+    width, height = image.size # (800, 950)
+    # print(image.size)
+    image_part = image.crop((0, 0, width // 2 - 120, height - 90)) # Feature text part is left
+    image_part.save(temporary_path)
 
     reader = easyocr.Reader(['en'])
     result = reader.readtext(temporary_path)
 
     text_list = [detection[1] for detection in result]
-
+    # print(f"text list: \n {text_list} \n")
     if os.path.exists(temporary_path):
         os.remove(temporary_path)
         print(f'The temporary file {temporary_path} has been deleted.')
@@ -27,6 +28,8 @@ def ocr(shap_plot_path, temporary_path):
         print(f'The file {temporary_path} does not exist.')
 
     feature_list = [item for item in text_list if item.startswith('Feature')]
+    print(f"feature list length: {len(feature_list)}")
+    print(f"feature list: \n {feature_list}")
     
     return feature_list
 
@@ -57,7 +60,7 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
     # Open the images
     stacked_image = Image.open(tempo_stack_path)
     beeswarm_image = Image.open(shap_plot_path)
-    print(beeswarm_image.size)
+    # print(beeswarm_image.size)
 
     # Ensure both images have the same height
     max_height = max(stacked_image.size[1], beeswarm_image.size[1])
@@ -79,23 +82,13 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
 
     if os.path.exists(tempo_stack_path):
         os.remove(tempo_stack_path)
-        print(f'The temporary file {tempo_stack_path} has been deleted.')
+        print(f'The temporary file {tempo_stack_path} has been deleted. \n')
     else:
-        print(f'The file {tempo_stack_path} does not exist.')
+        print(f'The file {tempo_stack_path} does not exist. \n')
 
 
 
 
 if __name__ == '__main__':
-    test_path = 'src/shap/plot/compare/random-forest/global/beeswarm-TNG100.png'
-    temporary_path = 'src/shap/left_half.png'
-    feature_list = ocr(test_path, temporary_path)
-
-    source_dir = 'src/infoVAE/dim_meaning/TNG100-1_snapnum_099/vector_0'
-    output_dir = 'src/shap/plot'
-    output_name = 'result.png'
-    tempo_stack = 'tempo_image.png'
-    stack_pngs(feature_list, source_dir, output_dir, output_name, test_path, tempo_stack)
-
-
+    pass
 

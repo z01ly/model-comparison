@@ -43,6 +43,13 @@ def save_shap_values(background, test_data, key, classifier_key, explainer_key):
 
 
 
+def deep_support(background, test_data, key, classifier_key):
+    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
+
+    shap.DeepExplainer(clf, background).supports_model(clf)
+
+
+
 
 if __name__ == '__main__':
     # src.shap.utils.mkdirs()
@@ -60,8 +67,10 @@ if __name__ == '__main__':
 
     # divide by zero encountered in log
     # save_shap_values(X_sampled, sdss_test_data, 'compare', 'voting-MLP-RF-XGB', 'KernelExplainer') 
-    save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'voting-MLP-RF-XGB', 'Explainer') 
+    # save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'voting-MLP-RF-XGB', 'Explainer') 
 
     # save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'stacking-MLP-RF-XGB', 'Explainer')
-    save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'stacking-MLP-RF-XGB', 'KernelExplainer')
+    # save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'stacking-MLP-RF-XGB', 'KernelExplainer')
+
+    deep_support(X_sampled, sdss_test_data, 'compare', 'single-MLP')
     
