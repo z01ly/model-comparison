@@ -1,4 +1,7 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import os
 
 from torch.utils.data import Dataset
@@ -42,6 +45,20 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
+
+
+
+def cross_val_nn_plot(loss_list, xlabel_str, save_path):
+    fig = plt.figure(figsize=(10,8))
+    plt.title("Training loss per " + xlabel_str)
+    plt.plot(loss_list, label='Training Loss')
+
+    plt.xlabel(xlabel_str)
+    plt.ylabel('loss')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    fig.savefig(save_path, bbox_inches='tight')
      
 
 

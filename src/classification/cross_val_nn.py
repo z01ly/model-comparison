@@ -29,9 +29,6 @@ def main(key, model_names, X, y, classifier_key,
     for class_label, int_label in zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)):
         print(f"Class '{class_label}' is transformed to encoding integer: {int_label}")
 
-    # X_tensor = torch.tensor(X, dtype=torch.float32)
-    # y_tensor = torch.tensor(y_encoded, dtype=torch.long)
-
     n_splits = 5
     n_repeats = 2
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
@@ -67,7 +64,7 @@ def main(key, model_names, X, y, classifier_key,
             nn_clf = nn_clf.cuda(gpu_id)
         
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(nn_clf.parameters())
+        optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-5) # L2 regularization
 
         train_losses = []
         avg_train_losses = []
@@ -150,7 +147,7 @@ def main(key, model_names, X, y, classifier_key,
     plt.savefig(os.path.join('src/classification/confusion-matrix', key, classifier_key + '-cm.png'))
     plt.close()
 
-
+    return train_losses, avg_train_losses
 
 
 
@@ -162,15 +159,18 @@ if __name__ == "__main__":
     output_size = 6
     dropout_rate = 0.5
     batch_size = 128
-    num_epochs= 20
+    num_epochs= 30
     gpu_id = 2
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    main('NIHAOrt_TNG', model_names, X, y, 'nn', 
+    train_losses, avg_train_losses = main('NIHAOrt_TNG', model_names, X, y, 'nn', 
         input_size, hidden_size1, hidden_size2, output_size, dropout_rate, batch_size,
         num_epochs, gpu_id, use_cuda=True)
+
+    utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_avg_loss.png'))
+    utils.cross_val_nn_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
 
 
     

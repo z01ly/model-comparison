@@ -9,14 +9,14 @@ class SimpleNN(nn.Module):
         super().__init__()
         self.model = nn.ModuleList([
             nn.Linear(input_size, hidden_size1),
-            nn.BatchNorm1d(hidden_size1),
+            # nn.BatchNorm1d(hidden_size1),
             nn.ReLU(),
-            nn.Dropout(dropout_rate),
+            # nn.Dropout(dropout_rate),
             
             nn.Linear(hidden_size1, hidden_size2),
-            nn.BatchNorm1d(hidden_size2),
+            # nn.BatchNorm1d(hidden_size2),
             nn.ReLU(),
-            nn.Dropout(dropout_rate),
+            # nn.Dropout(dropout_rate),
         
             nn.Linear(hidden_size2, output_size)
         ])
