@@ -53,8 +53,7 @@ def train(key, classifier_key, X, y, max_iter=400):
     elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
-        clf = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
+        clf = clf_MLP
 
 
     scaler = StandardScaler()
@@ -104,3 +103,16 @@ def test(scaler, key, model_names, classifier_key, sdss_test_data):
     plt.title("Violin Plot of Predicted Probabilities")
     plt.savefig(os.path.join('src/classification/violin-plot/', key, classifier_key + '-violin.png'))
     plt.close()
+
+
+
+if __name__ == "__main__":
+    model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
+    X, y = utils.load_data_train(model_names)
+
+    classifier_keys = ['single-MLP'] # 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+    print(sdss_test_data.shape)
+    for classifier_key in classifier_keys:
+        scaler = train('NIHAOrt_TNG', classifier_key, X, y)
+        test(scaler, 'NIHAOrt_TNG', [s.split('_')[0] for s in model_names], classifier_key, sdss_test_data)
