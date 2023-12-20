@@ -30,7 +30,7 @@ def main(key, model_names, X, y, classifier_key,
         print(f"Class '{class_label}' is transformed to encoding integer: {int_label}")
 
     n_splits = 5
-    n_repeats = 2
+    n_repeats = 1
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
 
     confusion_matrices = []
@@ -64,7 +64,8 @@ def main(key, model_names, X, y, classifier_key,
             nn_clf = nn_clf.cuda(gpu_id)
         
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-5) # L2 regularization
+        optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) # L2 regularization
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
         train_losses = []
         avg_train_losses = []
@@ -94,6 +95,8 @@ def main(key, model_names, X, y, classifier_key,
 
             train_avg = sum_train_loss_epoch / itr # average train loss per epoch
             avg_train_losses.append(train_avg)
+
+            scheduler.step()
 
 
         fold_labels_list = [] # true labels
@@ -158,9 +161,9 @@ if __name__ == "__main__":
     hidden_size2 = 128
     output_size = 6
     dropout_rate = 0.5
-    batch_size = 128
-    num_epochs= 30
-    gpu_id = 2
+    batch_size = 4 # 8
+    num_epochs = 50
+    gpu_id = 1
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
@@ -169,8 +172,9 @@ if __name__ == "__main__":
         input_size, hidden_size1, hidden_size2, output_size, dropout_rate, batch_size,
         num_epochs, gpu_id, use_cuda=True)
 
-    utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_avg_loss.png'))
-    utils.cross_val_nn_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
+    utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
+    utils.cross_val_nn_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_avg_loss.png'))
+
 
 
     
