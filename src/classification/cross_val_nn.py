@@ -161,8 +161,8 @@ if __name__ == "__main__":
     hidden_size2 = 128
     output_size = 6
     dropout_rate = 0.5
-    batch_size = 4 # 8
-    num_epochs = 50
+    batch_size = 8
+    num_epochs = 30
     gpu_id = 1
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
