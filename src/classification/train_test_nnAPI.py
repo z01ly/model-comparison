@@ -4,6 +4,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import pickle
+import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
@@ -17,7 +19,7 @@ from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
-import pickle, os
+from pytorch_tabnet.tab_model import TabNetClassifier
 
 import src.classification.utils as utils
 
@@ -48,29 +50,35 @@ def train(key, classifier_key, X, y, max_iter=400):
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0, early_stopping=True)
         clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1, early_stopping=True)
-        # predict_proba is not available when voting='hard'
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
     elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
         clf = clf_MLP
-
-
-    scaler = StandardScaler()
+    elif classifier_key == 'tabnet':
+        clf = TabNetClassifier()
 
     # scaling
+    scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
     clf.fit(X_scaled, y_onehot)
 
-    pickle.dump(clf, open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), 'wb'))
+    if classifier_key != 'tabnet':
+        pickle.dump(clf, open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), 'wb'))
+    else:
+        clf.save_model(os.path.join('src/classification/save-model/', key, classifier_key))
 
     return scaler
 
 
 
 def test(scaler, key, model_names, classifier_key, sdss_test_data):
-    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
+    if classifier_key != 'tabnet':
+        clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
+    else:
+        clf = TabNetClassifier()
+        clf.load_model(os.path.join('src/classification/save-model/', key, classifier_key + '.zip'))
 
     label_binarizer = LabelEncoder().fit(model_names)
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
@@ -110,7 +118,7 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    classifier_keys = ['single-MLP'] # 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    classifier_keys = ['tabnet'] # 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
     for classifier_key in classifier_keys:

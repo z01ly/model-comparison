@@ -35,7 +35,7 @@ def pre_makedirs(key):
 
 
 # A pytorch dataset for SimpleNN
-class CustomDataset(Dataset):
+class TrainValDataset(Dataset):
     def __init__(self, X, y):
         self.X = X
         self.y = y
@@ -45,6 +45,18 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.X[idx], self.y[idx]
+
+
+
+class TestDataset(Dataset):
+    def __init__(self, test_data):
+        self.test_data = test_data
+
+    def __len__(self):
+        return len(self.test_data)
+
+    def __getitem__(self, idx):
+        return self.test_data[idx]
 
 
 

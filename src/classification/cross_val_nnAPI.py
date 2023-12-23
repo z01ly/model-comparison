@@ -4,6 +4,8 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
+import pickle
+import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
@@ -17,7 +19,7 @@ from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
-import pickle, os
+from pytorch_tabnet.tab_model import TabNetClassifier
 
 import src.classification.utils as utils
 import src.classification.bayesflow_calibration as bayesflow_calibration
@@ -48,18 +50,19 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0)
         clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1)
-        # predict_proba is not available when voting='hard'
-        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
+        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft') # predict_proba is not available when voting='hard'
     elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
         clf = clf_MLP
+    elif classifier_key == 'tabnet':
+        clf = TabNetClassifier()
 
 
     scaler = StandardScaler()
 
     n_splits = 5
-    n_repeats = 2
+    n_repeats = 1
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
 
     confusion_matrices = []
@@ -134,6 +137,7 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
 
 
 if __name__ == "__main__":
+    # MLP candidate_architectures: [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
     # utils.pre_makedirs()
 
     # keep list order
@@ -143,12 +147,9 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    classifier_keys = ['single-MLP'] # 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    classifier_keys = ['tabnet'] # 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
     for classifier_key in classifier_keys:
         main('NIHAOrt_TNG', [s.split('_')[0] for s in model_names], X, y, classifier_key)
-
-
-    # candidate_architectures = [(64, 32), (64, 64), (128, 64), (128, 128), (128, 64, 32), (32, 32, 32), (64, 64, 64)]
 
 
     

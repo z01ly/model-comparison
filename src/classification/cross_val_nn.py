@@ -20,9 +20,7 @@ from src.classification.simple_nn import SimpleNN
 
 
 # kfold ref: https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
-def main(key, model_names, X, y, classifier_key,
-        input_size, hidden_size1, hidden_size2, output_size, dropout_rate, batch_size,
-        num_epochs, gpu_id, use_cuda=True):
+def main(key, model_names, X, y, classifier_key, input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True):
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
 
@@ -53,13 +51,13 @@ def main(key, model_names, X, y, classifier_key,
         y_train_tensor = torch.tensor(y_train_encoded, dtype=torch.long)
         y_test_tensor = torch.tensor(y_test_encoded, dtype=torch.long)
 
-        train_dataset = utils.CustomDataset(X_train_tensor, y_train_tensor)
+        train_dataset = utils.TrainValDataset(X_train_tensor, y_train_tensor)
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
-        test_dataset = utils.CustomDataset(X_test_tensor, y_test_tensor)
+        test_dataset = utils.TrainValDataset(X_test_tensor, y_test_tensor)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
-        nn_clf = SimpleNN(input_size, hidden_size1, hidden_size2, output_size, dropout_rate)
+        nn_clf = SimpleNN(input_size, output_size)
         if use_cuda:
             nn_clf = nn_clf.cuda(gpu_id)
         
@@ -157,10 +155,7 @@ def main(key, model_names, X, y, classifier_key,
 if __name__ == "__main__":
     # y_onehot = F.one_hot(torch.tensor(y_integer), num_classes=len(model_names))
     input_size = 32
-    hidden_size1 = 64
-    hidden_size2 = 128
     output_size = 6
-    dropout_rate = 0.5
     batch_size = 8
     num_epochs = 30
     gpu_id = 1
@@ -169,8 +164,7 @@ if __name__ == "__main__":
     X, y = utils.load_data_train(model_names)
 
     train_losses, avg_train_losses = main('NIHAOrt_TNG', model_names, X, y, 'nn', 
-        input_size, hidden_size1, hidden_size2, output_size, dropout_rate, batch_size,
-        num_epochs, gpu_id, use_cuda=True)
+        input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
 
     utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
     utils.cross_val_nn_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_avg_loss.png'))
