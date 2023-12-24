@@ -8,16 +8,16 @@ import pickle
 import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.calibration import calibration_curve
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 
+from rtdl_revisiting_models import FTTransformer
+
 import src.classification.utils as utils
-from src.classification.simple_nn import SimpleNN
+from src.classification.simple_nn import SimpleNN, ResNetNN
 
 
 
@@ -36,12 +36,37 @@ def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_ep
     train_dataset = utils.TrainValDataset(X_tensor, y_tensor)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
-    nn_clf = SimpleNN(input_size, output_size)
+    if classifier_key == 'nn':
+        nn_clf = SimpleNN(input_size, output_size)
+    elif classifier_key == 'resnet':
+        nn_clf = ResNetNN(input_size, output_size)
+    elif classifier_key == 'transformer':
+        default_kwargs = FTTransformer.get_default_kwargs()
+        nn_clf = FTTransformer(
+            n_cont_features=input_size,
+            cat_cardinalities=[],
+            d_out=output_size,
+            n_blocks=3,
+            d_block=192,
+            attention_n_heads=8,
+            attention_dropout=0.2,
+            ffn_d_hidden=None,
+            ffn_d_hidden_multiplier=4 / 3,
+            ffn_dropout=0.1,
+            residual_dropout=0.0,
+            )
+
     if use_cuda:
         nn_clf = nn_clf.cuda(gpu_id)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) 
+    optimizer = torch.optim.AdamW(
+    # Instead of model.parameters(),
+    model.make_parameter_groups(),
+    lr=1e-4,
+    weight_decay=1e-5,
+    )
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     train_losses = []
@@ -88,8 +113,25 @@ def test(scaler, key, model_names, classifier_key, sdss_test_data, input_size, o
     sdss_test_dataset = utils.TestDataset(sdss_test_tensor)
     sdss_test_loader = DataLoader(sdss_test_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
+    if classifier_key == 'nn':
+        nn_clf = SimpleNN(input_size, output_size)
+    elif classifier_key == 'resnet':
+        nn_clf = ResNetNN(input_size, output_size)
+    elif classifier_key == 'transformer':
+        nn_clf = FTTransformer(
+            n_cont_features=input_size,
+            cat_cardinalities=[],
+            d_out=output_size,
+            n_blocks=3,
+            d_block=192,
+            attention_n_heads=8,
+            attention_dropout=0.2,
+            ffn_d_hidden=None,
+            ffn_d_hidden_multiplier=4 / 3,
+            ffn_dropout=0.1,
+            residual_dropout=0.0,
+            )
 
-    nn_clf = SimpleNN(input_size, output_size)
     nn_clf.load_state_dict(torch.load(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pt')))
     if use_cuda:
         nn_clf = nn_clf.cuda(gpu_id)
@@ -134,7 +176,8 @@ if __name__ == "__main__":
 
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
-    scaler, train_losses, avg_train_losses = train('NIHAOrt_TNG', 'nn', X, y, 
+
+    scaler, train_losses, avg_train_losses = train('NIHAOrt_TNG', 'transformer', X, y, 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
-    test(scaler, 'NIHAOrt_TNG', [s.split('_')[0] for s in model_names], 'nn', sdss_test_data, 
+    test(scaler, 'NIHAOrt_TNG', [s.split('_')[0] for s in model_names], 'transformer', sdss_test_data, 
         input_size, output_size, batch_size, gpu_id, use_cuda=True)

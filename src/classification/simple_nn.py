@@ -2,6 +2,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from rtdl_revisiting_models import ResNet
+
+
+
+class ResNetNN(nn.Module):
+    def __init__(self, input_size, output_size):
+        super().__init__()
+        self.model = nn.ModuleList([
+            ResNet(d_in=input_size, d_out=None, n_blocks=1, d_block=32, d_hidden=64, d_hidden_multiplier=None, dropout1=0.15, dropout2=0.0,),
+            ResNet(d_in=32, d_out=None, n_blocks=1, d_block=64, d_hidden=128, d_hidden_multiplier=None, dropout1=0.15, dropout2=0.0,),
+            ResNet(d_in=64, d_out=output_size, n_blocks=1, d_block=128, d_hidden=256, d_hidden_multiplier=None, dropout1=0.15, dropout2=0.0,)
+        ])
+        
+    def forward(self, x):
+        for layer in self.model:
+            x = layer(x)
+        
+        return x
+
+
 
 
 class ResidualBlock(nn.Module):
@@ -42,10 +62,6 @@ class SimpleNN(nn.Module):
 
             ResidualBlock(64, 32),
 
-            # ResidualBlock(32, 64),
-
-            # ResidualBlock(64, 128),
-
             ResidualBlock(32, output_size, True)
         ])
         
@@ -54,3 +70,4 @@ class SimpleNN(nn.Module):
             x = layer(x)
         
         return x
+

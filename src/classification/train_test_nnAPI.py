@@ -9,16 +9,14 @@ import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
-from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.calibration import calibration_curve
-
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
+import torch
+import torch.nn as nn
 from pytorch_tabnet.tab_model import TabNetClassifier
 
 import src.classification.utils as utils
@@ -45,12 +43,6 @@ def train(key, classifier_key, X, y, max_iter=400):
     if classifier_key == 'stacking-MLP-RF-XGB':
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
-    elif classifier_key == 'voting-3MLPs':
-        clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0, early_stopping=True)
-        clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1, early_stopping=True)
-        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft')
     elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
@@ -62,11 +54,12 @@ def train(key, classifier_key, X, y, max_iter=400):
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    clf.fit(X_scaled, y_onehot)
-
+        
     if classifier_key != 'tabnet':
+        clf.fit(X_scaled, y_onehot)
         pickle.dump(clf, open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), 'wb'))
     else:
+        clf.fit(X_scaled, y_onehot, loss_fn=nn.CrossEntropyLoss(), max_epochs=30, batch_size=8)
         clf.save_model(os.path.join('src/classification/save-model/', key, classifier_key))
 
     return scaler
@@ -118,7 +111,7 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    classifier_keys = ['tabnet'] # 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    classifier_keys = ['voting-3MLPs'] # 'tabnet', 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
     for classifier_key in classifier_keys:

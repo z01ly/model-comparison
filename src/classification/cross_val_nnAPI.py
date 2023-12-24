@@ -19,6 +19,8 @@ from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
+import torch
+import torch.nn as nn
 from pytorch_tabnet.tab_model import TabNetClassifier
 
 import src.classification.utils as utils
@@ -45,12 +47,6 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
     if classifier_key == 'stacking-MLP-RF-XGB':
         meta_classifier = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
         clf = StackingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], final_estimator=meta_classifier)
-    elif classifier_key == 'voting-3MLPs':
-        clf_MLP2 = MLPClassifier(hidden_layer_sizes=(64, 32), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+200, random_state=0)
-        clf_MLP3 = MLPClassifier(hidden_layer_sizes=(64, 64), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter+100, random_state=1)
-        clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('MLP2', clf_MLP2), ('MLP3', clf_MLP3)], voting='soft') # predict_proba is not available when voting='hard'
     elif classifier_key == 'voting-MLP-RF-XGB':
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
@@ -81,7 +77,10 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        clf.fit(X_train_scaled, y_train_onehot)
+        if classifier_key != 'tabnet':
+            clf.fit(X_scaled, y_onehot)
+        else:
+            clf.fit(X_train_scaled, y_train_onehot, loss_fn=nn.CrossEntropyLoss(), max_epochs=30, batch_size=8)
 
         y_pred_onehot = clf.predict(X_test_scaled)
         y_pred = label_binarizer.inverse_transform(y_pred_onehot)

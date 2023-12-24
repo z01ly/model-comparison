@@ -16,7 +16,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 import src.classification.bayesflow_calibration as bayesflow_calibration
 import src.classification.utils as utils
-from src.classification.simple_nn import SimpleNN
+from src.classification.simple_nn import SimpleNN, ResNetNN
 
 
 # kfold ref: https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
@@ -57,7 +57,11 @@ def main(key, model_names, X, y, classifier_key, input_size, output_size, batch_
         test_dataset = utils.TrainValDataset(X_test_tensor, y_test_tensor)
         test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
 
-        nn_clf = SimpleNN(input_size, output_size)
+        if classifier_key == 'nn':
+            nn_clf = SimpleNN(input_size, output_size)
+        elif classifier_key == 'resnet':
+            nn_clf = ResNetNN(input_size, output_size)
+
         if use_cuda:
             nn_clf = nn_clf.cuda(gpu_id)
         
@@ -163,7 +167,7 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    train_losses, avg_train_losses = main('NIHAOrt_TNG', model_names, X, y, 'nn', 
+    train_losses, avg_train_losses = main('NIHAOrt_TNG', model_names, X, y, 'resnet', 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
 
     utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
