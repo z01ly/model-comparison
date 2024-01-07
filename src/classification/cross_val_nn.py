@@ -160,18 +160,23 @@ if __name__ == "__main__":
     # y_onehot = F.one_hot(torch.tensor(y_integer), num_classes=len(model_names))
     input_size = 32
     output_size = 6
-    batch_size = 8
-    num_epochs = 30
-    gpu_id = 1
+    # batch_size = 8
+    # num_epochs = 30
+    batch_size = 128
+    num_epochs = 80
+    gpu_id = 2
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
+    
+    key = 'NIHAOrt_TNG'
+    classifier_key = 'nn'
 
-    train_losses, avg_train_losses = main('NIHAOrt_TNG', model_names, X, y, 'resnet', 
+    train_losses, avg_train_losses = main(key, model_names, X, y, classifier_key, 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
 
-    utils.cross_val_nn_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_itr_loss.png'))
-    utils.cross_val_nn_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', 'NIHAOrt_TNG', 'cross-val', 'plot_avg_loss.png'))
+    utils.train_loss_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', key, 'cross-val', 'plot_itr_loss.png'))
+    utils.train_loss_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', key, 'cross-val', 'plot_avg_loss.png'))
 
 
 

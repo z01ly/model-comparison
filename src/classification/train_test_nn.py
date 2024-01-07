@@ -61,12 +61,6 @@ def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_ep
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) 
-    optimizer = torch.optim.AdamW(
-    # Instead of model.parameters(),
-    model.make_parameter_groups(),
-    lr=1e-4,
-    weight_decay=1e-5,
-    )
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     train_losses = []
@@ -97,6 +91,7 @@ def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_ep
 
         train_avg = sum_train_loss_epoch / itr # average train loss per epoch
         avg_train_losses.append(train_avg)
+        print(f"epoch: {epoch}, average loss: {train_avg}")
 
         scheduler.step()
 
@@ -167,8 +162,10 @@ def test(scaler, key, model_names, classifier_key, sdss_test_data, input_size, o
 if __name__ == "__main__":
     input_size = 32
     output_size = 6
-    batch_size = 8
-    num_epochs = 30
+    # batch_size = 8
+    # num_epochs = 30
+    batch_size = 128
+    num_epochs = 80
     gpu_id = 2
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
@@ -177,7 +174,14 @@ if __name__ == "__main__":
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
 
-    scaler, train_losses, avg_train_losses = train('NIHAOrt_TNG', 'transformer', X, y, 
+    key = 'NIHAOrt_TNG'
+    classifier_key = 'nn'
+    
+    scaler, train_losses, avg_train_losses = train(key, classifier_key, X, y, 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
-    test(scaler, 'NIHAOrt_TNG', [s.split('_')[0] for s in model_names], 'transformer', sdss_test_data, 
+    test(scaler, key, [s.split('_')[0] for s in model_names], classifier_key, sdss_test_data, 
         input_size, output_size, batch_size, gpu_id, use_cuda=True)
+
+    os.makedirs(os.path.join('src/classification/simple-nn', key, 'train-test'), exist_ok=True)
+    utils.train_loss_plot(train_losses, 'iterations', os.path.join('src/classification/simple-nn', key, 'train-test', classifier_key + '_itr_loss.png'))
+    utils.train_loss_plot(avg_train_losses, 'epochs', os.path.join('src/classification/simple-nn', key, 'train-test', classifier_key + '_avg_loss.png'))

@@ -60,7 +60,7 @@ class TestDataset(Dataset):
 
 
 
-def cross_val_nn_plot(loss_list, xlabel_str, save_path):
+def train_loss_plot(loss_list, xlabel_str, save_path):
     fig = plt.figure(figsize=(10,8))
     plt.title("Training loss per " + xlabel_str)
     plt.plot(loss_list, label='Training Loss')

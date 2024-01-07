@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from rtdl_revisiting_models import ResNet
 
 
-
+# https://github.com/yandex-research/rtdl-revisiting-models/tree/main
 class ResNetNN(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()

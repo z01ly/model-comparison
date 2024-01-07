@@ -59,7 +59,15 @@ def train(key, classifier_key, X, y, max_iter=400):
         clf.fit(X_scaled, y_onehot)
         pickle.dump(clf, open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), 'wb'))
     else:
-        clf.fit(X_scaled, y_onehot, loss_fn=nn.CrossEntropyLoss(), max_epochs=30, batch_size=8)
+        clf.fit(X_train=X_scaled, 
+                y_train=y_onehot,
+                # eval_metric=['auc'],
+                loss_fn=nn.CrossEntropyLoss(),
+                # weights=1,
+                max_epochs=400, 
+                batch_size=64,
+                virtual_batch_size=32,
+                num_workers=2)
         clf.save_model(os.path.join('src/classification/save-model/', key, classifier_key))
 
     return scaler
@@ -111,7 +119,7 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    classifier_keys = ['voting-3MLPs'] # 'tabnet', 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    classifier_keys = ['tabnet'] # 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
     for classifier_key in classifier_keys:

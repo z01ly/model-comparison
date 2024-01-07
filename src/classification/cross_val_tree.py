@@ -6,14 +6,9 @@ import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.linear_model import LogisticRegression
 # from sklearn.model_selection import train_test_split
-from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from imblearn.ensemble import BalancedRandomForestClassifier
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import BernoulliNB
 
 from xgboost import XGBClassifier
 
@@ -38,21 +33,8 @@ def main(key, model_names, X, y, encoder_key, classifier_key):
 
     if classifier_key == 'random-forest':
         clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
-    elif classifier_key == 'balanced-random-forest':
-        clf = BalancedRandomForestClassifier(n_estimators=100, random_state=42, \
-                sampling_strategy='all', replacement=True)
     elif classifier_key == 'xgboost':
         clf = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
-    elif classifier_key == 'logistic-regression':
-        clf = LogisticRegression(multi_class='multinomial', class_weight='balanced', max_iter=500, solver='lbfgs')
-    elif classifier_key == 'gradient-boosting':
-        clf = GradientBoostingClassifier(n_estimators=100, random_state=42)
-    elif classifier_key == 'svc':
-        clf = SVC(kernel='rbf', class_weight='balanced', random_state=42, decision_function_shape='ovr', probability=True)
-    elif classifier_key == 'knn':
-        clf = KNeighborsClassifier(n_neighbors=3, weights='uniform', algorithm='kd_tree')
-    elif classifier_key == 'naive-bayes':
-        clf = BernoulliNB()
 
     
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -133,17 +115,16 @@ def main(key, model_names, X, y, encoder_key, classifier_key):
 
 
 if __name__ == "__main__":
-    utils.pre_makedirs()
     # imbalanced data
 
     # keep list order
     # nihao_list = ['AGN', 'NOAGN', 'UHD_2times', 'mockobs_0915', 'n80_2times']
     # illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135'] # keep this order
-    compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
-    X, y = utils.load_data_train(compare_list)
+    # compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
+    model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
+    X, y = utils.load_data_train(model_names)
 
-    main('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'random-forest')
-    main('compare', [s.split('_')[0] for s in compare_list], X, y, 'integer', 'xgboost')
+    main('NIHAOrt_TNG', [s.split('_')[0] for s in model_names], X, y, 'integer', 'random-forest')
 
     # 'balanced-random-forest', 'logistic-regression', 'gradient-boosting', 'svc', 'knn', 'naive-bayes'
     
