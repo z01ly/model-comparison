@@ -51,18 +51,18 @@ class ResidualBlock(nn.Module):
 
 
 class SimpleNN(nn.Module):
-    def __init__(self, input_size, output_size):
+    def __init__(self, input_size, output_size, r1=256, r2=128, r3=64, r4=32):
         super().__init__()
         self.model = nn.ModuleList([
-            ResidualBlock(input_size, 256),
+            ResidualBlock(input_size, r1),
             
-            ResidualBlock(256, 128),
+            ResidualBlock(r1, r2),
 
-            ResidualBlock(128, 64),
+            ResidualBlock(r2, r3),
 
-            ResidualBlock(64, 32),
+            ResidualBlock(r3, r4),
 
-            ResidualBlock(32, output_size, True)
+            ResidualBlock(r4, output_size, True)
         ])
         
     def forward(self, x):
