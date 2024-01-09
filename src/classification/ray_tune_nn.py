@@ -80,7 +80,7 @@ def train_tabular(config):
         num_workers=4,
     )
 
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(20):  # loop over the dataset multiple times
         # training
         running_loss = 0.0
         epoch_steps = 0
@@ -162,8 +162,12 @@ def test_best_model(best_result, model_names, input_size, output_size):
 
     best_trained_model.load_state_dict(model_state)
 
+    # get scaler from training data
+    X_train, y_train = utils.load_data(model_names, switch='train')
+    _, _, _, scaler = utils.pre_nn_data(X_train, y_train)
     X, y = utils.load_data(model_names, switch='test')
-    X_tensor, y_tensor = utils.pre_nn_data(X, y)
+    X_tensor, y_tensor, _, _ = utils.pre_nn_data(X, y, scaler)
+
     testset = utils.TrainValDataset(X_tensor, y_tensor)
 
     testloader = torch.utils.data.DataLoader(
@@ -187,10 +191,10 @@ def test_best_model(best_result, model_names, input_size, output_size):
 
 def main(model_names, input_size, output_size, num_samples=10, max_num_epochs=10, gpus_per_trial=2):
     config = {
-        "r1": tune.sample_from(lambda _: 2 ** np.random.randint(4, 10)),
-        "r2": tune.sample_from(lambda _: 2 ** np.random.randint(4, 10)),
-        "r3": tune.sample_from(lambda _: 2 ** np.random.randint(4, 10)),
-        "r4": tune.sample_from(lambda _: 2 ** np.random.randint(4, 10)),
+        "r1": tune.sample_from(lambda _: 2 ** np.random.randint(8, 9)),
+        "r2": tune.sample_from(lambda _: 2 ** np.random.randint(7, 8)),
+        "r3": tune.sample_from(lambda _: 2 ** np.random.randint(6, 7)),
+        "r4": tune.sample_from(lambda _: 2 ** np.random.randint(5, 6)),
         "lr": tune.loguniform(1e-4, 1e-1),
         "scheduler_gamma": tune.choice([0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]),
         "batch_size": tune.choice([32, 64, 128, 256, 512]),
@@ -274,5 +278,5 @@ if __name__ == "__main__":
     output_size = 6
     # gpu_id = 2
 
-    # main(model_names, input_size, output_size, num_samples=10, max_num_epochs=10, gpus_per_trial=2)
-    read_results()
+    main(model_names, input_size, output_size, num_samples=10, max_num_epochs=10, gpus_per_trial=2)
+    # read_results()

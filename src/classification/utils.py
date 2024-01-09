@@ -17,7 +17,7 @@ def load_data(model_list, switch='train'):
         pattern = re.compile(r'_[0-9]+times')
         model_list = [re.sub(pattern, '', model_str) for model_str in model_list]
         print(model_list)
-        
+
     X_list = []
     y_list = []
     for model_str in model_list:
@@ -37,24 +37,24 @@ def load_data(model_list, switch='train'):
     return X, y
 
 
-def print_msg(y):
-    label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
-
+def print_msg(label_encoder):
     for class_label, int_label in zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)):
         print(f"Class '{class_label}' is transformed to encoding integer: {int_label}")
 
 
-def pre_nn_data(X, y):
+def pre_nn_data(X, y, scaler=''):
     label_encoder = LabelEncoder()
     y_encoded = label_encoder.fit_transform(y)
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
+    if scaler == '': # training data
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+    else: # test data
+        X_scaled = scaler.transform(X)
 
     X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
     y_tensor = torch.tensor(y_encoded, dtype=torch.long)
 
-    return X_tensor, y_tensor
+    return X_tensor, y_tensor, label_encoder, scaler
 
 
 
@@ -115,7 +115,6 @@ if __name__ == '__main__':
     # illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135']
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = load_data(model_names, switch='train')
-    print(X.shape)
-    print_msg(y)
+
     
     
