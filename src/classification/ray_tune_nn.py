@@ -29,6 +29,8 @@ from ray.tune.schedulers import ASHAScheduler
 import src.classification.utils as utils
 from src.classification.simple_nn import SimpleNN
 
+from rtdl_revisiting_models import FTTransformer
+
 
 
 def train_tabular(config):
@@ -36,7 +38,13 @@ def train_tabular(config):
     input_size = 32
     output_size = 6
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
-    net = SimpleNN(input_size, output_size, config["r1"], config["r2"], config["r3"], config["r4"])
+    # net = SimpleNN(input_size, output_size, config["r1"], config["r2"], config["r3"], config["r4"])
+    net = FTTransformer(
+            n_cont_features=input_size,
+            cat_cardinalities=[],
+            d_out=output_size,
+            **FTTransformer.get_default_kwargs(),
+            )
 
     device = "cpu"
     if torch.cuda.is_available():
@@ -47,7 +55,7 @@ def train_tabular(config):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=config["lr"], weight_decay=1e-4)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=config["scheduler_gamma"])
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     # Load existing checkpoint through `get_checkpoint()` API.
     if train.get_checkpoint():
@@ -60,7 +68,7 @@ def train_tabular(config):
             optimizer.load_state_dict(optimizer_state)
 
     X, y = utils.load_data(model_names, switch='train')
-    X_tensor, y_tensor = utils.pre_nn_data(X, y)
+    X_tensor, y_tensor, _, _ = utils.pre_nn_data(X, y)
     trainset = utils.TrainValDataset(X_tensor, y_tensor)
 
     test_abs = int(len(trainset) * 0.8)
@@ -93,7 +101,13 @@ def train_tabular(config):
             optimizer.zero_grad()
 
             # forward + backward + optimize
-            outputs = net(inputs)
+
+            # ft transformer
+            outputs = nn_clf(inputs, None)
+
+            # general 
+            # outputs = nn_clf(inputs)
+
             loss = criterion(outputs, labels)
             loss.backward()
             optimizer.step()
@@ -116,7 +130,12 @@ def train_tabular(config):
                 inputs, labels = data
                 inputs, labels = inputs.to(device), labels.to(device)
 
-                outputs = net(inputs)
+                # ft transformer
+                outputs = nn_clf(inputs, None)
+
+                # general 
+                # outputs = nn_clf(inputs)
+
                 _, predicted = torch.max(outputs, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -148,7 +167,13 @@ def train_tabular(config):
 
 
 def test_best_model(best_result, model_names, input_size, output_size):
-    best_trained_model = SimpleNN(input_size, output_size, best_result.config["r1"], best_result.config["r2"], best_result.config["r3"], best_result.config["r4"])
+    # best_trained_model = SimpleNN(input_size, output_size, best_result.config["r1"], best_result.config["r2"], best_result.config["r3"], best_result.config["r4"])
+    best_trained_model = FTTransformer(
+            n_cont_features=input_size,
+            cat_cardinalities=[],
+            d_out=output_size,
+            **FTTransformer.get_default_kwargs(),
+            )
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     best_trained_model.to(device)
 
@@ -180,7 +205,13 @@ def test_best_model(best_result, model_names, input_size, output_size):
         for data in testloader:
             inputs, labels = data
             inputs, labels = inputs.to(device), labels.to(device)
-            outputs = best_trained_model(inputs)
+            
+            # ft transformer
+            outputs = best_trained_model(inputs, None)
+
+            # general 
+            # outputs = best_trained_model(inputs)
+
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -191,13 +222,12 @@ def test_best_model(best_result, model_names, input_size, output_size):
 
 def main(model_names, input_size, output_size, num_samples=10, max_num_epochs=10, gpus_per_trial=2):
     config = {
-        "r1": tune.sample_from(lambda _: 2 ** np.random.randint(8, 9)),
-        "r2": tune.sample_from(lambda _: 2 ** np.random.randint(7, 8)),
-        "r3": tune.sample_from(lambda _: 2 ** np.random.randint(6, 7)),
-        "r4": tune.sample_from(lambda _: 2 ** np.random.randint(5, 6)),
+        # "r1": tune.sample_from(lambda _: 2 ** np.random.randint(8, 9)),
+        # "r2": tune.sample_from(lambda _: 2 ** np.random.randint(7, 8)),
+        # "r3": tune.sample_from(lambda _: 2 ** np.random.randint(6, 7)),
+        # "r4": tune.sample_from(lambda _: 2 ** np.random.randint(5, 6)),
         "lr": tune.loguniform(1e-4, 1e-1),
-        "scheduler_gamma": tune.choice([0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6]),
-        "batch_size": tune.choice([32, 64, 128, 256, 512]),
+        "batch_size": tune.grid_search([32, 64, 128, 256, 512]), # tune.choice([32, 64, 128, 256, 512]),
     }
     
     scheduler = ASHAScheduler(

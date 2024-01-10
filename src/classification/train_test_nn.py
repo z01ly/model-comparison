@@ -19,19 +19,13 @@ from rtdl_revisiting_models import FTTransformer
 import src.classification.utils as utils
 from src.classification.simple_nn import SimpleNN, ResNetNN
 
+from pytorch_tabnet.tab_network import TabNet
 
 
-def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True):
-    label_encoder = LabelEncoder()
-    y_encoded = label_encoder.fit_transform(y)
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
 
-    for class_label, int_label in zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)):
-        print(f"Class '{class_label}' is transformed to encoding integer: {int_label}")
-
-    X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-    y_tensor = torch.tensor(y_encoded, dtype=torch.long)
+def train(key, classifier_key, model_names, input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True):
+    X, y = utils.load_data(model_names, switch='train')
+    X_tensor, y_tensor, label_encoder, scaler = utils.pre_nn_data(X, y)
 
     train_dataset = utils.TrainValDataset(X_tensor, y_tensor)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=2, pin_memory=True)
@@ -40,27 +34,29 @@ def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_ep
         nn_clf = SimpleNN(input_size, output_size)
     elif classifier_key == 'resnet':
         nn_clf = ResNetNN(input_size, output_size)
-    elif classifier_key == 'transformer':
+    elif classifier_key == 'fttransformer':
         default_kwargs = FTTransformer.get_default_kwargs()
         nn_clf = FTTransformer(
             n_cont_features=input_size,
             cat_cardinalities=[],
             d_out=output_size,
-            n_blocks=3,
-            d_block=192,
-            attention_n_heads=8,
-            attention_dropout=0.2,
-            ffn_d_hidden=None,
-            ffn_d_hidden_multiplier=4 / 3,
-            ffn_dropout=0.1,
-            residual_dropout=0.0,
+            **default_kwargs,
             )
+    elif classifier_key == 'tabnet':
+        eye_matrix = torch.eye(input_size)
+        if use_cuda:
+            eye_matrix = eye_matrix.cuda(gpu_id)
+        nn_clf = TabNet(input_size, output_size, group_attention_matrix=eye_matrix)
 
     if use_cuda:
         nn_clf = nn_clf.cuda(gpu_id)
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) 
+    # if classifier_key == 'fttransformer':
+    #     optimizer = nn_clf.make_default_optimizer()
+    # else:
+    #     optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4)
+    optimizer = torch.optim.Adam(nn_clf.parameters(), lr=0.000373, weight_decay=1e-4)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     train_losses = []
@@ -75,7 +71,15 @@ def train(key, classifier_key, X, y, input_size, output_size, batch_size, num_ep
 
             if use_cuda:
                 inputs = inputs.cuda(gpu_id)
-            outputs = nn_clf(inputs)
+               
+            # tabnet
+            # outputs, _ = nn_clf(inputs)
+
+            # ft transformer
+            outputs = nn_clf(inputs, None)
+
+            # general 
+            # outputs = nn_clf(inputs)
 
             if use_cuda:
                 labels = labels.cuda(gpu_id)
@@ -112,20 +116,18 @@ def test(scaler, key, model_names, classifier_key, sdss_test_data, input_size, o
         nn_clf = SimpleNN(input_size, output_size)
     elif classifier_key == 'resnet':
         nn_clf = ResNetNN(input_size, output_size)
-    elif classifier_key == 'transformer':
+    elif classifier_key == 'fttransformer':
         nn_clf = FTTransformer(
             n_cont_features=input_size,
             cat_cardinalities=[],
             d_out=output_size,
-            n_blocks=3,
-            d_block=192,
-            attention_n_heads=8,
-            attention_dropout=0.2,
-            ffn_d_hidden=None,
-            ffn_d_hidden_multiplier=4 / 3,
-            ffn_dropout=0.1,
-            residual_dropout=0.0,
+            **FTTransformer.get_default_kwargs(),
             )
+    elif classifier_key == 'tabnet':
+        eye_matrix = torch.eye(input_size)
+        if use_cuda:
+            eye_matrix = eye_matrix.cuda(gpu_id)
+        nn_clf = TabNet(input_size, output_size, group_attention_matrix=eye_matrix)
 
     nn_clf.load_state_dict(torch.load(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pt')))
     if use_cuda:
@@ -138,7 +140,15 @@ def test(scaler, key, model_names, classifier_key, sdss_test_data, input_size, o
         for i, inputs in enumerate(sdss_test_loader):
             if use_cuda:
                 inputs = inputs.cuda(gpu_id)
-            outputs = nn_clf(inputs)
+
+            # tabnet
+            # outputs, _ = nn_clf(inputs)
+
+            # ft transformer
+            outputs = nn_clf(inputs, None)
+
+            # general 
+            # outputs = nn_clf(inputs)
 
             probabilities = F.softmax(outputs, dim=1)
             probabilities = probabilities.cpu().numpy()
@@ -164,20 +174,19 @@ if __name__ == "__main__":
     output_size = 6
     # batch_size = 8
     # num_epochs = 30
-    batch_size = 128
-    num_epochs = 80
+    batch_size = 32 # 128
+    num_epochs = 100 # 80
     gpu_id = 2
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
-    X, y = utils.load_data_train(model_names)
 
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     print(sdss_test_data.shape)
 
     key = 'NIHAOrt_TNG'
-    classifier_key = 'nn'
+    classifier_key = 'fttransformer'
     
-    scaler, train_losses, avg_train_losses = train(key, classifier_key, X, y, 
+    scaler, train_losses, avg_train_losses = train(key, classifier_key, model_names, 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
     test(scaler, key, [s.split('_')[0] for s in model_names], classifier_key, sdss_test_data, 
         input_size, output_size, batch_size, gpu_id, use_cuda=True)

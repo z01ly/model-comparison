@@ -14,9 +14,12 @@ from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
+from rtdl_revisiting_models import FTTransformer
+
 import src.classification.bayesflow_calibration as bayesflow_calibration
 import src.classification.utils as utils
 from src.classification.simple_nn import SimpleNN, ResNetNN
+
 
 
 # kfold ref: https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
@@ -61,12 +64,20 @@ def main(key, model_names, X, y, classifier_key, input_size, output_size, batch_
             nn_clf = SimpleNN(input_size, output_size)
         elif classifier_key == 'resnet':
             nn_clf = ResNetNN(input_size, output_size)
+        elif classifier_key == 'fttransformer':
+            nn_clf = FTTransformer(
+                n_cont_features=input_size,
+                cat_cardinalities=[],
+                d_out=output_size,
+                **FTTransformer.get_default_kwargs(),
+                )
 
         if use_cuda:
             nn_clf = nn_clf.cuda(gpu_id)
         
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) # L2 regularization
+        # optimizer = torch.optim.Adam(nn_clf.parameters(), weight_decay=1e-4) # L2 regularization
+        optimizer = torch.optim.Adam(nn_clf.parameters(), lr=0.000373, weight_decay=1e-4)
         scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
         train_losses = []
@@ -81,7 +92,12 @@ def main(key, model_names, X, y, classifier_key, input_size, output_size, batch_
 
                 if use_cuda:
                     inputs = inputs.cuda(gpu_id)
-                outputs = nn_clf(inputs)
+
+                # ft transformer
+                outputs = nn_clf(inputs, None)
+
+                # general 
+                # outputs = nn_clf(inputs)
 
                 if use_cuda:
                     labels = labels.cuda(gpu_id)
@@ -110,7 +126,12 @@ def main(key, model_names, X, y, classifier_key, input_size, output_size, batch_
             for i, (inputs, labels) in enumerate(test_loader):
                 if use_cuda:
                     inputs = inputs.cuda(gpu_id)
-                outputs = nn_clf(inputs)
+
+                # ft transformer
+                outputs = nn_clf(inputs, None)
+
+                # general 
+                # outputs = nn_clf(inputs)
 
                 probabilities = F.softmax(outputs, dim=1)
                 probabilities = probabilities.cpu().numpy()
@@ -162,15 +183,15 @@ if __name__ == "__main__":
     output_size = 6
     # batch_size = 8
     # num_epochs = 30
-    batch_size = 128
-    num_epochs = 80
+    batch_size = 32 # 128
+    num_epochs = 90 # 80
     gpu_id = 2
 
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
-    X, y = utils.load_data_train(model_names)
+    X, y = utils.load_data(model_names, switch='train')
     
     key = 'NIHAOrt_TNG'
-    classifier_key = 'nn'
+    classifier_key = 'fttransformer'
 
     train_losses, avg_train_losses = main(key, model_names, X, y, classifier_key, 
         input_size, output_size, batch_size, num_epochs, gpu_id, use_cuda=True)
