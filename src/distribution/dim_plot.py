@@ -7,6 +7,8 @@ import pandas as pd
 import os
 import time
 
+from PIL import Image
+
 import src.infoVAE.utils
 
 
@@ -55,12 +57,33 @@ def dim_plot_per_dim(model_names):
             axes[j].set_ylabel('Density')
 
         plt.tight_layout()
-        plt.savefig(os.path.join('src/distribution/dim-plot/per-dim', 'dim_' + str(i) + '.png'))
+        plt.savefig(os.path.join('src/distribution/dim-plot/per-dim', 'dim' + str(i) + '.png'))
         plt.close()
 
 
-def dim_plot_concat():
-    pass
+
+def dim_plot_concat(dim):
+    dir_path_1 = 'src/distribution/dim-plot/per-dim'
+    dir_path_2 = 'src/infoVAE/dim_meaning/TNG100-1_snapnum_099/vector_0'
+    output_dir = 'src/distribution/dim-plot/per-dim-concat'
+
+    for i in range(dim):
+        image1 = Image.open(os.path.join(dir_path_1, 'dim' + str(i) + '.png'))
+        image2 = Image.open(os.path.join(dir_path_2, 'dim' + str(i) + '.png'))
+        image2 = image2.resize((2880, 360))
+
+        new_width = max(image1.width, image2.width)
+        image1 = image1.resize((new_width, image1.height))
+
+        new_height = image1.height + image2.height
+
+        new_image = Image.new("RGB", (new_width, new_height))
+        new_image.paste(image1, (0, 0))
+        new_image.paste(image2, (0, image1.height))
+
+        new_image.save(os.path.join(output_dir, 'dim' + str(i) + '.png'))
+
+
 
 
 def corner_plot(model_str):
@@ -93,4 +116,7 @@ if __name__ == '__main__':
     model_names = ['AGNrt', 'NOAGNrt', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099', 'UHDrt', 'n80rt']
     # for model_str in model_names:
     #     dim_plot_per_model(model_str)
-    dim_plot_per_dim(model_names)
+
+    # dim_plot_per_dim(model_names)
+
+    dim_plot_concat(32)
