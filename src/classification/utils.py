@@ -115,6 +115,6 @@ if __name__ == '__main__':
     # illustris_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'illustris-1_snapnum_135']
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = load_data(model_names, switch='train')
-
+    print(X.shape, y.shape)
     
     

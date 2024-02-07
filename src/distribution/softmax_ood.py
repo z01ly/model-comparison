@@ -16,7 +16,7 @@ import src.classification.utils
 
 
 def softmax_ood(model_names):
-    clf = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
+    clf = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:1')
 
     X_train, y_train = src.classification.utils.load_data(model_names, switch='train')
     label_encoder = LabelEncoder()
@@ -84,7 +84,7 @@ def softmax_ood(model_names):
     plt.ylabel('number')
     plt.title('histogram of confidences')
     plt.legend()
-    plt.savefig('src/ood/softmax/confidence_hist.png', dpi=300)
+    plt.savefig('src/distribution/softmax/confidence_hist.png', dpi=300)
 
     out_of_distribution_samples = np.where(confidences < best_threshold)[0]
 
