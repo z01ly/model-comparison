@@ -16,19 +16,19 @@ import copy
 def check_range(model_str):
     input_data = src.infoVAE.utils.stack_train_val(model_str)
 
-    check_dir = os.path.join("src/infoVAE/dim_meaning", model_str)
+    check_dir = os.path.join("src/dim/dim-meaning", model_str)
     if not os.path.exists(check_dir):
         os.makedirs(check_dir)
     else:
         print(f"Directory already exists: {check_dir}")
 
-    with open(os.path.join("src/infoVAE/dim_meaning", model_str, "range.txt"), "w") as text_file:
+    with open(os.path.join("src/dim/dim-meaning", model_str, "range.txt"), "w") as text_file:
         text_file.write(f"global min: {np.min(input_data)}, global max: {np.max(input_data)} \n")
         text_file.write(f"\n")
 
 
     for i in range(32):
-        with open(os.path.join("src/infoVAE/dim_meaning", model_str, "range.txt"), "a") as text_file:
+        with open(os.path.join("src/dim/dim-meaning", model_str, "range.txt"), "a") as text_file:
                 text_file.write(f"dim {i} \n")
                 text_file.write(f"min: {np.min(input_data[:, i])}, max: {np.max(input_data[:, i])}, average: {np.mean(input_data[:, i])} \n")
 
@@ -42,7 +42,7 @@ def main(model_str, model, gpu_id, use_cuda=True, dimension=32):
     sampled_vectors = input_data[sampled_indices] # shape: (5, dimension)
 
     for i in range(5):
-        os.makedirs(os.path.join("src/infoVAE/dim_meaning", model_str, f"vector_{i}"), exist_ok=True)
+        os.makedirs(os.path.join("src/dim/dim-meaning", model_str, f"vector_{i}"), exist_ok=True)
         vec_original = sampled_vectors[i]
 
         start_range = -5
@@ -78,7 +78,7 @@ def main(model_str, model, gpu_id, use_cuda=True, dimension=32):
                 
             plt.tight_layout()
 
-            savefig_path = os.path.join("src/infoVAE/dim_meaning", model_str, f"vector_{i}", f"dim{j}.png")
+            savefig_path = os.path.join("src/dim/dim-meaning", model_str, f"vector_{i}", f"dim{j}.png")
             plt.savefig(savefig_path, dpi=300)
 
             plt.close(fig)

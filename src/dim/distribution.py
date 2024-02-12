@@ -13,7 +13,7 @@ import src.infoVAE.utils
 
 
 
-def dim_plot_per_model(model_str):
+def plot_per_model(model_str):
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
     mock_data = src.infoVAE.utils.stack_train_val(model_str)
 
@@ -30,12 +30,12 @@ def dim_plot_per_model(model_str):
         axes[i].set_ylabel('Density')
 
     plt.tight_layout()
-    plt.savefig(os.path.join('src/distribution/dim-plot/per-model', model_str.split('_')[0] + '.png'))
+    plt.savefig(os.path.join('src/dim/distribution-plot/per-model', model_str.split('_')[0] + '.png'))
     plt.close()
 
 
 
-def dim_plot_per_dim(model_names):
+def plot_per_dim(model_names):
     sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
 
     mock_data_list = []
@@ -57,15 +57,15 @@ def dim_plot_per_dim(model_names):
             axes[j].set_ylabel('Density')
 
         plt.tight_layout()
-        plt.savefig(os.path.join('src/distribution/dim-plot/per-dim', 'dim' + str(i) + '.png'))
+        plt.savefig(os.path.join('src/dim/distribution-plot/per-dim', 'dim' + str(i) + '.png'))
         plt.close()
 
 
 
 def dim_plot_concat(dim):
-    dir_path_1 = 'src/distribution/dim-plot/per-dim'
-    dir_path_2 = 'src/infoVAE/dim_meaning/TNG100-1_snapnum_099/vector_0'
-    output_dir = 'src/distribution/dim-plot/per-dim-concat'
+    dir_path_1 = 'src/dim/distribution-plot/per-dim'
+    dir_path_2 = 'src/dim/dim-meaning/TNG100-1_snapnum_099/vector_0'
+    output_dir = 'src/dim/distribution-plot/per-dim-concat'
 
     for i in range(dim):
         image1 = Image.open(os.path.join(dir_path_1, 'dim' + str(i) + '.png'))
@@ -105,7 +105,7 @@ def corner_plot(model_str):
     end_time = time.time()
     
     # plt.title(f"Corner plot of {model_str.split('_')[0]}")
-    plt.savefig(os.path.join('src/distribution/corner-plot/', model_str.split('_')[0] + '.png'))
+    plt.savefig(os.path.join('src/dim/corner-plot/', model_str.split('_')[0] + '.png'))
     plt.close()
 
     print("Execution time: ", end_time - start_time, "seconds")
@@ -115,8 +115,8 @@ def corner_plot(model_str):
 if __name__ == '__main__':
     model_names = ['AGNrt', 'NOAGNrt', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099', 'UHDrt', 'n80rt']
     # for model_str in model_names:
-    #     dim_plot_per_model(model_str)
+    #     plot_per_model(model_str)
 
-    # dim_plot_per_dim(model_names)
+    plot_per_dim(model_names)
 
-    dim_plot_concat(32)
+    # dim_plot_concat(32)
