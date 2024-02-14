@@ -1,6 +1,5 @@
 import torch
 from torch.autograd import Variable
-
 from torchvision import transforms, datasets
 
 import numpy as np
@@ -13,10 +12,7 @@ import src.infoVAE.utils as utils
 from src.infoVAE.mmdVAE_train import Model
 
 
-def test(model, test_dataroot, savefig_path, z_dim=2, 
-        nc=3, n_filters=64, after_conv=16, use_cuda=True, 
-        gpu_id=0, workers=4, batch_size=500):
-
+def test(model, test_dataroot, savefig_path, use_cuda=True, gpu_id=0, workers=4, batch_size=500):
     # dataloader
     dataloader = utils.dataloader_func(test_dataroot, batch_size, workers, True)
 
@@ -46,10 +42,9 @@ def test(model, test_dataroot, savefig_path, z_dim=2,
 
 
 
-def sdss_test_with_filename(model, z_dim=2, nc=3, n_filters=64, 
-        after_conv=16, use_cuda=True, gpu_id=0, workers=4, batch_size=500):
-    
-    dataloader = utils.dataloader_func('src/data/sdss_data/test', batch_size, workers, True, with_filename=True)
+def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4, batch_size=500):
+    # dataloader with filename
+    dataloader = utils.dataloader_func(test_dataroot, batch_size, workers, True, with_filename=True)
 
     z_list = []
     filename_list = []
@@ -68,7 +63,6 @@ def sdss_test_with_filename(model, z_dim=2, nc=3, n_filters=64,
     filename_arr = np.asarray(filename_list)
 
     return z, filename_arr
-
 
 
 
@@ -109,7 +103,6 @@ if __name__ == "__main__":
 
             np.save('src/infoVAE/test_results/latent/' + extraction + '.npy', z)
         
-        
 
         """
         sdss_test_dataroot = 'src/data/sdss_data/test'
@@ -127,13 +120,9 @@ if __name__ == "__main__":
         np.save('src/infoVAE/test_results/latent/sdss_test.npy', z)
         np.save('src/infoVAE/test_results/latent/sdss_test_filenames.npy', filename_arr)
         """
-    
 
     for filename_latent in os.listdir('src/infoVAE/test_results/latent/'):
         if filename_latent[-3: ] == 'npy':
             latent_z = np.load('src/infoVAE/test_results/latent/' + filename_latent)
             print(latent_z.shape)
     print('\n')
-
-
-    

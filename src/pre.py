@@ -13,12 +13,10 @@ def check_image_size(dir_path):
     if files_in_dir:
         random_file = random.choice(files_in_dir)
         img = Image.open(os.path.join(dir_path, random_file))
-
-        print(f"The size of randomly sampled file {random_file} is {img.height} x {img.width}")
+        # print(f"The size of randomly sampled {random_file} from {dir_path} is {img.height} x {img.width}")
+        return img.height
     else:
         print(f"The directory '{dir_path}' is empty.")
-
-    return img.height
 
 
 
@@ -39,10 +37,7 @@ def sample_mock(folder_path): # for upsampling and downsampling
 
 
 
-def sdss_split():
-    source_folder = '../sdss/cutouts'
-    destination_folder = '../sdss_data'
-
+def sdss_split(source_folder='../sdss/cutouts', destination_folder='../sdss_data'):
     os.makedirs(destination_folder, exist_ok=True)
     os.makedirs(os.path.join(destination_folder, "train", 'cutouts'), exist_ok=True)
     os.makedirs(os.path.join(destination_folder, "val", 'cutouts'), exist_ok=True)
@@ -108,38 +103,37 @@ def add_subdir_move_files(base_dir, new_dir):
 
 
 
-def mock_split(source_directory, rate=0.85):
-    train_directory = 'src/data/mock_trainset/' + source_directory[9: ] # exclude 'src/data/'
-    val_directory = 'src/data/mock_valset/' + source_directory[9: ]
+def mock_split(source_directory, model_str, rate=0.85):
+    train_dir = 'data/mock_train/' + model_str
+    test_dir = 'data/mock_test/' + model_str
 
-    os.makedirs(train_directory, exist_ok=True)
-    os.makedirs(val_directory, exist_ok=True)
+    os.makedirs(train_dir, exist_ok=True)
+    os.makedirs(test_dir, exist_ok=True)
 
     files_in_source_directory = os.listdir(source_directory)
 
     total_files = len(files_in_source_directory)
     train_count = int(total_files * rate)
-    val_count = total_files - train_count
+    test_count = total_files - train_count
 
     random.shuffle(files_in_source_directory)
 
     train_files = files_in_source_directory[:train_count]
-    val_files = files_in_source_directory[train_count:]
+    test_files = files_in_source_directory[train_count:]
 
     for file in train_files:
         source_path = os.path.join(source_directory, file)
-        dest_path = os.path.join(train_directory, file)
+        dest_path = os.path.join(train_dir, file)
         shutil.copy2(source_path, dest_path)
 
-    for file in val_files:
+    for file in test_files:
         source_path = os.path.join(source_directory, file)
-        dest_path = os.path.join(val_directory, file)
+        dest_path = os.path.join(test_dir, file)
         shutil.copy2(source_path, dest_path)
 
-    print(f"current model: {source_directory[9: ]}")
-    print(f"{len(os.listdir(train_directory))} files copied to the training set.")
-    print(f"{len(os.listdir(val_directory))} files copied to the validation set.")
-
+    print(f"current model: {model_str}")
+    print(f"{len(os.listdir(train_dir))} files copied to the training set.")
+    print(f"{len(os.listdir(test_dir))} files copied to the test set.")
 
 
 
@@ -147,4 +141,3 @@ def mock_split(source_directory, rate=0.85):
 if __name__ == '__main__':
     pass
 
-    # sdss_split()
