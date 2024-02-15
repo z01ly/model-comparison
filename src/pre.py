@@ -6,6 +6,8 @@ import shutil
 import random
 import math
 import pickle
+import pandas as pd
+
 
 
 def check_image_size(dir_path):
@@ -137,7 +139,18 @@ def mock_split(source_directory, model_str, rate=0.85):
 
 
 
+def copy_df_path_images(source_dir, destination_dir, model_str):
+    df = pd.read_pickle(os.path.join(source_dir, model_str + '.pkl'))
+
+    for index, row in df.iterrows():
+        filename_full_path = row.iloc[-1]
+
+        base_name = os.path.basename(filename_full_path)
+        destination_path = os.path.join(destination_dir, base_name)
+
+        shutil.copy2(filename_full_path, destination_path)
+
+
 
 if __name__ == '__main__':
     pass
-

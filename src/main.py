@@ -8,12 +8,16 @@ import src.pre
 import src.infoVAE.utils
 import src.infoVAE.mmdVAE_test
 
+import src.outlier_detect.mahalanobis
+
 
 class ModelComparison():
     def __init__(self, model_str_list, image_size, z_dim):
         self.model_str_list = model_str_list
         self.image_size = image_size # 64: src.pre.check_image_size('data/sdss_data/test/cutouts')
         self.z_dim = z_dim # 32
+        self.vae_save_path = 'src/infoVAE/mmdVAE_save/checkpoint.pt'
+        self.sdss_test_data_path = 'src/results/latent-vectors/sdss_test.npy'
 
     def __call__(self):
         self.image_pre()
@@ -44,7 +48,7 @@ class ModelComparison():
 
         # infoVAE model
         vae = src.infoVAE.mmdVAE_train.Model(self.z_dim, nc, n_filters, after_conv)
-        vae.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
+        vae.load_state_dict(torch.load(self.vae_save_path))
         if use_cuda:
             vae = vae.cuda(gpu_id)
         vae.eval()
@@ -66,8 +70,14 @@ class ModelComparison():
 
     # step 3
     def outlier_detect_m(self):
-        pass
-    
+        sdss_test_data = np.load(self.sdss_test_data_path)
+
+        for model_str in self.model_str_list:
+            data_df = pd.read_pickle('src/results/latent-vectors/train/' + model_str + '.pkl')
+            distance_path = os.path.join('src/results/m-distance', model_str + '.npy')
+            mahal = src.outlier_detect.mahalanobis.MDist(model_str, self.z_dim, data_df, sdss_test_data, distance_path, alpha=0.95)
+            # mahal.print_cutoff()
+            mahal()
     
 
 
@@ -77,4 +87,4 @@ if __name__ == '__main__':
     image_size = 64
     z_dim = 32
     mc = ModelComparison(model_str_list, image_size, z_dim)
-    mc.infovae_encode()
+    mc.outlier_detect_m()
