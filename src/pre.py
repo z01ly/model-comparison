@@ -15,7 +15,7 @@ def check_image_size(dir_path):
     if files_in_dir:
         random_file = random.choice(files_in_dir)
         img = Image.open(os.path.join(dir_path, random_file))
-        # print(f"The size of randomly sampled {random_file} from {dir_path} is {img.height} x {img.width}")
+        print(f"The size of randomly sampled {random_file} from {dir_path} is {img.height} x {img.width}")
         return img.height
     else:
         print(f"The directory '{dir_path}' is empty.")

@@ -12,8 +12,9 @@ import src.outlier_detect.mahalanobis
 
 
 class ModelComparison():
-    def __init__(self, model_str_list, image_size, z_dim):
+    def __init__(self, model_str_list, minority_str_list, image_size, z_dim):
         self.model_str_list = model_str_list
+        self.minority_str_list = minority_str_list
         self.image_size = image_size # 64: src.pre.check_image_size('data/sdss_data/test/cutouts')
         self.z_dim = z_dim # 32
         self.vae_save_path = 'src/infoVAE/mmdVAE_save/checkpoint.pt'
@@ -22,6 +23,9 @@ class ModelComparison():
     def __call__(self):
         self.image_pre()
         self.infovae_encode() # parameters
+        self.outlier_detect_m()
+        self.imgs_copy_oversample()
+        self.infovae_encode_inlier()
 
     # step 1
     def image_pre(self):
@@ -38,35 +42,20 @@ class ModelComparison():
             src.pre.mock_split(mock_img_path, model_str)
 
             # add a subdir named 'test' to prepare the directory for infoVAE dataloader
-            src.pre.add_subdir_move_files(os.path.join('data/mock_train/', model_str),  'test')
+            src.pre.add_subdir_move_files(os.path.join('data/mock_train/', model_str), 'test')
             src.pre.add_subdir_move_files(os.path.join('data/mock_test/', model_str), 'test')
 
     # step 2
-    def infovae_encode(self, gpu_id=1, workers=4, batch_size=500, nc=3, use_cuda=True):
-        n_filters = self.image_size
-        after_conv = src.infoVAE.utils.conv_size_comp(self.image_size)
+    def infovae_encode(self, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True):
+        mock_dataroot_dir = 'data/mock_train'
+        to_pickle_dir = 'src/results/latent-vectors/train'
+        src.infoVAE.mmdVAE_test.test_main(self.model_str_list, self.vae_save_path, mock_dataroot_dir, to_pickle_dir, 
+        gpu_id, workers, batch_size, self.image_size, nc, self.z_dim, n_filters=self.image_size, use_cuda=True)
 
-        # infoVAE model
-        vae = src.infoVAE.mmdVAE_train.Model(self.z_dim, nc, n_filters, after_conv)
-        vae.load_state_dict(torch.load(self.vae_save_path))
-        if use_cuda:
-            vae = vae.cuda(gpu_id)
-        vae.eval()
-
-        # encode images to latent vectors
-        with torch.no_grad():
-            for key in ['train', 'test']:
-                for model_str in self.model_str_list:
-                    mock_dataroot = os.path.join('data/mock_' + key, model_str)
-
-                    z, filename_arr = src.infoVAE.mmdVAE_test.test_with_filename(vae, test_dataroot=mock_dataroot, 
-                        use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
-
-                    z_filename_df = pd.DataFrame(z, columns=[f'f{i}' for i in range(self.z_dim)])
-                    # filename example: data/mock_train/UHDrt/test/UHD_g6.96e11_06.png
-                    z_filename_df.insert(self.z_dim, "filename", filename_arr, allow_duplicates=False)
-                    
-                    z_filename_df.to_pickle(os.path.join('src/results/latent-vectors/' + key, model_str + '.pkl'))
+        mock_dataroot_dir = 'data/mock_test'
+        to_pickle_dir = 'src/results/latent-vectors/test'
+        src.infoVAE.mmdVAE_test.test_main(self.model_str_list, self.vae_save_path, mock_dataroot_dir, to_pickle_dir, 
+        gpu_id, workers, batch_size, self.image_size, nc, self.z_dim, n_filters=self.image_size, use_cuda=True)
 
     # step 3
     def outlier_detect_m(self):
@@ -78,13 +67,53 @@ class ModelComparison():
             mahal = src.outlier_detect.mahalanobis.MDist(model_str, self.z_dim, data_df, sdss_test_data, distance_path, alpha=0.95)
             # mahal.print_cutoff()
             mahal()
-    
 
+    # step 4
+    def imgs_copy_oversample(self):
+        for model_str in self.model_str_list:
+            for key in ['inlier', 'outlier']:
+                source_dir = os.path.join('src/results/latent-vectors', 'train-' + key)
+                destination_dir = os.path.join('src/results/images', 'train-' + key, model_str)
+                os.makedirs(destination_dir, exist_ok=True)
+                src.pre.copy_df_path_images(source_dir, destination_dir, model_str)
+        
+        os.rename("src/results/images/train-inlier", "src/results/images/train-inlier-original")
+        os.rename("src/results/latent-vectors/train-inlier", "src/results/latent-vectors/train-inlier-original")
+        
+        for minority_str in self.minority_str_list:
+            src.pre.oversample_minority(os.path.join("src/results/images/train-inlier-original", minority_str), 
+                                        os.path.join("src/results/images/train-inlier", minority_str), 
+                                        2)
+        
+        for model_str in (np.setdiff1d(self.model_str_list, self.minority_str_list)):
+            src.pre.oversample_minority(os.path.join("src/results/images/train-inlier-original", model_str), 
+                                        os.path.join("src/results/images/train-inlier", model_str), 
+                                        1)
+
+        for model_str in self.model_str_list:
+            src.pre.add_subdir_move_files(os.path.join("src/results/images/train-inlier", model_str), 'test')
+
+    # step 5 
+    def infovae_encode_inlier(self, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True):
+        mock_dataroot_dir = 'src/results/images/train-inlier'
+        to_pickle_dir = 'src/results/latent-vectors/train-inlier'
+        src.infoVAE.mmdVAE_test.test_main(self.model_str_list, self.vae_save_path, mock_dataroot_dir, to_pickle_dir, 
+        gpu_id, workers, batch_size, self.image_size, nc, self.z_dim, n_filters=self.image_size, use_cuda=True)
+
+    
 
 
 if __name__ == '__main__':
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
     image_size = 64
     z_dim = 32
-    mc = ModelComparison(model_str_list, image_size, z_dim)
-    mc.outlier_detect_m()
+    mc = ModelComparison(model_str_list, minority_str_list, image_size, z_dim)
+    mc.infovae_encode_inlier()
+    
+    # for model_str in model_str_list:
+    #     print(pd.read_pickle('src/results/latent-vectors/train-inlier/' + model_str + '.pkl').shape)
+
+
+    
+

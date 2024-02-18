@@ -7,6 +7,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
+import pandas as pd
 
 import src.infoVAE.utils as utils
 from src.infoVAE.mmdVAE_train import Model
@@ -66,6 +67,34 @@ def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4,
 
 
 
+def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
+        gpu_id=0, workers=4, batch_size=500, image_size=64, nc=3, nz=32, n_filters=64, use_cuda=True):
+    after_conv = utils.conv_size_comp(image_size)
+
+    # infoVAE model
+    vae = Model(nz, nc, n_filters, after_conv)
+    vae.load_state_dict(torch.load(vae_save_path))
+    if use_cuda:
+        vae = vae.cuda(gpu_id)
+    vae.eval()
+
+    # encode images to latent vectors
+    with torch.no_grad():
+        for model_str in model_str_list:
+            # print(model_str)
+            mock_dataroot = os.path.join(mock_dataroot_dir, model_str)
+
+            z, filename_arr = test_with_filename(vae, test_dataroot=mock_dataroot, 
+                    use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
+
+            z_filename_df = pd.DataFrame(z, columns=[f'f{i}' for i in range(nz)])
+            # filename example: data/mock_train/UHDrt/test/UHD_g6.96e11_06.png
+            z_filename_df.insert(nz, "filename", filename_arr, allow_duplicates=False)
+            
+            z_filename_df.to_pickle(os.path.join(to_pickle_dir, model_str + '.pkl'))
+
+
+
 
 if __name__ == "__main__":
     gpu_id = 1
@@ -74,13 +103,12 @@ if __name__ == "__main__":
     image_size = 64 # downsample 500x500 test images to 64x64
     nc = 3
     nz = 32 # Size of z latent vector
-    z_dim = nz
     n_filters = 64
     after_conv = utils.conv_size_comp(image_size)
     use_cuda = True
 
     # model
-    model = Model(z_dim, nc, n_filters, after_conv)
+    model = Model(nz, nc, n_filters, after_conv)
     model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
     if use_cuda:
         model = model.cuda(gpu_id)
@@ -120,9 +148,3 @@ if __name__ == "__main__":
         np.save('src/infoVAE/test_results/latent/sdss_test.npy', z)
         np.save('src/infoVAE/test_results/latent/sdss_test_filenames.npy', filename_arr)
         """
-
-    for filename_latent in os.listdir('src/infoVAE/test_results/latent/'):
-        if filename_latent[-3: ] == 'npy':
-            latent_z = np.load('src/infoVAE/test_results/latent/' + filename_latent)
-            print(latent_z.shape)
-    print('\n')

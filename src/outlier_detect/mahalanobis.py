@@ -31,6 +31,7 @@ class MDist():
         if os.path.exists(self.distance_path):
             distances = np.load(self.distance_path)
         else:
+            print("Compute Mahalanobis distance...")
             distances = self.mahalanobis()
         
         all_indices = np.arange(self.data.shape[0])
