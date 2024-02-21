@@ -12,17 +12,20 @@ from PIL import Image
 import src.infoVAE.utils
 
 
+def plot(model_str_list, sdss_test_data_path, z_dim, only_inlier=False):
+    sdss_test_data = np.load(sdss_test_data_path)
+    mock_data_dict = {}
+    for model_str in model_str_list:
+        mock_data_dict[model_str] = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, only_inlier=only_inlier)
 
-def plot_per_model(model_str):
-    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
-    mock_data = src.infoVAE.utils.stack_train_val(model_str)
-
-    fig, axes = plt.subplots(4, 8, figsize=(32, 16))
+    fig, axes = plt.subplots(4, 8, figsize=(64, 32))
     axes = axes.flatten()
-
-    for i in range(sdss_test_data.shape[1]):
-        sns.kdeplot(sdss_test_data[:, i], ax=axes[i], color='blue', label='sdss')
-        sns.kdeplot(mock_data[:, i], ax=axes[i], color='orange', label=model_str.split('_')[0])
+    colors = ['b', 'g', 'r', 'c', 'm', 'orange']
+    
+    for i in range(z_dim):
+        sns.kdeplot(sdss_test_data[:, i], ax=axes[i], color='black', label='sdss')
+        for pos, model_str in enumerate(model_str_list):
+            sns.kdeplot(mock_data_dict[model_str][:, i], ax=axes[i], color=colors[pos], label=model_str)
         axes[i].set_title(f'Dimension {i}')
         axes[i].set_xlim([-2, 2])
         axes[i].legend(fontsize= "x-small", loc="upper right")
@@ -30,47 +33,61 @@ def plot_per_model(model_str):
         axes[i].set_ylabel('Density')
 
     plt.tight_layout()
-    plt.savefig(os.path.join('src/dim/distribution-plot/per-model', model_str.split('_')[0] + '.png'))
+    if only_inlier:
+        plt.savefig(os.path.join('src/results/dim/distribution-plot', 'plot-inlier.png'))
+    else:
+        plt.savefig(os.path.join('src/results/dim/distribution-plot', 'plot.png'))
     plt.close()
 
 
 
-def plot_per_dim(model_names):
-    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+def plot_per_dim(model_str_list, sdss_test_data_path, z_dim):
+    sdss_test_data = np.load(sdss_test_data_path)
 
-    mock_data_list = []
-    for model_str in model_names:
-        mock_data = src.infoVAE.utils.stack_train_val(model_str)
-        mock_data_list.append(mock_data)
+    mock_data_dict = {}
+    mock_data_inlier_dict = {}
+    for model_str in model_str_list:
+        mock_data_dict[model_str] = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, only_inlier=False)
+        mock_data_inlier_dict[model_str] = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, only_inlier=True)
 
-    for i in range(sdss_test_data.shape[1]):
-        fig, axes = plt.subplots(2, int(len(model_names) / 2), figsize=(20, 20))
+    for i in range(z_dim):
+        fig, axes = plt.subplots(1, 2, figsize=(20, 10))
         axes = axes.flatten()
+        colors = ['b', 'g', 'r', 'c', 'm', 'orange']
 
-        for j, model_str in enumerate(model_names):
-            sns.kdeplot(sdss_test_data[:, i], ax=axes[j], color='blue', label='sdss')
-            sns.kdeplot(mock_data_list[j][:, i], ax=axes[j], color='orange', label=model_str.split('_')[0])
-            axes[j].set_title(model_str.split('_')[0])
-            axes[j].set_xlim([-5, 5])
-            axes[j].legend(fontsize= "x-small", loc="upper right")
-            axes[j].set_xlabel('Values')
-            axes[j].set_ylabel('Density')
+        sns.kdeplot(sdss_test_data[:, i], ax=axes[0], color='black', label='sdss')
+        for pos, model_str in enumerate(model_str_list):
+            sns.kdeplot(mock_data_dict[model_str][:, i], ax=axes[0], color=colors[pos], label=model_str)
+        axes[0].set_title('All')
+        axes[0].set_xlim([-2, 2])
+        axes[0].legend(loc="upper right")
+        axes[0].set_xlabel('Values')
+        axes[0].set_ylabel('Density')
+
+        sns.kdeplot(sdss_test_data[:, i], ax=axes[1], color='black', label='sdss')
+        for pos, model_str in enumerate(model_str_list):
+            sns.kdeplot(mock_data_inlier_dict[model_str][:, i], ax=axes[1], color=colors[pos], label=model_str)
+        axes[1].set_title('Inlier')
+        axes[1].set_xlim([-2, 2])
+        axes[1].legend(loc="upper right")
+        axes[1].set_xlabel('Values')
+        axes[1].set_ylabel('Density')
 
         plt.tight_layout()
-        plt.savefig(os.path.join('src/dim/distribution-plot/per-dim', 'dim' + str(i) + '.png'))
+        plt.savefig(os.path.join('src/results/dim/distribution-plot/per-dim', 'dim' + str(i) + '.png'))
         plt.close()
 
 
 
-def dim_plot_concat(dim):
-    dir_path_1 = 'src/dim/distribution-plot/per-dim'
+def plot_per_dim_concat(dim):
+    dir_path_1 = 'src/results/dim/distribution-plot/per-dim'
     dir_path_2 = 'src/dim/dim-meaning/TNG100-1_snapnum_099/vector_0'
-    output_dir = 'src/dim/distribution-plot/per-dim-concat'
+    output_dir = 'src/results/dim/distribution-plot/per-dim-concat'
 
     for i in range(dim):
         image1 = Image.open(os.path.join(dir_path_1, 'dim' + str(i) + '.png'))
         image2 = Image.open(os.path.join(dir_path_2, 'dim' + str(i) + '.png'))
-        image2 = image2.resize((2880, 360))
+        image2 = image2.resize((2400, 300))
 
         new_width = max(image1.width, image2.width)
         image1 = image1.resize((new_width, image1.height))
@@ -86,12 +103,12 @@ def dim_plot_concat(dim):
 
 
 
-def corner_plot(model_str):
-    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+def corner_plot(model_str, sdss_test_data_path, z_dim):
+    sdss_test_data = np.load(sdss_test_data_path)
     y_sdss_test = np.full((sdss_test_data.shape[0],), 'sdss_test')
 
-    mock_data = src.infoVAE.utils.stack_train_val(model_str)
-    y_mock = np.full(mock_data.shape[0], model_str.split('_')[0])
+    mock_data = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, only_inlier=False)
+    y_mock = np.full(mock_data.shape[0], model_str)
     
     data_combined = np.vstack((mock_data, sdss_test_data))
     y_combined = np.concatenate((y_mock, y_sdss_test))
@@ -113,10 +130,11 @@ def corner_plot(model_str):
 
 
 if __name__ == '__main__':
-    model_names = ['AGNrt', 'NOAGNrt', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099', 'UHDrt', 'n80rt']
-    # for model_str in model_names:
-    #     plot_per_model(model_str)
+    # model_names = ['AGNrt', 'NOAGNrt', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099', 'UHDrt', 'n80rt']
 
-    plot_per_dim(model_names)
-
-    # dim_plot_concat(32)
+    model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    sdss_test_data_path='src/results/latent-vectors/sdss_test.npy'
+    # plot(model_str_list, sdss_test_data_path, 32, only_inlier=False)
+    # plot(model_str_list, sdss_test_data_path, 32, only_inlier=True)
+    # plot_per_dim(model_str_list, sdss_test_data_path, 32)
+    plot_per_dim_concat(32)

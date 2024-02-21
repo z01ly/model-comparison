@@ -62,13 +62,14 @@ class ModelComparison():
         gpu_id, workers, batch_size, self.image_size, nc, self.z_dim, n_filters=self.image_size, use_cuda=True)
 
     # step 3
-    def outlier_detect_m(self):
+    def outlier_detect_m(self, key):
         sdss_test_data = np.load(self.sdss_test_data_path)
 
         for model_str in self.model_str_list:
-            data_df = pd.read_pickle('src/results/latent-vectors/train/' + model_str + '.pkl')
-            distance_path = os.path.join('src/results/m-distance', model_str + '.npy')
-            mahal = src.outlier_detect.mahalanobis.MDist(model_str, self.z_dim, data_df, sdss_test_data, distance_path, alpha=0.95)
+            data_df = pd.read_pickle(os.path.join('src/results/latent-vectors', key, model_str + '.pkl'))
+            distance_path = os.path.join('src/results/m-distance', key, model_str + '.npy')
+            mahal = src.outlier_detect.mahalanobis.MDist(model_str, self.z_dim, data_df, sdss_test_data, 
+                                                        distance_path, key, alpha=0.95)
             # mahal.print_cutoff()
             mahal()
 
@@ -133,7 +134,5 @@ if __name__ == '__main__':
     image_size = 64
     z_dim = 32
     mc = ModelComparison(model_str_list, minority_str_list, image_size, z_dim)
-    mc.classification()
+    mc.outlier_detect_m('test')
     
-    # for model_str in model_str_list:
-    #     print(pd.read_pickle('src/results/latent-vectors/train-inlier/' + model_str + '.pkl').shape)

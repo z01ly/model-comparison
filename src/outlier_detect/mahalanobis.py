@@ -12,7 +12,7 @@ from sklearn.covariance import MinCovDet
 
 
 class MDist():
-    def __init__(self, model_str, z_dim, data_df, sdss_test_data, distance_path, alpha=0.95):
+    def __init__(self, model_str, z_dim, data_df, sdss_test_data, distance_path, key, alpha=0.95):
         self.model_str = model_str
         self.alpha = alpha
 
@@ -25,6 +25,7 @@ class MDist():
         self.cutoff = chi2.ppf(self.alpha, self.z_dim)
 
         self.distance_path = distance_path
+        self.key = key
 
 
     def __call__(self):
@@ -37,15 +38,16 @@ class MDist():
         all_indices = np.arange(self.data.shape[0])
         outlier_indices = np.where(distances > self.cutoff)[0]
         inlier_indices = np.setdiff1d(all_indices, outlier_indices)
-        print(f"inlier ratio of {self.model_str}: {inlier_indices.shape[0] / all_indices.shape[0]}")
+        print(f"inlier ratio of {self.model_str} in {self.key} set: {inlier_indices.shape[0] / all_indices.shape[0]}")
 
         inlier_df = self.data_df.iloc[inlier_indices]
         inlier_df.reset_index(drop=True, inplace=True)
-        inlier_df.to_pickle(os.path.join('src/results/latent-vectors/train-inlier', self.model_str + '.pkl'))
+        
+        inlier_df.to_pickle(os.path.join('src/results/latent-vectors', self.key + '-inlier', self.model_str + '.pkl'))
 
         outlier_df = self.data_df.iloc[outlier_indices]
         outlier_df.reset_index(drop=True, inplace=True)
-        outlier_df.to_pickle(os.path.join('src/results/latent-vectors/train-outlier', self.model_str + '.pkl'))
+        outlier_df.to_pickle(os.path.join('src/results/latent-vectors', self.key + '-outlier', self.model_str + '.pkl'))
 
 
     def mahalanobis(self):

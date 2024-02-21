@@ -8,6 +8,7 @@ import shutil
 import random
 import math
 import pickle
+import pandas as pd
 
 import matplotlib
 matplotlib.use('Agg')
@@ -169,7 +170,7 @@ def sample_filename(folder_path):
     return join_sampled_filenames
 
 
-
+"""
 def stack_train_val(model_str):
     data_dict = {'train': None, 'val': None}
     directory = 'src/infoVAE/test_results/latent/'
@@ -195,11 +196,35 @@ def stack_train_val(model_str):
     print(f"stacked data shape: {stacked_data.shape}")
 
     return stacked_data
+"""
+
+
+
+def stack_mock_train_test(model_str, z_dim, only_inlier=False):
+    if only_inlier:
+        train_dir = 'src/results/latent-vectors/train-inlier-original'
+        test_dir = 'src/results/latent-vectors/test-inlier'
+    else:
+        train_dir = 'src/results/latent-vectors/train'
+        test_dir = 'src/results/latent-vectors/test'
+
+
+    train_df = pd.read_pickle(os.path.join(train_dir, model_str + '.pkl'))
+    train_arr = train_df.iloc[:, 0:z_dim].to_numpy()
+
+    test_df = pd.read_pickle(os.path.join(test_dir, model_str + '.pkl'))
+    test_arr = test_df.iloc[:, 0:z_dim].to_numpy()
+
+    stacked_data = np.vstack((train_arr, test_arr))
+    # print(f"stacked data shape: {stacked_data.shape}")
+
+    return stacked_data
     
 
 
 
 if __name__ == '__main__':
     # stacked_data = stack_train_val('TNG50-1_snapnum_099')
-    stacked_data = stack_train_val('AGNrt')
-    stacked_data = stack_train_val('n80rt')
+
+    stacked_data = stack_mock_train_test('AGNrt', 32)
+    stacked_data = stack_mock_train_test('n80rt', 32)
