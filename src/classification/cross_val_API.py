@@ -24,13 +24,13 @@ import src.classification.bayesflow_calibration as bayesflow_calibration
 
 
 
-def main(save_dir, key, model_names, X, y, classifier_key, max_iter=400):
+def main(save_dir, key, model_names, X, y, classifier_key, max_iter=300):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
     # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
     #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
-    
+
     
     clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
@@ -52,7 +52,7 @@ def main(save_dir, key, model_names, X, y, classifier_key, max_iter=400):
     scaler = StandardScaler()
 
     n_splits = 5
-    n_repeats = 1
+    n_repeats = 2
     kf = RepeatedStratifiedKFold(n_splits=n_splits, n_repeats=n_repeats, random_state=0)
 
     confusion_matrices = []

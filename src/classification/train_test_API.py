@@ -20,7 +20,7 @@ import src.classification.utils as utils
 
 
 
-def train(save_dir, key, classifier_key, X, y, max_iter=400):
+def train(save_dir, key, classifier_key, X, y, max_iter=300):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 

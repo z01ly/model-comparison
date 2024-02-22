@@ -13,6 +13,8 @@ import src.outlier_detect.mahalanobis
 import src.classification.utils
 import src.classification.cross_val_tree
 import src.classification.train_test_tree
+import src.classification.cross_val_API
+import src.classification.train_test_API
 
 
 class ModelComparison():
@@ -112,20 +114,28 @@ class ModelComparison():
         load_data_dir = 'src/results/latent-vectors/train-inlier'
         X, y = src.classification.utils.load_data_df(self.model_str_list, load_data_dir, self.z_dim)
         sdss_test_data = np.load(self.sdss_test_data_path)
-        save_dir = 'src/results/classification'
+        save_dir = 'src/results/classification-inlier'
 
         # cross validation
         # src.classification.cross_val_tree.main(save_dir, key, self.model_str_list, X, y, 'integer', 'random-forest')
-        src.classification.cross_val_tree.main(save_dir, key, self.model_str_list, X, y, 'integer', 'xgboost')
+        # src.classification.cross_val_tree.main(save_dir, key, self.model_str_list, X, y, 'integer', 'xgboost')
 
         # test on sdss
         # src.classification.train_test_tree.train(save_dir, key, 'random-forest', X, y)
-        src.classification.train_test_tree.train(save_dir, key, 'xgboost', X, y)
+        # src.classification.train_test_tree.train(save_dir, key, 'xgboost', X, y)
         # src.classification.train_test_tree.test(save_dir, key, self.model_str_list, 'random-forest', sdss_test_data)
-        src.classification.train_test_tree.test(save_dir, key, self.model_str_list, 'xgboost', sdss_test_data)
+        # src.classification.train_test_tree.test(save_dir, key, self.model_str_list, 'xgboost', sdss_test_data)
+
+        classifier_keys = ['stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+        for classifier_key in classifier_keys:
+            print(f"Current model: {classifier_key}")
+            src.classification.cross_val_API.main(save_dir, key, self.model_str_list, X, y, classifier_key)
+            print(f"Cross validation of {classifier_key} finished.")
+            scaler = src.classification.train_test_API.train(save_dir, key, classifier_key, X, y)
+            src.classification.train_test_API.test(save_dir, scaler, key, self.model_str_list, classifier_key, sdss_test_data)
+            print(f"Train-test of {classifier_key} finished.")
 
 
-    
 
 
 if __name__ == '__main__':
@@ -134,5 +144,6 @@ if __name__ == '__main__':
     image_size = 64
     z_dim = 32
     mc = ModelComparison(model_str_list, minority_str_list, image_size, z_dim)
-    mc.outlier_detect_m('test')
+    # mc.outlier_detect_m('test')
+    mc.classification()
     
