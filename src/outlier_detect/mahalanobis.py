@@ -25,7 +25,7 @@ class MDist():
         self.cutoff = chi2.ppf(self.alpha, self.z_dim)
 
         self.distance_path = distance_path
-        self.key = key
+        self.key = key # 'train' or 'test'
 
 
     def __call__(self):
@@ -33,7 +33,7 @@ class MDist():
             distances = np.load(self.distance_path)
         else:
             print("Compute Mahalanobis distance...")
-            distances = self.mahalanobis()
+            distances = self.mahalanobis() 
         
         all_indices = np.arange(self.data.shape[0])
         outlier_indices = np.where(distances > self.cutoff)[0]
@@ -42,7 +42,6 @@ class MDist():
 
         inlier_df = self.data_df.iloc[inlier_indices]
         inlier_df.reset_index(drop=True, inplace=True)
-        
         inlier_df.to_pickle(os.path.join('src/results/latent-vectors', self.key + '-inlier', self.model_str + '.pkl'))
 
         outlier_df = self.data_df.iloc[outlier_indices]

@@ -63,7 +63,6 @@ def test(save_dir, key, model_names, classifier_key, sdss_test_data):
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
     plt.savefig(os.path.join(save_dir, 'violin-plot', key, classifier_key + '-violin.png'))
-
     plt.close()
     
 

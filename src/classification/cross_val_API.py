@@ -19,29 +19,25 @@ from xgboost import XGBClassifier
 
 from sklearn.ensemble import VotingClassifier, StackingClassifier
 
-import torch
-import torch.nn as nn
-from pytorch_tabnet.tab_model import TabNetClassifier
-
 import src.classification.utils as utils
 import src.classification.bayesflow_calibration as bayesflow_calibration
 
 
 
-def main(key, model_names, X, y, classifier_key, max_iter=400):
+def main(save_dir, key, model_names, X, y, classifier_key, max_iter=400):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
-    for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
-        print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
-
+    # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
+    #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
+    
     
     clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
 
     clf_RF = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
 
-    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='gpu_hist', gpu_id=1)
+    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:0', verbosity=0) 
 
     
     if classifier_key == 'stacking-MLP-RF-XGB':
@@ -51,8 +47,6 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
         clf = VotingClassifier(estimators=[('MLP', clf_MLP), ('RF', clf_RF), ('XGB', clf_XGB)], voting='soft')
     elif classifier_key == 'single-MLP':
         clf = clf_MLP
-    elif classifier_key == 'tabnet':
-        clf = TabNetClassifier()
 
 
     scaler = StandardScaler()
@@ -77,10 +71,7 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
         X_train_scaled = scaler.fit_transform(X_train)
         X_test_scaled = scaler.transform(X_test)
 
-        if classifier_key != 'tabnet':
-            clf.fit(X_scaled, y_onehot)
-        else:
-            clf.fit(X_train_scaled, y_train_onehot, loss_fn=nn.CrossEntropyLoss(), max_epochs=30, batch_size=8)
+        clf.fit(X_train_scaled, y_train_onehot)
 
         y_pred_onehot = clf.predict(X_test_scaled)
         y_pred = label_binarizer.inverse_transform(y_pred_onehot)
@@ -98,26 +89,8 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
     bayesflow_onehot = LabelBinarizer()
     true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
     cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
-    plt.savefig(os.path.join('src/classification/calibration-curve', key, classifier_key + '-cc.png'))
+    plt.savefig(os.path.join(save_dir, 'calibration-curve', key, classifier_key + '-cc.png'))
     plt.close()
-
-    """
-    plt.figure(figsize=(10, 10))
-    markers = ['o', 'v', 's', 'p']
-    linestyles = ['solid', 'dotted', 'dashed', 'dashdot']
-    for model_idx, model_label in enumerate(label_binarizer.inverse_transform(clf.classes_)):
-        prob_true, prob_pred = calibration_curve(true_labels == model_label, probabilities[:, model_idx], n_bins=10)
-        plt.plot(prob_pred, prob_true, marker=markers[model_idx], linestyle=linestyles[model_idx], label=f'{model_label}')
-
-    plt.plot([0, 1], [0, 1], linestyle='--', color='gray', label='Ideal')
-    plt.xlabel('Predicted Probability')
-    plt.ylabel('Empirical Probability')
-    plt.title('Calibration Curve: ' + classifier_key)
-    plt.legend()
-    plt.savefig('src/classification/calibration-curve/' + classifier_key + '-cc.png')
-    plt.close()
-    """
-
 
     # average_cm = np.mean(confusion_matrices, axis=0)
     sum_cm = np.sum(confusion_matrices, axis=0) / n_repeats / n_splits
@@ -128,7 +101,7 @@ def main(key, model_names, X, y, classifier_key, max_iter=400):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig(os.path.join('src/classification/confusion-matrix', key, classifier_key + '-cm.png'))
+    plt.savefig(os.path.join(save_dir, 'confusion-matrix', key, classifier_key + '-cm.png'))
     plt.close()
 
 
@@ -146,7 +119,7 @@ if __name__ == "__main__":
     model_names = ['AGNrt_2times', 'NOAGNrt_2times', 'TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'UHDrt_2times', 'n80rt_2times']
     X, y = utils.load_data_train(model_names)
 
-    classifier_keys = ['tabnet'] # 'single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB'
+    classifier_keys = ['single-MLP', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
     for classifier_key in classifier_keys:
         main('NIHAOrt_TNG', [s.split('_')[0] for s in model_names], X, y, classifier_key)
 
