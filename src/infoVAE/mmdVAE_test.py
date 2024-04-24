@@ -1,5 +1,4 @@
 import torch
-from torch.autograd import Variable
 from torchvision import transforms, datasets
 
 import numpy as np
@@ -10,7 +9,7 @@ import os
 import pandas as pd
 
 import src.infoVAE.utils as utils
-from src.infoVAE.mmdVAE_train import Model
+from src.infoVAE.mmdVAE import Model
 
 
 def test(model, test_dataroot, savefig_path, use_cuda=True, gpu_id=0, workers=4, batch_size=500):
@@ -19,7 +18,7 @@ def test(model, test_dataroot, savefig_path, use_cuda=True, gpu_id=0, workers=4,
 
     z_list = []
     for batch_idx, (test_x, _) in enumerate(dataloader):
-        test_x = Variable(test_x, requires_grad=False)
+        test_x.requires_grad_(False)
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 
@@ -31,7 +30,8 @@ def test(model, test_dataroot, savefig_path, use_cuda=True, gpu_id=0, workers=4,
     # 16 images
     sampled_rows = np.random.choice(z.shape[0], size=16, replace=False)
     sampled_matrix = z[sampled_rows]
-    gen_z = Variable(torch.tensor(sampled_matrix), requires_grad=False)
+    gen_z = torch.tensor(sampled_matrix)
+    gen_z.requires_grad_(False)
     if use_cuda:
         gen_z = gen_z.cuda(gpu_id)
     samples = model.decoder(gen_z)
@@ -50,7 +50,7 @@ def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4,
     z_list = []
     filename_list = []
     for batch_idx, (test_x, _, img_filenames) in enumerate(dataloader):
-        test_x = Variable(test_x, requires_grad=False)
+        test_x.requires_grad_(False)
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 
@@ -68,7 +68,7 @@ def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4,
 
 
 def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-        gpu_id=0, workers=4, batch_size=500, image_size=64, nc=3, nz=32, n_filters=64, use_cuda=True):
+        gpu_id, workers, batch_size, image_size, nc, nz, n_filters, use_cuda=True):
     after_conv = utils.conv_size_comp(image_size)
 
     # infoVAE model

@@ -9,6 +9,54 @@ import pickle
 import pandas as pd
 
 
+def copy_files(source_dir, destination_dir):
+    os.makedirs(destination_dir, exist_ok=True)
+    files = os.listdir(source_dir)
+
+    for idx, file_name in enumerate(files, start=1):
+        source_file = os.path.join(source_dir, file_name)
+        destination_file = os.path.join(destination_dir, file_name)
+        shutil.copy2(source_file, destination_file)
+
+    print(f"source dir: {source_dir}")
+    print(f"destination dir: {destination_dir}")
+    print(f"{idx} files copied successfully!")
+
+
+
+def count_files(dir):
+    files = os.listdir(dir)
+    num_files = len(files)
+
+    return num_files
+
+
+
+def pixel_value(image_path):
+    image = Image.open(image_path)
+    color_mode = image.mode
+    print("Color Mode:", color_mode)
+
+    image_array = np.array(image)
+    print("Shape of the array:", image_array.shape)
+    r_channel = image_array[:, :, 0]
+    max_r_value = np.max(r_channel)
+    print("Max value of r channel:", max_r_value)
+
+
+
+def rgba2rgb(model_str_list):
+    subsets = ['data/mock_test', 'data/mock_train']
+    for subset in subsets:
+        for model_str in model_str_list:
+            image_dir = os.path.join(subset, model_str, 'test')
+            for filename in os.listdir(image_dir):
+                image_path = os.path.join(image_dir, filename)
+                img = Image.open(image_path)
+                rgb_img = img.convert('RGB')
+                rgb_img.save(image_path)
+
+
 
 def check_image_size(dir_path):
     files_in_dir = os.listdir(dir_path)
@@ -39,9 +87,9 @@ def sample_mock(folder_path): # for upsampling and downsampling
 
 
 
-def sdss_split(source_folder='../sdss/cutouts', destination_folder='../sdss_data'):
-    os.makedirs(destination_folder, exist_ok=True)
+def sdss_split(source_folder='data/sdss/cutouts', destination_folder='data/sdss_data'):
     os.makedirs(os.path.join(destination_folder, "train", 'cutouts'), exist_ok=True)
+    os.makedirs(os.path.join(destination_folder, "esval", 'cutouts'), exist_ok=True)
     os.makedirs(os.path.join(destination_folder, "val", 'cutouts'), exist_ok=True)
     os.makedirs(os.path.join(destination_folder, "test", 'cutouts'), exist_ok=True)
 
@@ -50,17 +98,24 @@ def sdss_split(source_folder='../sdss/cutouts', destination_folder='../sdss_data
 
     total_images = len(image_files)
     train_ratio = 0.7
-    val_ratio = 0.2
+    esval_ratio = 0.1
+    val_ratio = 0.1
+    # test_ratio = 0.1
     num_train = int(total_images * train_ratio)
+    num_esval = int(total_images * esval_ratio)
     num_val = int(total_images * val_ratio)
-    num_test = total_images - num_train - num_val
+    num_test = total_images - num_train - num_esval - num_val
 
     train_files = image_files[: num_train]
-    val_files = image_files[num_train: num_train + num_val]
-    test_files = image_files[num_train + num_val: ]
+    esval_files = image_files[num_train: num_train + num_esval]
+    val_files = image_files[num_train + num_esval: num_train + num_esval + num_val]
+    test_files = image_files[num_train + num_esval + num_val: ]
 
     for file_ in train_files:
         shutil.copy2(os.path.join(source_folder, file_), os.path.join(destination_folder, "train", 'cutouts', file_))
+
+    for file_ in esval_files:
+        shutil.copy2(os.path.join(source_folder, file_), os.path.join(destination_folder, "esval", 'cutouts', file_))
 
     for file_ in val_files:
         shutil.copy2(os.path.join(source_folder, file_), os.path.join(destination_folder, "val", 'cutouts', file_))
@@ -154,3 +209,13 @@ def copy_df_path_images(source_dir, destination_dir, model_str):
 
 if __name__ == '__main__':
     pass
+    # source_dir = "data/sdss_data/val/cutouts"
+    # destination_dir = "data/sdss/cutouts"
+    # copy_files(source_dir, destination_dir)
+    # print(count_files(source_dir))
+    # print(count_files(destination_dir))
+
+    # pixel_value("data/sdss_data/test/cutouts/16.png")
+    # pixel_value("../mock-images/illustris/illustris-1_snapnum_135/broadband_1.png")
+    # pixel_value("../mock-images/NIHAO/faceon_1114/bh_faceon_g1.05e11.png")
+    # pixel_value("../mock-images/NIHAOrt/mockobs_1012/AGN_g1.05e13_00.png")
