@@ -56,9 +56,10 @@ def encoder(savepath_prefix, model_str_list, gpu_id, nz):
     n_filters = 64
     use_cuda = True
     vae_save_path = os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')
-    """
+
     os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'train'), exist_ok=True)
     os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'test'), exist_ok=True)
+    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'sdss'), exist_ok=True)
 
     mock_dataroot_dir = 'data/mock_train'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'train')
@@ -69,8 +70,7 @@ def encoder(savepath_prefix, model_str_list, gpu_id, nz):
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'test')
     mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
     gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
-    """
-    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'sdss'), exist_ok=True)
+    
     mock_dataroot_dir = 'data/sdss_data'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'sdss')
     mmdVAE_test.test_main(['test'], vae_save_path, mock_dataroot_dir, to_pickle_dir, 
