@@ -56,7 +56,7 @@ def encoder(savepath_prefix, model_str_list, gpu_id, nz):
     n_filters = 64
     use_cuda = True
     vae_save_path = os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')
-
+    """
     os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'train'), exist_ok=True)
     os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'test'), exist_ok=True)
 
@@ -68,6 +68,12 @@ def encoder(savepath_prefix, model_str_list, gpu_id, nz):
     mock_dataroot_dir = 'data/mock_test'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'test')
     mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
+    gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
+    """
+    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'sdss'), exist_ok=True)
+    mock_dataroot_dir = 'data/sdss_data'
+    to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'sdss')
+    mmdVAE_test.test_main(['test'], vae_save_path, mock_dataroot_dir, to_pickle_dir, 
     gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
 
 
@@ -104,12 +110,12 @@ def plots(savepath_prefix, es_pos, y_avg, y_itr, gpu_id, nz, model_str_list, use
 
 
 if __name__ == '__main__':
-    gpu_id = 2
-    nz = 32
+    gpu_id = 4
+    nz = 16
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     # vae(savepath_prefix, gpu_id, nz)
-    # encoder(savepath_prefix, model_str_list, gpu_id, nz)
+    encoder(savepath_prefix, model_str_list, gpu_id, nz)
     # es checkpoint: 16dim-31, 20dim-26, 32dim-40
-    plots(savepath_prefix, 40, 0.003, 0.003, gpu_id, nz, model_str_list)
+    # plots(savepath_prefix, 40, 0.003, 0.003, gpu_id, nz, model_str_list)

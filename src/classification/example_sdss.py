@@ -14,15 +14,6 @@ import src.infoVAE.mmdVAE_test
 import src.pre
 
 
-def reencode_sdss_test(vae_save_path, image_size=64, z_dim=32, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True):
-    mock_dataroot_dir = 'data/sdss_data'
-    to_pickle_dir = 'src/results/latent-vectors/sdss'
-    os.makedirs(to_pickle_dir, exist_ok=True)
-
-    src.infoVAE.mmdVAE_test.test_main(['test'], vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-    gpu_id, workers, batch_size, image_size, nc, z_dim, n_filters=image_size, use_cuda=use_cuda)
-
-
 def map_model_idx(model_str_list, print_key=False):
     label_binarizer = LabelEncoder().fit(model_str_list)
     model_idx_dict = {}
