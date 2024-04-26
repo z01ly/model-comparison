@@ -2,7 +2,6 @@ import pickle
 from PIL import Image
 
 import torch
-from torch.autograd import Variable
 from torchvision import transforms, datasets
 
 import numpy as np
@@ -64,7 +63,7 @@ def plot_itr_loss(savepath_prefix, train_losses, val_losses, y_itr):
 
 
 
-def plot_residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id, use_cuda=True):
+def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id, use_cuda=True):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'residual-plot', model_str), exist_ok=True)
 
     sampled_filenames = utils.sample_filename(folder_path, num_samples)
@@ -78,7 +77,8 @@ def plot_residual(model, savepath_prefix, num_samples, model_str, folder_path, g
         transform = transforms.Compose([transforms.ToTensor(),])
         processed_image = transform(original_img)
   
-        test_x = Variable(processed_image.unsqueeze(0), requires_grad=False)
+        test_x = processed_image.unsqueeze(0)
+        test_x.requires_grad_(False)
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 

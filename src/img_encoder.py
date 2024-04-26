@@ -78,13 +78,15 @@ def encoder(savepath_prefix, model_str_list, gpu_id, nz):
 
 
 
-def plots(savepath_prefix, es_pos, y_avg, y_itr, gpu_id, nz, model_str_list, use_cuda=True):
+def plot_training(savepath_prefix, es_pos, y_avg, y_itr):
     # training losses
     train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses(savepath_prefix)
     plot.plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_avg)
     plot.plot_itr_loss(savepath_prefix, train_losses, val_losses, y_itr)
 
-    # residual
+
+
+def plot_residual(gpu_id, nz, model_str_list, use_cuda=True):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'residual-plot'), exist_ok=True)
 
     image_size = 64
@@ -101,21 +103,22 @@ def plots(savepath_prefix, es_pos, y_avg, y_itr, gpu_id, nz, model_str_list, use
     with torch.no_grad():
         for model_str in model_str_list:
             for folder_path in [os.path.join('data/mock_train', model_str, 'test'), os.path.join('data/mock_test', model_str, 'test')]:
-                plot.plot_residual(vae, savepath_prefix, 2, model_str, folder_path, gpu_id, use_cuda=True)
+                plot.residual(vae, savepath_prefix, 1, model_str, folder_path, gpu_id, use_cuda=True)
         
         folder_path = 'data/sdss_data/test/cutouts'
-        plot.plot_residual(vae, savepath_prefix, 4, 'sdss-test', folder_path, gpu_id, use_cuda=True)
+        plot.residual(vae, savepath_prefix, 2, 'sdss-test', folder_path, gpu_id, use_cuda=True)
     
 
 
 
 if __name__ == '__main__':
-    gpu_id = 4
-    nz = 16
+    gpu_id = 7
+    nz = 32
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     # vae(savepath_prefix, gpu_id, nz)
-    encoder(savepath_prefix, model_str_list, gpu_id, nz)
+    # encoder(savepath_prefix, model_str_list, gpu_id, nz)
     # es checkpoint: 16dim-31, 20dim-26, 32dim-40
-    # plots(savepath_prefix, 40, 0.003, 0.003, gpu_id, nz, model_str_list)
+    plot_training(savepath_prefix, 40, 0.0025, 0.004)
+    # plot_residual(gpu_id, nz, model_str_list, use_cuda=True)
