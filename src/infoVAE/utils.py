@@ -168,65 +168,7 @@ def sample_filename(folder_path, num_samples):
     return join_sampled_filenames
 
 
-"""
-def stack_train_val(model_str):
-    data_dict = {'train': None, 'val': None}
-    directory = 'src/infoVAE/test_results/latent/'
-
-    npy_files = [file for file in os.listdir(directory) if file.endswith('.npy')]
-    # this function should only be used for non-oversampled data
-    trainset_files = [file for file in npy_files if file.startswith('trainset') and not file.endswith('times.npy')]
-    valset_files = [file for file in npy_files if file.startswith('valset') and not file.endswith('times.npy')]
-    # print(trainset_files)
-
-    for trainset_file in trainset_files:
-        split_string = trainset_file.split('_')[1: ]
-        result_string = '_'.join(split_string)
-        common_part = result_string.split('.')[0]
-
-        if common_part == model_str:
-            valset_file = f"valset_{common_part}.npy"
-            data_dict['train'] = np.load(os.path.join(directory, trainset_file))
-            data_dict['val'] = np.load(os.path.join(directory, valset_file))
-            print(f"file names: {trainset_file}, {valset_file}")
-    
-    stacked_data = np.vstack((data_dict['train'], data_dict['val']))
-    print(f"stacked data shape: {stacked_data.shape}")
-
-    return stacked_data
-"""
-
-
-
-def stack_mock_train_test(load_dir, model_str, z_dim, key):
-    # key: 'all', 'inlier', 'outlier'
-    # load dir example: 'src/results/latent-vectors'
-    if key == 'all':
-        train_dir = os.path.join(load_dir, 'train')
-        test_dir = os.path.join(load_dir, 'test')
-    elif key == 'inlier':
-        train_dir = os.path.join(load_dir, 'train-inlier-original')
-        test_dir = os.path.join(load_dir, 'test-inlier')
-    elif key == 'outlier':
-        train_dir = os.path.join(load_dir, 'train-outlier')
-        test_dir = os.path.join(load_dir, 'test-outlier')
-    
-    train_df = pd.read_pickle(os.path.join(train_dir, model_str + '.pkl'))
-    train_arr = train_df.iloc[:, 0:z_dim].to_numpy()
-
-    test_df = pd.read_pickle(os.path.join(test_dir, model_str + '.pkl'))
-    test_arr = test_df.iloc[:, 0:z_dim].to_numpy()
-
-    stacked_data = np.vstack((train_arr, test_arr))
-    # print(f"stacked data shape: {stacked_data.shape}")
-
-    return stacked_data
-    
-
 
 
 if __name__ == '__main__':
-    # stacked_data = stack_train_val('TNG50-1_snapnum_099')
-
-    stacked_data = stack_mock_train_test('AGNrt', 32)
-    stacked_data = stack_mock_train_test('n80rt', 32)
+    pass
