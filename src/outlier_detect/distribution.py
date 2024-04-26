@@ -9,14 +9,14 @@ import time
 
 from PIL import Image
 
-import src.infoVAE.utils
+import src.outlier_detect.utils as utils
 
 
 def plot(model_str_list, sdss_test_data_path, z_dim, key):
     sdss_test_data = np.load(sdss_test_data_path)
     mock_data_dict = {}
     for model_str in model_str_list:
-        mock_data_dict[model_str] = src.infoVAE.utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, key)
+        mock_data_dict[model_str] = utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, key)
 
     fig, axes = plt.subplots(4, 8, figsize=(64, 32))
     axes = axes.flatten()
@@ -42,8 +42,8 @@ def plot_all_lines(model_str_list, sdss_test_data_path, z_dim):
     mock_data_inlier_dict = {}
     mock_data_outlier_dict = {}
     for model_str in model_str_list:
-        mock_data_inlier_dict[model_str] = src.infoVAE.utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'inlier')
-        mock_data_outlier_dict[model_str] = src.infoVAE.utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'outlier')
+        mock_data_inlier_dict[model_str] = utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'inlier')
+        mock_data_outlier_dict[model_str] = utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'outlier')
 
     fig, axes = plt.subplots(4, 8, figsize=(64, 32))
     axes = axes.flatten()
@@ -71,8 +71,8 @@ def plot_inlier_outlier_compare(model_str_list, sdss_test_data_path, z_dim):
     mock_data_inlier_list = []
     mock_data_outlier_list = []
     for model_str in model_str_list:
-        mock_data_inlier_list.append(src.infoVAE.utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'inlier'))
-        mock_data_outlier_list.append(src.infoVAE.utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'outlier'))
+        mock_data_inlier_list.append(utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'inlier'))
+        mock_data_outlier_list.append(utils.stack_mock_train_test('src/results/latent-vectors', model_str, z_dim, 'outlier'))
 
     mock_data_inlier = np.concatenate(mock_data_inlier_list, axis=0)
     mock_data_outlier = np.concatenate(mock_data_outlier_list, axis=0)
@@ -102,8 +102,8 @@ def plot_per_dim(model_str_list, sdss_test_data_path, z_dim):
     mock_data_dict = {}
     mock_data_inlier_dict = {}
     for model_str in model_str_list:
-        mock_data_dict[model_str] = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, 'all')
-        mock_data_inlier_dict[model_str] = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, 'inlier')
+        mock_data_dict[model_str] = utils.stack_mock_train_test(model_str, z_dim, 'all')
+        mock_data_inlier_dict[model_str] = utils.stack_mock_train_test(model_str, z_dim, 'inlier')
 
     for i in range(z_dim):
         fig, axes = plt.subplots(1, 2, figsize=(20, 10))
@@ -162,7 +162,7 @@ def corner_plot(model_str, sdss_test_data_path, z_dim):
     sdss_test_data = np.load(sdss_test_data_path)
     y_sdss_test = np.full((sdss_test_data.shape[0],), 'sdss_test')
 
-    mock_data = src.infoVAE.utils.stack_mock_train_test(model_str, z_dim, only_inlier=False)
+    mock_data = utils.stack_mock_train_test(model_str, z_dim, only_inlier=False)
     y_mock = np.full(mock_data.shape[0], model_str)
     
     data_combined = np.vstack((mock_data, sdss_test_data))
