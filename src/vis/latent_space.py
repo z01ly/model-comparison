@@ -1,10 +1,9 @@
-import src.infoVAE.utils
-from src.infoVAE.mmdVAE_train import Model
+from src.infoVAE.mmdVAE import Model
 from PIL import Image
 
 import torch
-from torch.autograd import Variable
 
+import pandas as pd
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
@@ -13,101 +12,70 @@ import os
 import copy
 
  
-def check_range(model_str):
-    input_data = src.infoVAE.utils.stack_train_val(model_str)
+def check_range(savepath_prefix, nz, model_str_list):
+    for model_str in model_str_list:
+        train_test_dfs = []
+        for key in ['train', 'test']:
+            z_df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', key, model_str + '.pkl'))
+            train_test_dfs.append(z_df)
 
-    check_dir = os.path.join("src/dim/dim-meaning", model_str)
-    if not os.path.exists(check_dir):
-        os.makedirs(check_dir)
-    else:
-        print(f"Directory already exists: {check_dir}")
+        df = pd.concat(train_test_dfs, axis=0)
+        df.reset_index(drop=True, inplace=True)
+        np_arr = df.iloc[:, 0:nz].to_numpy()
 
-    with open(os.path.join("src/dim/dim-meaning", model_str, "range.txt"), "w") as text_file:
-        text_file.write(f"global min: {np.min(input_data)}, global max: {np.max(input_data)} \n")
-        text_file.write(f"\n")
+        with open(os.path.join(savepath_prefix, 'vis', 'latent-space', 'range-txt', model_str + '.txt'), "w") as text_file:
+            text_file.write(f"global min: {np.min(np_arr)}, global max: {np.max(np_arr)} \n")
+            text_file.write(f"\n")
 
-
-    for i in range(32):
-        with open(os.path.join("src/dim/dim-meaning", model_str, "range.txt"), "a") as text_file:
+        for i in range(nz):
+            with open(os.path.join(savepath_prefix, 'vis', 'latent-space', 'range-txt', model_str + '.txt'), "a") as text_file:
                 text_file.write(f"dim {i} \n")
-                text_file.write(f"min: {np.min(input_data[:, i])}, max: {np.max(input_data[:, i])}, average: {np.mean(input_data[:, i])} \n")
+                text_file.write(f"min: {np.min(np_arr[:, i])}, max: {np.max(np_arr[:, i])}, average: {np.mean(np_arr[:, i])} \n")
 
 
 
+def main(savepath_prefix, nz, model_str, vae, gpu_id, use_cuda=True):
+    z_df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', 'train', model_str + '.pkl'))
+    np_arr = z_df.iloc[:, 0:nz].to_numpy()
 
-def main(model_str, model, gpu_id, use_cuda=True, dimension=32):
-    input_data = src.infoVAE.utils.stack_train_val(model_str)
+    sampled_idx = np.random.choice(np_arr.shape[0], size=1, replace=False)
+    sampled_vec = np_arr[sampled_idx].squeeze()
 
-    sampled_indices = np.random.choice(input_data.shape[0], size=5, replace=False)
-    sampled_vectors = input_data[sampled_indices] # shape: (5, dimension)
+    start_range = -5
+    end_range = 5
 
-    for i in range(5):
-        os.makedirs(os.path.join("src/dim/dim-meaning", model_str, f"vector_{i}"), exist_ok=True)
-        vec_original = sampled_vectors[i]
+    for j in range(nz):
+        vec = copy.deepcopy(sampled_vec)
 
-        start_range = -5
-        end_range = 5
+        fig, axes = plt.subplots(1, 15, figsize=(25, 3))
 
-        for j in range(dimension):
-            vec = copy.deepcopy(vec_original)
+        # points = np.append(np.linspace(start_range, end_range, num=14), vec[j])
+        points = np.linspace(start_range, end_range, num=14)
+        pos_to_insert = np.searchsorted(points, vec[j])
+        points = np.insert(points, pos_to_insert, vec[j])
 
-            fig, axes = plt.subplots(1, 15, figsize=(25, 3))
+        for itr, (point, ax) in enumerate(zip(points, axes)):
+            vec[j] = point
+            gen_z = torch.from_numpy(vec).unsqueeze(0)
+            gen_z.requires_grad_ = False
+            if use_cuda:
+                gen_z = gen_z.cuda(gpu_id)
+            reconstructed_img = vae.decoder(gen_z)
 
-            # points = np.append(np.linspace(start_range, end_range, num=14), vec[j])
-            points = np.linspace(start_range, end_range, num=14)
-            pos_to_insert = np.searchsorted(points, vec[j])
-            points = np.insert(points, pos_to_insert, vec[j])
+            reconstructed_array = reconstructed_img.contiguous().cpu().data.numpy()
+            reconstructed_array = reconstructed_array.squeeze().transpose(1, 2, 0)
+            # reconstructed_array = (reconstructed_array * 255).astype(int)
 
-            for itr, (point, ax) in enumerate(zip(points, axes)):
-                vec[j] = point
-                gen_z = Variable(torch.from_numpy(vec).unsqueeze(0), requires_grad=False)
-                if use_cuda:
-                    gen_z = gen_z.cuda(gpu_id)
-                reconstructed_img = model.decoder(gen_z)
+            ax.imshow(reconstructed_array)
+            if itr == pos_to_insert:
+                ax.set_title(f'point {point:.2f}', color='red')
+            else:
+                ax.set_title(f'point {point:.2f}')
+            ax.axis('off')
+            
+        plt.tight_layout()
 
-                reconstructed_array = reconstructed_img.contiguous().cpu().data.numpy()
-                reconstructed_array = reconstructed_array.squeeze().transpose(1, 2, 0)
-                # reconstructed_array = (reconstructed_array * 255).astype(int)
-
-                ax.imshow(reconstructed_array)
-                if itr == pos_to_insert:
-                    ax.set_title(f'point {point:.2f}', color='red')
-                else:
-                    ax.set_title(f'point {point:.2f}')
-                ax.axis('off')
-                
-            plt.tight_layout()
-
-            savefig_path = os.path.join("src/dim/dim-meaning", model_str, f"vector_{i}", f"dim{j}.png")
-            plt.savefig(savefig_path, dpi=300)
-
-            plt.close(fig)
+        savefig_path = os.path.join(savepath_prefix, 'vis', 'latent-space', 'dim-example', model_str, f'dim{j}.png')
+        plt.savefig(savefig_path, dpi=300)
+        plt.close(fig)
  
-
-        
-
-
-if __name__ == '__main__':
-    model_str_list = ['TNG50-1', 'TNG100-1', 'illustris-1']
-    # for model_str in model_str_list:
-    #     check_range(model_str)
-
-    gpu_id = 2
-    image_size = 64
-    nc = 3
-    nz = 32
-    z_dim = nz
-    n_filters = 64
-    after_conv = src.infoVAE.utils.conv_size_comp(image_size)
-    use_cuda = True
-
-    model = Model(z_dim, nc, n_filters, after_conv)
-    model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
-    if use_cuda:
-        model = model.cuda(gpu_id)
-    model.eval()
-
-    with torch.no_grad():
-        for model_str in model_str_list:
-            main(model_str, model, gpu_id, use_cuda=True, dimension=32)
-
