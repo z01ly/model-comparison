@@ -13,14 +13,20 @@ import copy
 
  
 def check_range(savepath_prefix, nz, model_str_list):
-    for model_str in model_str_list:
-        train_test_dfs = []
-        for key in ['train', 'test']:
-            z_df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', key, model_str + '.pkl'))
-            train_test_dfs.append(z_df)
+    model_str_list.append('sdss-test')
 
-        df = pd.concat(train_test_dfs, axis=0)
-        df.reset_index(drop=True, inplace=True)
+    for model_str in model_str_list:
+        if model_str == 'sdss-test':
+            df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl'))
+        else:
+            train_test_dfs = []
+            for key in ['train', 'test']:
+                z_df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', key, model_str + '.pkl'))
+                train_test_dfs.append(z_df)
+
+            df = pd.concat(train_test_dfs, axis=0)
+            df.reset_index(drop=True, inplace=True)
+
         np_arr = df.iloc[:, 0:nz].to_numpy()
 
         with open(os.path.join(savepath_prefix, 'vis', 'latent-space', 'range-txt', model_str + '.txt'), "w") as text_file:
@@ -31,6 +37,7 @@ def check_range(savepath_prefix, nz, model_str_list):
             with open(os.path.join(savepath_prefix, 'vis', 'latent-space', 'range-txt', model_str + '.txt'), "a") as text_file:
                 text_file.write(f"dim {i} \n")
                 text_file.write(f"min: {np.min(np_arr[:, i])}, max: {np.max(np_arr[:, i])}, average: {np.mean(np_arr[:, i])} \n")
+
 
 
 
@@ -78,4 +85,4 @@ def main(savepath_prefix, nz, model_str, vae, gpu_id, use_cuda=True):
         savefig_path = os.path.join(savepath_prefix, 'vis', 'latent-space', 'dim-example', model_str, f'dim{j}.png')
         plt.savefig(savefig_path, dpi=300)
         plt.close(fig)
- 
+
