@@ -137,8 +137,8 @@ def oversample_minority(source_folder, destination_folder, repeat):
             new_image_path = os.path.join(destination_folder, new_filename)
             shutil.copy(image_path, new_image_path)
 
-    print(f"{source_folder}: {len(os.listdir(source_folder))}")
-    print(f"{destination_folder}: {len(os.listdir(destination_folder))}")
+    # print(f"{source_folder}: {len(os.listdir(source_folder))}")
+    # print(f"{destination_folder}: {len(os.listdir(destination_folder))}")
 
 
 
@@ -194,11 +194,11 @@ def mock_split(source_directory, model_str, rate=0.85):
 
 
 
-def copy_df_path_images(source_dir, destination_dir, model_str):
-    df = pd.read_pickle(os.path.join(source_dir, model_str + '.pkl'))
+def copy_df_path_images(df_dir, destination_dir, model_str):
+    df = pd.read_pickle(os.path.join(df_dir, model_str + '.pkl'))
 
     for index, row in df.iterrows():
-        filename_full_path = row.iloc[-1]
+        filename_full_path = row['filename']
 
         base_name = os.path.basename(filename_full_path)
         destination_path = os.path.join(destination_dir, base_name)
