@@ -24,20 +24,19 @@ import src.classification.bayesflow_calibration as bayesflow_calibration
 
 
 
-def main(save_dir, key, model_names, X, y, classifier_key, max_iter=300):
+def main(save_dir, model_names, X, y, classifier_key, cuda_num, max_iter=300):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
     # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
     #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-    
     clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
             alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
 
     clf_RF = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
 
-    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:0', verbosity=0) 
+    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:'+cuda_num, verbosity=0) 
 
     
     if classifier_key == 'stacking-MLP-RF-XGB':
@@ -89,7 +88,7 @@ def main(save_dir, key, model_names, X, y, classifier_key, max_iter=300):
     bayesflow_onehot = LabelBinarizer()
     true_labels_onehot = bayesflow_onehot.fit_transform(true_labels)
     cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
-    plt.savefig(os.path.join(save_dir, 'calibration-curve', key, classifier_key + '-cc.png'))
+    plt.savefig(os.path.join(save_dir, 'calibration-curve', classifier_key + '-cc.png'))
     plt.close()
 
     # average_cm = np.mean(confusion_matrices, axis=0)
@@ -101,7 +100,7 @@ def main(save_dir, key, model_names, X, y, classifier_key, max_iter=300):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig(os.path.join(save_dir, 'confusion-matrix', key, classifier_key + '-cm.png'))
+    plt.savefig(os.path.join(save_dir, 'confusion-matrix', classifier_key + '-cm.png'))
     plt.close()
 
 

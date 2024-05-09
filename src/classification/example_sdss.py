@@ -10,7 +10,6 @@ import os
 from sklearn.preprocessing import LabelEncoder
 
 import src.classification.utils as utils
-import src.infoVAE.mmdVAE_test
 import src.pre
 
 
@@ -32,13 +31,18 @@ def filter_df(input_df, indices, dest_dir, pkl_name):
 
 
 # plot some example images that have high probability and some that have low probability
-def example_img(low, high, model_str, model_str_list, save_dir, key, classifier_key, sdss_test_df, z_dim):
-    os.makedirs(os.path.join('src/results/classification-inlier/example-sdss', model_str), exist_ok=True)
-    clf = pickle.load(open(os.path.join(save_dir, 'save-model', key, classifier_key + '-model.pickle'), "rb"))
-    sdss_test_data = sdss_test_df.iloc[:, 0:z_dim].to_numpy()
+def main(low, high, model_str, model_str_list, save_dir, classifier_key, sdss_test_df, nz):
     model_idx_dict = map_model_idx(model_str_list)
+    
+    clf = pickle.load(open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), "rb"))
+    with open(os.path.join(save_dir, 'save-scaler', classifier_key + '-scaler.pickle'), 'rb') as f:
+        scaler = pickle.load(f)
+    
+    # scaling
+    sdss_test_data = sdss_test_df.iloc[:, 0:nz].to_numpy()
+    sdss_test_scaled = scaler.transform(sdss_test_data)
+    sdss_pred_prob = clf.predict_proba(sdss_test_scaled)
 
-    sdss_pred_prob = clf.predict_proba(sdss_test_data)
     current_col = sdss_pred_prob[:, model_idx_dict[model_str]]
 
     low_idx = np.where(current_col < low)[0]
@@ -49,26 +53,14 @@ def example_img(low, high, model_str, model_str_list, save_dir, key, classifier_
     # high_arr= current_col[current_col > high]
     print(len(high_idx))
 
-    filter_df(sdss_test_df, low_idx, os.path.join('src/results/classification-inlier/example-sdss', model_str), 'low')
-    source_dir = os.path.join('src/results/classification-inlier/example-sdss', model_str)
-    destination_dir = os.path.join(source_dir, 'low')
+    df_dir = os.path.join(save_dir, 'example-sdss', model_str)
+    filter_df(sdss_test_df, low_idx, df_dir, 'low')
+    destination_dir = os.path.join(df_dir, 'low')
     os.makedirs(destination_dir, exist_ok=True)
-    src.pre.copy_df_path_images(source_dir, destination_dir, 'low')
+    src.pre.copy_df_path_images(df_dir, destination_dir, 'low')
 
-    filter_df(sdss_test_df, high_idx, os.path.join('src/results/classification-inlier/example-sdss', model_str), 'high')
-    destination_dir = os.path.join(source_dir, 'high')
+    filter_df(sdss_test_df, high_idx, df_dir, 'high')
+    destination_dir = os.path.join(df_dir, 'high')
     os.makedirs(destination_dir, exist_ok=True)
-    src.pre.copy_df_path_images(source_dir, destination_dir, 'high')
+    src.pre.copy_df_path_images(df_dir, destination_dir, 'high')
 
-
-
-
-if __name__ == "__main__":
-    # vae_save_path = 'src/infoVAE/mmdVAE_save/checkpoint.pt'
-    # reencode_sdss_test(vae_save_path, image_size=64, z_dim=32, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True)
-    
-    model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
-    sdss_test_df = pd.read_pickle('src/results/latent-vectors/sdss/test.pkl')
-    save_dir = 'src/results/classification-inlier'
-    example_img(0.1, 0.99, 'TNG100', model_str_list, save_dir, 'NIHAOrt_TNG', 'stacking-MLP-RF-XGB', sdss_test_df, 32)
-    

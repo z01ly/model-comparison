@@ -14,7 +14,7 @@ import pickle, os
 import src.classification.utils as utils
 
 
-def train(save_dir, key, classifier_key, X, y):
+def train(save_dir, classifier_key, X, y, cuda_num):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
@@ -24,17 +24,17 @@ def train(save_dir, key, classifier_key, X, y):
     if classifier_key == 'random-forest':
         clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
     elif classifier_key == 'xgboost':
-        clf = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:0', verbosity=0)
+        clf = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:'+cuda_num, verbosity=0)
 
     clf.fit(X, y_onehot)
 
-    pickle.dump(clf, open(os.path.join(save_dir, 'save-model', key, classifier_key + '-model.pickle'), 'wb'))
+    pickle.dump(clf, open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), 'wb'))
 
     
     
 
-def test(save_dir, key, model_names, classifier_key, sdss_test_data):
-    clf = pickle.load(open(os.path.join(save_dir, 'save-model', key, classifier_key + '-model.pickle'), "rb"))
+def test(save_dir, model_names, classifier_key, sdss_test_data):
+    clf = pickle.load(open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), "rb"))
 
     label_binarizer = LabelEncoder().fit(model_names)
     for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
@@ -62,7 +62,7 @@ def test(save_dir, key, model_names, classifier_key, sdss_test_data):
     plt.xlabel("Models")
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
-    plt.savefig(os.path.join(save_dir, 'violin-plot', key, classifier_key + '-violin.png'))
+    plt.savefig(os.path.join(save_dir, 'violin-plot', classifier_key + '-violin.png'))
     plt.close()
     
 

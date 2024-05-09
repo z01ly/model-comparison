@@ -19,21 +19,19 @@ import src.classification.utils as utils
 
 
 
-
-def train(save_dir, key, classifier_key, X, y, max_iter=300):
+def train(save_dir, classifier_key, X, y, cuda_num, max_iter=300):
     label_binarizer = LabelEncoder()
     y_onehot = label_binarizer.fit_transform(y)
 
     # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
     #     print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
 
-
     clf_MLP = MLPClassifier(hidden_layer_sizes=(128, 64), activation='relu', solver='adam', \
-            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42, early_stopping=True)
+            alpha=0.01, learning_rate='adaptive', max_iter=max_iter, random_state=42)
 
     clf_RF = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
 
-    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:0', verbosity=0)
+    clf_XGB = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:'+cuda_num, verbosity=0)
 
 
     if classifier_key == 'stacking-MLP-RF-XGB':
@@ -50,14 +48,18 @@ def train(save_dir, key, classifier_key, X, y, max_iter=300):
 
     clf.fit(X_scaled, y_onehot)
 
-    pickle.dump(clf, open(os.path.join(save_dir, 'save-model', key, classifier_key + '-model.pickle'), 'wb'))
+    pickle.dump(clf, open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), 'wb'))
 
-    return scaler
+    with open(os.path.join(save_dir, 'save-scaler', classifier_key + '-scaler.pickle'), 'wb') as f:
+        pickle.dump(scaler, f)
 
 
 
-def test(save_dir, scaler, key, model_names, classifier_key, sdss_test_data):
-    clf = pickle.load(open(os.path.join(save_dir, 'save-model', key, classifier_key + '-model.pickle'), "rb"))
+def test(save_dir, model_names, classifier_key, sdss_test_data):
+    clf = pickle.load(open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), "rb"))
+
+    with open(os.path.join(save_dir, 'save-scaler', classifier_key + '-scaler.pickle'), 'rb') as f:
+        scaler = pickle.load(f)
 
     # label_binarizer = LabelEncoder().fit(model_names)
     # for class_label, onehot_vector in zip(label_binarizer.classes_, label_binarizer.transform(label_binarizer.classes_)):
@@ -75,7 +77,7 @@ def test(save_dir, scaler, key, model_names, classifier_key, sdss_test_data):
     plt.xlabel("Models")
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
-    plt.savefig(os.path.join(save_dir, 'violin-plot', key, classifier_key + '-violin.png'))
+    plt.savefig(os.path.join(save_dir, 'violin-plot', classifier_key + '-violin.png'))
     plt.close()
 
 

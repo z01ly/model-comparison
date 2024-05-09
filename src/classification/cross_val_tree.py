@@ -19,7 +19,7 @@ import src.classification.bayesflow_calibration as bayesflow_calibration
 
 
 
-def main(save_dir, key, model_names, X, y, encoder_key, classifier_key):
+def main(save_dir, model_names, X, y, encoder_key, classifier_key, cuda_num):
     if encoder_key == 'one-hot':
         label_binarizer = LabelBinarizer()
     elif encoder_key == 'integer':
@@ -35,7 +35,7 @@ def main(save_dir, key, model_names, X, y, encoder_key, classifier_key):
         clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight='balanced_subsample')
     elif classifier_key == 'xgboost':
         # https://github.com/dmlc/xgboost/issues/9791
-        clf = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:0', verbosity=0)
+        clf = XGBClassifier(objective='multi:softmax', tree_method='hist', device='cuda:'+cuda_num, verbosity=0)
 
     
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
@@ -77,7 +77,7 @@ def main(save_dir, key, model_names, X, y, encoder_key, classifier_key):
     for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
     cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
-    plt.savefig(os.path.join(save_dir, 'calibration-curve', key, classifier_key + '-cc.png'))
+    plt.savefig(os.path.join(save_dir, 'calibration-curve', classifier_key + '-cc.png'))
     plt.close()
 
     """
@@ -108,11 +108,10 @@ def main(save_dir, key, model_names, X, y, encoder_key, classifier_key):
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
     plt.title(classifier_key + ' Confusion Matrix')
-    plt.savefig(os.path.join(save_dir, 'confusion-matrix', key, classifier_key + '-cm.png'))
+    plt.savefig(os.path.join(save_dir, 'confusion-matrix', classifier_key + '-cm.png'))
     plt.close()
 
     
-
 
 
 if __name__ == "__main__":
