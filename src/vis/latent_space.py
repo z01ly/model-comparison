@@ -13,6 +13,7 @@ import copy
 
  
 def check_range(savepath_prefix, nz, model_str_list):
+    model_str_list = model_str_list.copy()
     model_str_list.append('sdss-test')
 
     for model_str in model_str_list:
