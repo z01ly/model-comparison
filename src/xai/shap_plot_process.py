@@ -9,6 +9,34 @@ import shap
 from PIL import Image, ImageOps
 
 
+def local_plot():
+    pass
+
+
+def global_plot(savepath_prefix, nz, classifier_key, model_str, model_pos):
+    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
+    # print(clf.classes_)
+
+    with open(os.path.join(savepath_prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'rb') as f:
+        shap_values = pickle.load(f)
+    print(shap_values.shape)
+
+    fig = plt.figure()
+
+    if nz >= 16:
+        max_display = int(nz / 2)
+    else:
+        max_display = nz
+
+    shap.plots.beeswarm(shap_values[:, :, model_pos], max_display=max_display, show=False)
+    # shap.plots.beeswarm(shap_values, max_display=20, show=False)
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png'))
+    plt.close()
+
+
+
 def ocr(shap_plot_path, temporary_path):
     image = Image.open(shap_plot_path)
     width, height = image.size # (800, 950)
@@ -88,7 +116,26 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
 
 
 
+def process_main(savepath_prefix, nz, model_str_dict, classifier_key):
+    # OCR accuracy is not 100% and requires manual check
+    for model_str, model_pos in model_str_dict.items():
+        global_plot(savepath_prefix, nz, classifier_key, model_str, model_pos)
 
-if __name__ == '__main__':
-    pass
+        shap_plot_path = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png')
+        temporary_path = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', 'left_half.png')
+        feature_list = ocr(shap_plot_path, temporary_path)
+
+        source_dir = os.path.join(savepath_prefix, 'vis', 'latent-space', 'dim-example', model_str)
+        output_dir = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key) 
+        stack_pngs(feature_list, source_dir, output_dir, model_str+'-stack.png', shap_plot_path, 'tempo_image.png')
+
+
+
+if __name__ == "__main__":
+    nz = 32
+    savepath_prefix = 'results/' + str(nz) + '-dims'
+    # model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    model_str_dict = {'NOAGNrt': 1, 'TNG100': 2} # model for plot
+
+    process_main(savepath_prefix, nz, model_str_dict, 'random-forest')
 

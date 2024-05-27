@@ -6,27 +6,29 @@ import matplotlib.pyplot as plt
 import pickle
 
 from sklearn.model_selection import train_test_split
-
-import src.shap.utils
-from src.classification.utils import load_data_train
-
 import shap
 
 
 
-def background_sample(X, y, percent=0.01):
+def background_sample(X, y, percent=0.1):
     # stratify: to preserve class frequencies
     X_train, X_sampled, y_train, y_sampled = train_test_split(X, y, test_size=percent, stratify=y, random_state=42)
 
     return X_sampled
 
 
+def test_data_sample(test_data, percent=0.6):
+    num_samples = int(percent * test_data.shape[0])
+    random_indices = np.random.choice(test_data.shape[0], num_samples, replace=False)
 
-def save_shap_values(background, test_data, key, classifier_key, explainer_key):
+    return test_data[random_indices]
+
+
+def save_shap_values(savepath_prefix, background, test_data, classifier_key, explainer_key):
     print(f"Background data shape: {background.shape}")
     print(f"Test data shape: {test_data.shape}")
 
-    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
+    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
 
     if explainer_key == 'Explainer':
         explainer = shap.Explainer(clf.predict, background)
@@ -36,24 +38,20 @@ def save_shap_values(background, test_data, key, classifier_key, explainer_key):
         explainer = shap.KernelExplainer(clf.predict, background)
     
     shap_values = explainer(test_data) # type(shap_values): <class 'shap._explanation.Explanation'>
-    print('\n')
-
-    with open(os.path.join('src/shap/save-shap-values', key, classifier_key + '-shap.sav'), 'wb') as f:
+    
+    with open(os.path.join(savepath_prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'wb') as f:
         pickle.dump(shap_values, f)
 
 
 
-def deep_support(background, test_data, key, classifier_key):
-    clf = pickle.load(open(os.path.join('src/classification/save-model/', key, classifier_key + '-model.pickle'), "rb"))
-
+def deep_support_test(background, classifier_key):
+    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
     shap.DeepExplainer(clf, background).supports_model(clf)
 
 
 
 
 if __name__ == '__main__':
-    # src.shap.utils.mkdirs()
-
     compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
     X, y = load_data_train(compare_list)
 
