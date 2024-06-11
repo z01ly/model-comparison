@@ -75,14 +75,14 @@ def print_messages(savepath_prefix, model_str_list):
 
 
 if __name__ == '__main__':
-    gpu_id = 5
-    nz = 32
+    gpu_id = 7
+    nz = 4
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
 
-    # img_copy(savepath_prefix, model_str_list)
-    # img_oversample(savepath_prefix, model_str_list, minority_str_list)
-    # print_messages(savepath_prefix, model_str_list)
+    img_copy(savepath_prefix, model_str_list)
+    img_oversample(savepath_prefix, model_str_list, minority_str_list)
+    print_messages(savepath_prefix, model_str_list)
     infovae_reencode(savepath_prefix, model_str_list, gpu_id, nz)

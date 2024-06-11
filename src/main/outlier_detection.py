@@ -36,8 +36,12 @@ def distribution(savepath_prefix, nz, model_str_list, plt_tuple):
 
 
 if __name__ == '__main__':
-    nz = 32
+    nz = 4
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     m_distance(savepath_prefix, nz, model_str_list)
-    distribution(savepath_prefix, nz, model_str_list, (8, 4, (20, 40)))
+    # distribution(savepath_prefix, nz, model_str_list, (8, 4, (20, 40)))
+
+    # distribution(savepath_prefix, nz, model_str_list, (1, 2, (12, 6)))
+    # distribution(savepath_prefix, nz, model_str_list, (1, 3, (18, 6)))
+    distribution(savepath_prefix, nz, model_str_list, (2, 2, (12, 12)))

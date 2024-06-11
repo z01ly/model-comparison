@@ -32,6 +32,7 @@ def latent_space_vis(savepath_prefix, gpu_id, nz, model_str_list, use_cuda=True)
         os.makedirs(os.path.join(savepath_prefix, 'vis', 'latent-space', 'dim-example', model_str), exist_ok=True)
 
     latent_space.check_range(savepath_prefix, nz, model_str_list)
+    # print(model_str_list)
 
     image_size = 64
     nc = 3
@@ -52,7 +53,7 @@ def latent_space_vis(savepath_prefix, gpu_id, nz, model_str_list, use_cuda=True)
 
 if __name__ == "__main__":
     gpu_id = 7
-    nz = 32
+    nz = 3
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']

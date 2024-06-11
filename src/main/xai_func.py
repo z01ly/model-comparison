@@ -26,18 +26,19 @@ def shap_compute(savepath_prefix, nz, model_str_list):
     X_sampled = shap_main.background_sample(X, y, percent=0.5)
 
     shap_main.save_shap_values(savepath_prefix, X_sampled, sdss_test_data_sample, 'random-forest', 'TreeExplainer')
-    shap_main.save_shap_values(savepath_prefix, X_sampled, sdss_test_data_sample, 'xgboost', 'TreeExplainer')
+    # shap_main.save_shap_values(savepath_prefix, X_sampled, sdss_test_data_sample, 'xgboost', 'TreeExplainer')
 
     
     
 def shap_plot(savepath_prefix, nz, model_str_dict):
-    for classifier_key in ['random-forest', 'xgboost']:
+    for classifier_key in ['random-forest']: # , 'xgboost']:
         os.makedirs(os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key), exist_ok=True)
         process_main(savepath_prefix, nz, model_str_dict, classifier_key)
 
 
+
 if __name__ == "__main__":
-    nz = 32
+    nz = 4
     savepath_prefix = 'results/' + str(nz) + '-dims'   
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     model_str_dict = {'NOAGNrt': 1, 'TNG100': 2} # model for plot

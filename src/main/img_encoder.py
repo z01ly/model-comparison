@@ -13,13 +13,12 @@ import src.infoVAE.mmdVAE_test as mmdVAE_test
 import src.infoVAE.plot as plot
 
 
-def vae(savepath_prefix, gpu_id, nz):
+def vae(savepath_prefix, gpu_id, nz, batch_size=400):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'samples'), exist_ok=True)
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'loss'), exist_ok=True)
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'loss-plot'), exist_ok=True)
 
     workers = 4
-    batch_size = 400
     image_size = 64 # sdss image size
     nc = 3 # number of input and output channels. 3 for color images.
     n_filters = 64 # Size of feature maps
@@ -113,12 +112,17 @@ def plot_residual(gpu_id, nz, model_str_list, use_cuda=True):
 
 if __name__ == '__main__':
     gpu_id = 7
-    nz = 32
+    nz = 4
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
-    # vae(savepath_prefix, gpu_id, nz)
+    # vae(savepath_prefix, gpu_id, nz) # dim 3, 4, 16, 20 and 32 use default batch size 400
+    # vae(savepath_prefix, gpu_id, nz, batch_size=400) # dim 2, try several times
+
     # encoder(savepath_prefix, model_str_list, gpu_id, nz)
-    # es checkpoint: 16dim-31, 20dim-26, 32dim-40
-    plot_training(savepath_prefix, 40, 0.0025, 0.004)
-    # plot_residual(gpu_id, nz, model_str_list, use_cuda=True)
+    
+    # plot_training(savepath_prefix, 40, 0.0025, 0.004) # es point: 16dim-31, 20dim-26, 32dim-40
+    # plot_training(savepath_prefix, 23, 0.015, 0.015) # es point: 4dim-23
+    plot_training(savepath_prefix, 21, 0.02, 0.02) # es point: 2dim-13, 3dim-21
+    
+    plot_residual(gpu_id, nz, model_str_list, use_cuda=True)

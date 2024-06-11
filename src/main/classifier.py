@@ -80,7 +80,6 @@ def classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
 
 
 
-
 def example_sdss_img(savepath_prefix, nz, model_str_list, classifier, model_str, low, high):
     os.makedirs(os.path.join(savepath_prefix, 'classification', 'example-sdss', model_str), exist_ok=True)
     
@@ -97,13 +96,22 @@ if __name__ == '__main__':
     # max_iter = 450
     # nz = 20
     # max_iter = 450
-    nz = 32
+    # nz = 32
     # max_iter = 300
+
+    # nz = 2
+    # max_iter = 300
+    # nz = 3
+    # max_iter = 400
+    nz = 4
+    max_iter = 500
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
-    cuda_num = '1'
+    cuda_num = '7'
 
-    # cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
-    # classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
-    example_sdss_img(savepath_prefix, nz, model_str_list, 'stacking-MLP-RF-XGB', 'TNG100', 0.01, 0.99)
-    example_sdss_img(savepath_prefix, nz, model_str_list, 'stacking-MLP-RF-XGB', 'NOAGNrt', 0.01, 0.99)
+    cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
+    classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
+
+    # for 32-dim
+    # example_sdss_img(savepath_prefix, nz, model_str_list, 'stacking-MLP-RF-XGB', 'TNG100', 0.01, 0.99)
+    # example_sdss_img(savepath_prefix, nz, model_str_list, 'stacking-MLP-RF-XGB', 'NOAGNrt', 0.01, 0.99)
