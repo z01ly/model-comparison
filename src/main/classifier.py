@@ -15,14 +15,23 @@ import src.classification.train_test_API as train_test_API
 import src.classification.example_sdss as example_sdss
 
 
+def make_directory(prefix):
+    # by default: prefix = savepath_prefix
 
-def cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
-    os.makedirs(os.path.join(savepath_prefix, 'classification', 'calibration-curve'), exist_ok=True)
-    os.makedirs(os.path.join(savepath_prefix, 'classification', 'confusion-matrix'), exist_ok=True)
+    os.makedirs(os.path.join(prefix, 'classification', 'calibration-curve'), exist_ok=True)
+    os.makedirs(os.path.join(prefix, 'classification', 'confusion-matrix'), exist_ok=True)
 
-    load_data_dir = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors')
+    dirs = ['save-model', 'save-scaler', 'violin-plot']
+    for dir_str in dirs:
+        os.makedirs(os.path.join(prefix, 'classification', dir_str), exist_ok=True)
+
+
+
+def cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir):
+    # load_data_dir = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors')
+    # save_dir = os.path.join(savepath_prefix, 'classification')
+    
     X, y = utils.load_data_df(model_str_list, load_data_dir, nz)
-    save_dir = os.path.join(savepath_prefix, 'classification')
 
     classifiers = ['random-forest', 'xgboost']
     for classifier in classifiers:
@@ -36,17 +45,15 @@ def cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
 
 
 
-def classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
-    dirs = ['save-model', 'save-scaler', 'violin-plot']
-    for dir_str in dirs:
-        os.makedirs(os.path.join(savepath_prefix, 'classification', dir_str), exist_ok=True)
-
-    with open(os.path.join(savepath_prefix, 'classification', 'print-message.txt'), "w") as text_file:
+def classify(savepath_prefix, prefix, nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir):
+    # by default: prefix = savepath_prefix
+    with open(os.path.join(prefix, 'classification', 'print-message.txt'), "w") as text_file:
         text_file.write(f"Print training time... \n\n") 
 
-    load_data_dir = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors')
+    # load_data_dir = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors')
+    # save_dir = os.path.join(savepath_prefix, 'classification')
+
     X, y = utils.load_data_df(model_str_list, load_data_dir, nz)
-    save_dir = os.path.join(savepath_prefix, 'classification')
 
     sdss_test_df_path = os.path.join(savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl')
     sdss_test_df = pd.read_pickle(sdss_test_df_path)
@@ -60,7 +67,7 @@ def classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
         train_test_tree.train(save_dir, classifier, X, y, cuda_num)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        with open(os.path.join(savepath_prefix, 'classification', 'print-message.txt'), "a") as text_file:
+        with open(os.path.join(prefix, 'classification', 'print-message.txt'), "a") as text_file:
             text_file.write(f"Training time of {classifier}: {elapsed_time:.6f} seconds. \n\n") 
 
         train_test_tree.test(save_dir, model_str_list, classifier, sdss_test_data)
@@ -73,7 +80,7 @@ def classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
         train_test_API.train(save_dir, classifier, X, y, cuda_num, max_iter)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        with open(os.path.join(savepath_prefix, 'classification', 'print-message.txt'), "a") as text_file:
+        with open(os.path.join(prefix, 'classification', 'print-message.txt'), "a") as text_file:
             text_file.write(f"Training time of {classifier}: {elapsed_time:.6f} seconds. \n\n") 
 
         train_test_API.test(save_dir, model_str_list, classifier, sdss_test_data)
