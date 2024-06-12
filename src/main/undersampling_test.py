@@ -37,15 +37,6 @@ def data_prepare(savepath_prefix, nz, undersample_list, oversample_list, origina
         current_df = pd.read_pickle(os.path.join(new_dir, f))
         with open(os.path.join(new_dir, 'print-message.txt'), "a") as text_file:
             text_file.write(f"{f}: {current_df.shape} \n\n")
-    
-    
-def classifier_func(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
-    classifier.make_directory(savepath_prefix, 'undersampling-test')
-
-    load_data_dir = os.path.join(savepath_prefix, 'undersampling-test', 'latent-vectors')
-    save_dir = os.path.join(savepath_prefix, 'undersampling-test', 'classification')
-    classifier.cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
-
 
 
 
