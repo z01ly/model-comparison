@@ -41,3 +41,38 @@ def plot_all_lines(savepath_prefix, nz, model_str_list, sdss_test_df_path, plt_t
     plt.tight_layout()
     plt.savefig(os.path.join(savepath_prefix, 'outlier-detect', 'distribution-plot', 'plot-all-lines.png'))
     plt.close()
+
+
+
+def corner_plot(savepath_prefix, nz, model_str, sdss_test_df_path, frac):
+    sdss_test_df = pd.read_pickle(sdss_test_df_path)
+    sdss_test_df_sampled = sdss_test_df.sample(frac=0.03, random_state=42)
+    sdss_test_df_sampled['label'] = 'sdss'
+    # print(sdss_test_df_sampled.head())
+    
+    load_dir = os.path.join(savepath_prefix, 'outlier-detect', 'in-out-sep')
+
+    train_inlier_df = pd.read_pickle(os.path.join(load_dir, 'train', 'inlier', model_str + '.pkl'))
+    train_inlier_df['label'] = 'inlier'
+    train_inlier_df.pop('mahalanobis')
+    train_inlier_df_sampled = train_inlier_df.sample(frac=frac, random_state=42)
+    # print(train_inlier_df.head(1))
+
+    """
+    train_outlier_df = pd.read_pickle(os.path.join(load_dir, 'train', 'outlier', model_str + '.pkl'))
+    train_outlier_df['label'] = 'outlier'
+    train_outlier_df.pop('mahalanobis')
+    train_outlier_df_sampled = train_outlier_df.sample(frac=frac, random_state=42)
+    # print(train_outlier_df.head(1))
+
+    df = pd.concat([sdss_test_df_sampled, train_inlier_df_sampled, train_outlier_df_sampled], axis=0)
+    """
+    
+    df = pd.concat([sdss_test_df_sampled, train_inlier_df_sampled], axis=0)
+    df.reset_index(drop=True, inplace=True)
+    print(f"{model_str} shape: {df.shape}")
+
+    custom_palette = {'sdss': 'yellow', 'inlier': 'black', 'outlier': 'skyblue'}
+    sns.pairplot(df, hue='label', corner=True, palette=custom_palette) # vars: every column with a numeric datatype
+    plt.savefig(os.path.join(savepath_prefix, 'outlier-detect', 'corner-plot', model_str + '.png'))
+    plt.close()
