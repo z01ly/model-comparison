@@ -46,7 +46,7 @@ def plot_all_lines(savepath_prefix, nz, model_str_list, sdss_test_df_path, plt_t
 
 def corner_plot(savepath_prefix, nz, model_str, sdss_test_df_path, frac):
     sdss_test_df = pd.read_pickle(sdss_test_df_path)
-    sdss_test_df_sampled = sdss_test_df.sample(frac=0.03, random_state=42)
+    sdss_test_df_sampled = sdss_test_df.sample(frac=0.025, random_state=42)
     sdss_test_df_sampled['label'] = 'sdss'
     # print(sdss_test_df_sampled.head())
     
@@ -72,7 +72,8 @@ def corner_plot(savepath_prefix, nz, model_str, sdss_test_df_path, frac):
     df.reset_index(drop=True, inplace=True)
     print(f"{model_str} shape: {df.shape}")
 
-    custom_palette = {'sdss': 'yellow', 'inlier': 'black', 'outlier': 'skyblue'}
-    sns.pairplot(df, hue='label', corner=True, palette=custom_palette) # vars: every column with a numeric datatype
+    custom_palette = {'sdss': 'orange', 'inlier': 'blue', 'outlier': 'skyblue'}
+    g = sns.pairplot(df, hue='label', corner=True, palette=custom_palette) # vars: every column with a numeric datatype
+    g.map_lower(sns.kdeplot, levels=3, color=".2")
     plt.savefig(os.path.join(savepath_prefix, 'outlier-detect', 'corner-plot', model_str + '.png'))
     plt.close()

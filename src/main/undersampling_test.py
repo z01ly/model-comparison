@@ -10,8 +10,8 @@ import shutil
 import src.main.classifier as classifier 
 
 
-def data_prepare(savepath_prefix, nz, undersample_list, oversample_list, original_list, frac):
-    new_dir = os.path.join(savepath_prefix, 'undersampling-test', 'latent-vectors')
+def data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list, original_list, frac, key):
+    new_dir = os.path.join(prefix, 'latent-vectors')
     os.makedirs(new_dir, exist_ok=True)
 
     # undersampling TNG100 by a factor of 5
@@ -22,10 +22,16 @@ def data_prepare(savepath_prefix, nz, undersample_list, oversample_list, origina
         # print(undersampled_majority_df.head(1))
         undersampled_majority_df.to_pickle(os.path.join(new_dir, model_str + '.pkl'))
 
-    for model_str in original_list:
-        model_df = pd.read_pickle(os.path.join(savepath_prefix, 'outlier-detect', 'in-out-sep', 'train', 'inlier', model_str + '.pkl'))
-        model_df.pop('mahalanobis')
-        model_df.to_pickle(os.path.join(new_dir, model_str + '.pkl'))
+    if key == 0:
+        for model_str in original_list:
+            model_df = pd.read_pickle(os.path.join(savepath_prefix, 'outlier-detect', 'in-out-sep', 'train', 'inlier', model_str + '.pkl'))
+            model_df.pop('mahalanobis')
+            model_df.to_pickle(os.path.join(new_dir, model_str + '.pkl'))
+    elif key == 1:
+        for model_str in original_list:
+            from_path = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors', model_str + '.pkl')
+            to_path = os.path.join(new_dir, model_str + '.pkl')
+            shutil.copy2(from_path, to_path)
 
     for model_str in oversample_list:
         from_path = os.path.join(savepath_prefix, 'oversampling', 'train', 'inlier', 'oversampled-vectors', model_str + '.pkl')
@@ -47,12 +53,14 @@ if __name__ == '__main__':
     max_iter = 400
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
-    # undersample_list = ['TNG100']
-    # oversample_list = ['UHDrt', 'n80rt']
-    # original_list = ['AGNrt', 'NOAGNrt', 'TNG50']
-    # data_prepare(savepath_prefix, nz, undersample_list, oversample_list, original_list, 0.2)
+    key = 1
+    prefix = os.path.join(savepath_prefix, 'undersampling-test', 'test_' + str(key))
 
-    prefix = os.path.join(savepath_prefix, 'undersampling-test')
+    undersample_list = ['TNG100']
+    oversample_list = ['UHDrt', 'n80rt']
+    original_list = ['AGNrt', 'NOAGNrt', 'TNG50']
+    data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list, original_list, 0.25, key)
+
     classifier.make_directory(prefix)
 
     load_data_dir = os.path.join(prefix, 'latent-vectors')
@@ -60,5 +68,4 @@ if __name__ == '__main__':
     classifier.cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
 
     classifier.classify(savepath_prefix, prefix, nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
-
-
+    
