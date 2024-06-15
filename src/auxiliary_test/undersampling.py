@@ -14,7 +14,7 @@ def data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list,
     new_dir = os.path.join(prefix, 'latent-vectors')
     os.makedirs(new_dir, exist_ok=True)
 
-    # undersampling TNG100 by a factor of 5
+    # undersampling TNG100
     for model_str in undersample_list:
         majority_df = pd.read_pickle(os.path.join(savepath_prefix, 'outlier-detect', 'in-out-sep', 'train', 'inlier', model_str + '.pkl'))
         undersampled_majority_df = majority_df.sample(frac=frac, random_state=42)
