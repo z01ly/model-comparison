@@ -34,3 +34,14 @@ def stack_mock_train_test(load_dir, model_str, z_dim, key):
     stacked_data = np.vstack((train_arr, test_arr))
     # print(f"stacked data shape: {stacked_data.shape}")
     return stacked_data
+
+
+def sample_sdss_for_plot(sdss_test_df_path, nz, frac=0.3):
+    sdss_test_df = pd.read_pickle(sdss_test_df_path)
+    sdss_test_data = sdss_test_df.iloc[:, 0:nz].to_numpy()
+
+    num_samples = int(frac * sdss_test_data.shape[0])
+    random_indices = np.random.choice(sdss_test_data.shape[0], num_samples, replace=False)
+    sampled_sdss_test_data = sdss_test_data[random_indices, :]
+
+    return sampled_sdss_test_data
