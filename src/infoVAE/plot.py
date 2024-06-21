@@ -99,6 +99,10 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
         # normalized = distance.astype(int) / (original_array_temp + 1)
         # normalized = (normalized - np.min(normalized)) / (np.max(normalized) - np.min(normalized))
 
+        # residual_percent_array = distance / original_array
+        # residual_percent_array = (residual_percent_array * 255).astype(int)
+        # residual_percent_array = 255 - residual_percent_array
+
 
         fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4))
 
@@ -114,8 +118,8 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
         axes[2].set_title('residual image')
         axes[2].axis('off')
 
-        # axes[3].imshow(normalized)
-        # axes[3].set_title('normalized image')
+        # axes[3].imshow(residual_percent_array)
+        # axes[3].set_title('residual image (in percentage)')
         # axes[3].axis('off')
 
         plt.tight_layout()
@@ -126,30 +130,3 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
         plt.close(fig)
 
 
-
-
-if __name__ == '__main__':
-    gpu_id = 1
-    image_size = 64
-    nc = 3
-    nz = 32
-    z_dim = nz
-    n_filters = 64
-    after_conv = utils.conv_size_comp(image_size)
-    use_cuda = True
-
-    model = Model(z_dim, nc, n_filters, after_conv)
-    model.load_state_dict(torch.load('src/infoVAE/mmdVAE_save/checkpoint.pt'))
-    if use_cuda:
-        model = model.cuda(gpu_id)
-    model.eval()
-
-
-    # residual plots
-    with torch.no_grad():
-        folder_paths = [os.path.join('src/data/mock_trainset', subdir, 'test') for subdir in os.listdir('src/data/mock_trainset')]
-        folder_paths.extend([os.path.join('src/data/mock_valset', subdir, 'test') for subdir in os.listdir('src/data/mock_valset')])
-
-        for folder_path in folder_paths:
-            plot_residual(model, folder_path, gpu_id, use_cuda, False)
-        plot_residual(model, 'src/data/sdss_data/test/cutouts/', gpu_id, use_cuda, True)
