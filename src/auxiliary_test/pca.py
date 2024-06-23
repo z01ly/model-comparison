@@ -46,13 +46,13 @@ def explained_var(savepath_prefix, z_dim):
 
 
 class MoveAlongAxis():
-    def __init__(self, savepath_prefix, nz, n_components, key):
+    def __init__(self, savepath_prefix, nz, n_components, key, display_list):
         # key = 'inlier' or 'outlier'
         self.savepath_prefix = savepath_prefix
         self.nz = nz
         self.n_components = n_components
         self.key = key
-        self.pca_axis_dir = os.path.join(savepath_prefix, 'pca-test', 'move-along-axis', f'{n_components}-components')
+        self.display_list = display_list
 
 
     def load_data(self):
@@ -86,25 +86,12 @@ class MoveAlongAxis():
         return vae
 
 
-    def move_along_pca_axis(self, gpu_id, use_cuda=True):
-        os.makedirs(self.pca_axis_dir, exist_ok=True)
-
-        data_arr = self.load_data()
-
-        data_arr = StandardScaler().fit_transform(data_arr)
-        latent_mean = np.mean(data_arr, axis=0)
-
-        pca = PCA(n_components=self.n_components)
-        pca.fit(data_arr)
-        first_pc = pca.components_[0]
-
-        vae = self.load_vae(gpu_id)
-
+    def move_along_pca_axis(self, principal_component, latent_mean, vae, display_num, gpu_id, use_cuda=True):
         step_size = 1
         num_steps = 10
         images = []
         for step in range(-num_steps, num_steps):
-            new_latent = latent_mean + step * step_size * first_pc
+            new_latent = latent_mean + step * step_size * principal_component
             with torch.no_grad():
                 gen_z = torch.from_numpy(new_latent).unsqueeze(0)
                 gen_z.requires_grad_ = False
@@ -118,8 +105,8 @@ class MoveAlongAxis():
         return images
 
     
-    def plot_images(self, gpu_id):
-        images = self.move_along_pca_axis(gpu_id)
+    def plot_images(self, principal_component, latent_mean, vae, display_num, gpu_id):
+        images = self.move_along_pca_axis(principal_component, latent_mean, vae, display_num, gpu_id)
 
         fig, axes = plt.subplots(1, len(images), figsize=(20, 2))
 
@@ -128,8 +115,24 @@ class MoveAlongAxis():
             ax.axis('off')
 
         plt.tight_layout()
-        plt.savefig(os.path.join(self.pca_axis_dir, self.key + '.png'), dpi=300)
+        plt.savefig(os.path.join(savepath_prefix, 'pca-test', 'move-along-axis', f'{display_num}', self.key + '.png'), dpi=300)
         plt.close(fig)
+
+
+    def main(self, gpu_id):
+        vae = self.load_vae(gpu_id)
+
+        data_arr = self.load_data()
+        data_arr = StandardScaler().fit_transform(data_arr)
+        latent_mean = np.mean(data_arr, axis=0)
+
+        pca = PCA(n_components=self.n_components)
+        pca.fit(data_arr)
+
+        for display_num in self.display_list:
+            os.makedirs(os.path.join(savepath_prefix, 'pca-test', 'move-along-axis', f'{display_num}'), exist_ok=True)
+            principal_component = pca.components_[display_num]
+            self.plot_images(principal_component, latent_mean, vae, display_num, gpu_id)
 
 
 
@@ -137,11 +140,11 @@ class MoveAlongAxis():
 if __name__ == "__main__":
     nz = 32
     savepath_prefix = 'results/' + str(nz) + '-dims'
-    gpu_id = 3
+    gpu_id = 4
 
     # explained_var(savepath_prefix, nz)
 
-    inlier = MoveAlongAxis(savepath_prefix, nz, 2, 'inlier')
-    inlier.plot_images(gpu_id)
-    outlier = MoveAlongAxis(savepath_prefix, nz, 2, 'outlier')
-    outlier.plot_images(gpu_id)
+    inlier = MoveAlongAxis(savepath_prefix, nz, 3, 'inlier', [0, 1, 2])
+    inlier.main(gpu_id)
+    outlier = MoveAlongAxis(savepath_prefix, nz, 3, 'outlier', [0, 1, 2])
+    outlier.main(gpu_id)

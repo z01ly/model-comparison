@@ -13,11 +13,11 @@ def local_plot():
     pass
 
 
-def global_plot(savepath_prefix, nz, classifier_key, model_str, model_pos):
-    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
+def global_plot(prefix, nz, classifier_key, model_str, model_pos):
+    clf = pickle.load(open(os.path.join(prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
     # print(clf.classes_)
 
-    with open(os.path.join(savepath_prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'rb') as f:
+    with open(os.path.join(prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'rb') as f:
         shap_values = pickle.load(f)
     print(shap_values.shape)
 
@@ -32,7 +32,7 @@ def global_plot(savepath_prefix, nz, classifier_key, model_str, model_pos):
     # shap.plots.beeswarm(shap_values, max_display=20, show=False)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png'))
+    plt.savefig(os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png'))
     plt.close()
 
 
@@ -116,17 +116,17 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
 
 
 
-def process_main(savepath_prefix, nz, model_str_dict, classifier_key):
+def process_main(prefix, savepath_prefix, nz, model_str_dict, classifier_key):
     # OCR accuracy is not 100% and requires manual check
     for model_str, model_pos in model_str_dict.items():
-        global_plot(savepath_prefix, nz, classifier_key, model_str, model_pos)
+        global_plot(prefix, nz, classifier_key, model_str, model_pos)
 
-        shap_plot_path = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png')
-        temporary_path = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', 'left_half.png')
+        shap_plot_path = os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png')
+        temporary_path = os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', 'left_half.png')
         feature_list = ocr(shap_plot_path, temporary_path)
 
         source_dir = os.path.join(savepath_prefix, 'vis', 'latent-space', 'dim-example', model_str)
-        output_dir = os.path.join(savepath_prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key) 
+        output_dir = os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key) 
         stack_pngs(feature_list, source_dir, output_dir, model_str+'-stack.png', shap_plot_path, 'tempo_image.png')
 
 

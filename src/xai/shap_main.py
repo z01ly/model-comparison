@@ -24,11 +24,11 @@ def test_data_sample(test_data, percent=0.6):
     return test_data[random_indices]
 
 
-def save_shap_values(savepath_prefix, background, test_data, classifier_key, explainer_key):
+def save_shap_values(prefix, background, test_data, classifier_key, explainer_key):
     print(f"Background data shape: {background.shape}")
     print(f"Test data shape: {test_data.shape}")
 
-    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
+    clf = pickle.load(open(os.path.join(prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
 
     if explainer_key == 'Explainer':
         explainer = shap.Explainer(clf.predict, background)
@@ -39,13 +39,13 @@ def save_shap_values(savepath_prefix, background, test_data, classifier_key, exp
     
     shap_values = explainer(test_data) # type(shap_values): <class 'shap._explanation.Explanation'>
     
-    with open(os.path.join(savepath_prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'wb') as f:
+    with open(os.path.join(prefix, 'xai', 'shap', 'save-shap-values', classifier_key + '.sav'), 'wb') as f:
         pickle.dump(shap_values, f)
 
 
 
-def deep_support_test(background, classifier_key):
-    clf = pickle.load(open(os.path.join(savepath_prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
+def deep_support_test(prefix, background, classifier_key):
+    clf = pickle.load(open(os.path.join(prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
     shap.DeepExplainer(clf, background).supports_model(clf)
 
 
