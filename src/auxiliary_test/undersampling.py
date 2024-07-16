@@ -40,14 +40,15 @@ def data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list,
         shutil.copy2(from_path, to_path)
 
     for f in os.listdir(new_dir):
-        current_df = pd.read_pickle(os.path.join(new_dir, f))
-        with open(os.path.join(new_dir, 'print-message.txt'), "a") as text_file:
-            text_file.write(f"{f}: {current_df.shape} \n\n")
+        if f.endswith('.pkl'):
+            current_df = pd.read_pickle(os.path.join(new_dir, f))
+            with open(os.path.join(new_dir, 'print-message.txt'), "a") as text_file:
+                text_file.write(f"{f}: {current_df.shape} \n\n")
 
 
 
 if __name__ == '__main__':
-    cuda_num = '4'
+    cuda_num = '0'
     nz = 32
     savepath_prefix = 'results/' + str(nz) + '-dims'
     max_iter = 400
@@ -57,16 +58,16 @@ if __name__ == '__main__':
     random_state = 0
     prefix = os.path.join(savepath_prefix, 'undersampling-test', 'test_frac_5_random_0') # manually
     
-    undersample_list = ['TNG100']
-    oversample_list = ['UHDrt', 'n80rt']
-    original_list = ['AGNrt', 'NOAGNrt', 'TNG50']
-    data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list, original_list, frac, random_state)
+    # undersample_list = ['TNG100']
+    # oversample_list = ['UHDrt', 'n80rt']
+    # original_list = ['AGNrt', 'NOAGNrt', 'TNG50']
+    # data_prepare(savepath_prefix, prefix, nz, undersample_list, oversample_list, original_list, frac, random_state)
 
-    classifier.make_directory(prefix)
+    # classifier.make_directory(prefix)
 
     load_data_dir = os.path.join(prefix, 'latent-vectors')
     save_dir = os.path.join(prefix, 'classification')
-    classifier.cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
+    # classifier.cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
 
     classifier.classify(savepath_prefix, prefix, nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
     

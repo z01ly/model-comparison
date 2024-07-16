@@ -72,7 +72,7 @@ def train(savepath_prefix, train_dataloader, val_dataloader, patience,
             z, x_reconstructed = model(x)
             mmd = compute_mmd(true_samples, z)
             nll = (x_reconstructed - x).pow(2).mean()
-            loss = nll + mmd
+            loss = nll + mmd 
 
             optimizer.zero_grad()
             loss.backward()

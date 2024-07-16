@@ -77,20 +77,6 @@ class MDist():
 
 
 
-def print_func():
-    distances = np.load('src/results/m-distance/train/NOAGNrt.npy')
-    cutoff = chi2.ppf(0.95, 32)
-
-    all_indices = np.arange(distances.shape[0])
-    outlier_indices = np.where(distances > cutoff)[0]
-    inlier_indices = np.setdiff1d(all_indices, outlier_indices)
-
-    outliers = distances[distances > cutoff]
-    for i in range(10, 20):
-        print(outliers[i])
-
-    print(distances.shape)
-
-
 if __name__ == '__main__':
-    pass
+    pass 
+    

@@ -43,7 +43,8 @@ if __name__ == "__main__":
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     model_str_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5} # model for plot
 
-    prefix = os.path.join(savepath_prefix, 'undersampling-test', 'test_frac_5_random_0')
+    # prefix = os.path.join(savepath_prefix, 'undersampling-test', 'test_frac_5_random_0')
+    prefix = savepath_prefix
 
     # load_data_dir = os.path.join(prefix, 'latent-vectors')
     # shap_compute(prefix, savepath_prefix, load_data_dir, nz, model_str_list)

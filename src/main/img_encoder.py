@@ -85,7 +85,7 @@ def plot_training(savepath_prefix, es_pos, y_avg, y_itr):
 
 
 
-def plot_residual(gpu_id, nz, model_str_list, use_cuda=True):
+def plot_residual(savepath_prefix, gpu_id, nz, model_str_list, use_cuda=True):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'residual-plot'), exist_ok=True)
 
     image_size = 64
@@ -111,7 +111,7 @@ def plot_residual(gpu_id, nz, model_str_list, use_cuda=True):
 
 
 if __name__ == '__main__':
-    gpu_id = 7
+    gpu_id = 4
     nz = 32
     savepath_prefix = 'results/' + str(nz) + '-dims'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
@@ -121,8 +121,8 @@ if __name__ == '__main__':
 
     # encoder(savepath_prefix, model_str_list, gpu_id, nz)
     
-    # plot_training(savepath_prefix, 40, 0.0025, 0.004) # es point: 16dim-31, 20dim-26, 32dim-40
+    # plot_training(savepath_prefix, 36, 0.0025, 0.004) # es point: 16dim-31, 20dim-26, 32dim-40
     # plot_training(savepath_prefix, 23, 0.015, 0.015) # es point: 4dim-23
     # plot_training(savepath_prefix, 21, 0.02, 0.02) # es point: 2dim-13, 3dim-21
     
-    plot_residual(gpu_id, nz, model_str_list, use_cuda=True)
+    # plot_residual(savepath_prefix, gpu_id, nz, model_str_list, use_cuda=True)
