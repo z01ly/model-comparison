@@ -55,7 +55,7 @@ def train(save_dir, classifier_key, X, y, cuda_num, max_iter=300):
 
 
 
-def test(save_dir, model_names, classifier_key, sdss_test_data):
+def test(save_dir, test_save_dir, model_names, classifier_key, sdss_test_data):
     clf = pickle.load(open(os.path.join(save_dir, 'save-model', classifier_key + '-model.pickle'), "rb"))
 
     with open(os.path.join(save_dir, 'save-scaler', classifier_key + '-scaler.pickle'), 'rb') as f:
@@ -72,12 +72,14 @@ def test(save_dir, model_names, classifier_key, sdss_test_data):
     # model_names = ['AGN', 'NOAGN', 'UHD', 'mockobs_0915', 'n80']
     sdss_pred_prob_df = pd.DataFrame(sdss_pred_prob, columns=model_names)
 
+    sdss_pred_prob_df.to_pickle(os.path.join(test_save_dir, 'prob-df', classifier_key + '.pkl'))
+
     plt.figure(figsize=(12, 6))
     sns.violinplot(data=sdss_pred_prob_df, palette="Set3")
     plt.xlabel("Models")
     plt.ylabel("Probability")
     plt.title("Violin Plot of Predicted Probabilities")
-    plt.savefig(os.path.join(save_dir, 'violin-plot', classifier_key + '-violin.png'))
+    plt.savefig(os.path.join(test_save_dir, 'violin-plot', classifier_key + '-violin.png'))
     plt.close()
 
 
