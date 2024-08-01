@@ -41,7 +41,7 @@ def cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir):
 
 
 
-def classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir, message_dir, sdss_test_df_path):
+def classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir, message_dir):
     # by default: prefix = savepath_prefix
 
     # message_dir = os.path.join(prefix, 'classification')
@@ -54,8 +54,8 @@ def classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save
     X, y = utils.load_data_df(model_str_list, load_data_dir, nz)
 
     # sdss_test_df_path = os.path.join(savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl')
-    sdss_test_df = pd.read_pickle(sdss_test_df_path)
-    sdss_test_data = sdss_test_df.iloc[:, 0:nz].to_numpy()
+    # sdss_test_df = pd.read_pickle(sdss_test_df_path)
+    # sdss_test_data = sdss_test_df.iloc[:, 0:nz].to_numpy()
 
     classifiers = ['random-forest', 'xgboost']
     for classifier in classifiers:
@@ -121,8 +121,8 @@ if __name__ == '__main__':
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     cuda_num = '7'
 
-    cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
-    classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
+    # cross_val(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
+    # classify(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
 
     # for 32-dim
     # example_sdss_img(savepath_prefix, nz, model_str_list, 'stacking-MLP-RF-XGB', 'TNG100', 0.01, 0.99)

@@ -25,7 +25,7 @@ def map_model_idx(model_str_list, print_key=False):
 
 
 def filter_df(input_df, indices, dest_dir, pkl_name):
-    df = input_df.iloc[indices]
+    df = input_df.iloc[indices].copy()
     df.reset_index(drop=True, inplace=True)
     df.to_pickle(os.path.join(dest_dir, pkl_name + '.pkl'))
 
