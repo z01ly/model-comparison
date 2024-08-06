@@ -167,8 +167,3 @@ def sample_filename(folder_path, num_samples):
     
     return join_sampled_filenames
 
-
-
-
-if __name__ == '__main__':
-    pass

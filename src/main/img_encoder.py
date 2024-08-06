@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import torch
 import time
+import yaml
 
 import src.pre
 
@@ -12,31 +13,45 @@ import src.infoVAE.mmdVAE_train as mmdVAE_train
 import src.infoVAE.mmdVAE_test as mmdVAE_test
 import src.infoVAE.plot as plot
 
+import src.infoVAE.info_vae_train as info_vae_train
 
-def vae(savepath_prefix, gpu_id, nz, batch_size=400):
-    os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'samples'), exist_ok=True)
-    os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'loss'), exist_ok=True)
-    os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'loss-plot'), exist_ok=True)
 
-    workers = 4
-    image_size = 64 # sdss image size
-    nc = 3 # number of input and output channels. 3 for color images.
-    n_filters = 64 # Size of feature maps
-    num_epochs = 100 # Number of training epochs
-    after_conv = utils.conv_size_comp(image_size)
-    patience = 10
+def vae(savepath_prefix, switch):
+    with open('src/infoVAE/infovae.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+
+    for i in ['samples', 'loss', 'loss-plot']:
+        os.makedirs(os.path.join(savepath_prefix, 'infoVAE', i), exist_ok=True)
 
     train_dataroot = 'data/sdss_data/train'
-    train_dataloader = utils.dataloader_func(train_dataroot, batch_size, workers, False)
+    train_dataloader = utils.dataloader_func(train_dataroot, 
+                                            config['data_params']['train_batch_size'], 
+                                            config['data_params']['num_workers'], 
+                                            False)
 
     esval_dataroot = 'data/sdss_data/esval'
-    esval_dataloader = utils.dataloader_func(esval_dataroot, batch_size, workers, False)
+    esval_dataloader = utils.dataloader_func(esval_dataroot, 
+                                            config['data_params']['val_batch_size'], 
+                                            config['data_params']['num_workers'], 
+                                            False)
     
     start_time = time.time()
-    train_losses, val_losses, avg_train_losses, avg_val_losses = \
-        mmdVAE_train.train(savepath_prefix=savepath_prefix, train_dataloader=train_dataloader, val_dataloader=esval_dataloader, 
-            patience=patience, z_dim=nz, nc=nc, n_filters=n_filters, after_conv=after_conv, n_epochs=num_epochs, 
-            use_cuda=True, gpu_id=gpu_id)
+    if switch == 'infovae':
+        print("infovae training...\n")
+        train_losses, val_losses, avg_train_losses, avg_val_losses = info_vae_train.train(savepath_prefix,
+                                                                                          train_dataloader,
+                                                                                          esval_dataloader)
+    elif switch == 'mmdvae':
+        print("mmdvae training...\n")
+        train_losses, val_losses, avg_train_losses, avg_val_losses = mmdVAE_train.train(savepath_prefix=savepath_prefix,
+                                                                                        train_dataloader=train_dataloader,
+                                                                                        val_dataloader=esval_dataloader,
+                                                                                        patience=config['trainer_params']['patience'],
+                                                                                        z_dim=config['model_params']['latent_dim'],
+                                                                                        nc=config['model_params']['in_channels'],
+                                                                                        n_epochs=config['trainer_params']['max_epochs'],
+                                                                                        use_cuda=True,
+                                                                                        gpu_id=config['trainer_params']['gpu_id'])
     end_time = time.time()
 
     elapsed_time = end_time - start_time
@@ -47,33 +62,24 @@ def vae(savepath_prefix, gpu_id, nz, batch_size=400):
 
 
 
-def encoder(savepath_prefix, model_str_list, gpu_id, nz):
-    workers = 4
-    batch_size = 500
-    image_size = 64
-    nc = 3
-    n_filters = 64
-    use_cuda = True
-    vae_save_path = os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')
+def encoder(savepath_prefix, model_str_list):
+    for i in ['train', 'test', 'sdss']:
+        os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', i), exist_ok=True)
 
-    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'train'), exist_ok=True)
-    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'test'), exist_ok=True)
-    os.makedirs(os.path.join(savepath_prefix, 'latent-vectors', 'sdss'), exist_ok=True)
+    n_filters = 64
+    vae_save_path = os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')
 
     mock_dataroot_dir = 'data/mock_train'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'train')
-    mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-    gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
+    mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, n_filters)
 
     mock_dataroot_dir = 'data/mock_test'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'test')
-    mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-    gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
+    mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, n_filters)
     
     mock_dataroot_dir = 'data/sdss_data'
     to_pickle_dir = os.path.join(savepath_prefix, 'latent-vectors', 'sdss')
-    mmdVAE_test.test_main(['test'], vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-    gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
+    mmdVAE_test.test_main(['test'], vae_save_path, mock_dataroot_dir, to_pickle_dir, n_filters)
 
 
 

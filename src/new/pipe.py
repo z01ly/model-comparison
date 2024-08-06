@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import seaborn as sns
+import yaml
 
 import src.main.oversampling as oversampling
 import src.main.classifier as classifier 
@@ -13,6 +14,18 @@ from src.classification.example_sdss import filter_df
 import src.classification.train_test_API as train_test_API
 import src.classification.train_test_tree as train_test_tree
 from src.pre import copy_df_path_images
+import src.main.img_encoder as img_encoder
+from src.auxiliary_test.sn_test import SNTest
+
+
+def infovae_func(savepath_prefix, model_str_list):
+    with open('src/infoVAE/infovae.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+    
+    img_encoder.vae(savepath_prefix, 'mmdvae')
+    # img_encoder.encoder(savepath_prefix, model_str_list)
+    # sn_test = SNTest(savepath_prefix, config['model_params']['latent_dim'])
+    # sn_test.plot()
 
 
 def oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id):
@@ -158,6 +171,8 @@ if __name__ == "__main__":
     minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
 
+    infovae_func(savepath_prefix, model_str_list)
+
     # oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id)
     
     # cuda_num = str(gpu_id)
@@ -168,10 +183,10 @@ if __name__ == "__main__":
 
     # classify_ID_test(savepath_prefix, nz, model_str_list)
 
-    sdss_dir = os.path.join(savepath_prefix, 'classification')
-    id_dir = os.path.join(savepath_prefix, 'classify-ID')
-    gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
+    # sdss_dir = os.path.join(savepath_prefix, 'classification')
+    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen.select_sdss(5)
     # gen.re_classify(model_str_list, nz)
-    gen.copy_sdss_imgs()
+    # gen.copy_sdss_imgs()
 

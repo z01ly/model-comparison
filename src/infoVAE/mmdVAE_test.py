@@ -1,5 +1,4 @@
 import torch
-from torchvision import transforms, datasets
 
 import numpy as np
 import matplotlib
@@ -7,6 +6,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
+import yaml
 
 import src.infoVAE.utils as utils
 from src.infoVAE.mmdVAE import Model
@@ -22,7 +22,7 @@ def test(model, test_dataroot, savefig_path, use_cuda=True, gpu_id=0, workers=4,
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 
-        z = model.encoder(test_x)
+        z, _ = model(test_x)
         z_list.append(z.cpu().data.numpy())
          
     z = np.concatenate(z_list, axis=0)
@@ -54,7 +54,7 @@ def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4,
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 
-        z = model.encoder(test_x)
+        z, _ = model(test_x)
 
         z_list.append(z.cpu().data.numpy())
         filename_list.extend(img_filenames)
@@ -67,15 +67,14 @@ def test_with_filename(model, test_dataroot, use_cuda=True, gpu_id=0, workers=4,
 
 
 
-def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-        gpu_id, workers, batch_size, image_size, nc, nz, n_filters, use_cuda=True):
-    after_conv = utils.conv_size_comp(image_size)
+def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, n_filters):
+    with open('src/infoVAE/infovae.yaml', 'r') as f:
+        config = yaml.safe_load(f)
 
     # infoVAE model
-    vae = Model(nz, nc, n_filters, after_conv)
+    vae = Model(config['model_params']['latent_dim'], config['model_params']['in_channels'])
     vae.load_state_dict(torch.load(vae_save_path))
-    if use_cuda:
-        vae = vae.cuda(gpu_id)
+    vae = vae.cuda(config['trainer_params']['gpu_id'])
     vae.eval()
 
     # encode images to latent vectors
@@ -84,12 +83,16 @@ def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir,
             # print(model_str)
             mock_dataroot = os.path.join(mock_dataroot_dir, model_str)
 
-            z, filename_arr = test_with_filename(vae, test_dataroot=mock_dataroot, 
-                    use_cuda=True, gpu_id=gpu_id, workers=workers, batch_size=batch_size)
+            z, filename_arr = test_with_filename(vae, 
+                                                test_dataroot=mock_dataroot,
+                                                use_cuda=True,
+                                                gpu_id=config['trainer_params']['gpu_id'],
+                                                workers=config['data_params']['num_workers'],
+                                                batch_size=config['data_params']['test_batch_size'])
 
-            z_filename_df = pd.DataFrame(z, columns=[f'f{i}' for i in range(nz)])
+            z_filename_df = pd.DataFrame(z, columns=[f'f{i}' for i in range(config['model_params']['latent_dim'])])
             # filename example: data/mock_train/UHDrt/test/UHD_g6.96e11_06.png
-            z_filename_df.insert(nz, "filename", filename_arr, allow_duplicates=False)
+            z_filename_df.insert(config['model_params']['latent_dim'], "filename", filename_arr, allow_duplicates=False)
             
             z_filename_df.to_pickle(os.path.join(to_pickle_dir, model_str + '.pkl'))
 
