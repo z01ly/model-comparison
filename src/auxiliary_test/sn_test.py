@@ -106,6 +106,6 @@ if __name__ == '__main__':
     # sn_test = SNTest(savepath_prefix_3, nz)
     # sn_test.mmd()
 
-    mmd_test(0.1)
-    mmd_test(0.5)
-    mmd_test(0.9)
+    mmd_test(0.1) # 0.278
+    mmd_test(0.5) # 0.088
+    mmd_test(0.9) # 0.005

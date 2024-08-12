@@ -1,6 +1,3 @@
-from src.infoVAE.mmdVAE import Model
-from PIL import Image
-
 import torch
 
 import pandas as pd
@@ -41,16 +38,15 @@ def check_range(savepath_prefix, nz, model_str_list):
 
 
 
-
-def main(savepath_prefix, nz, model_str, vae, gpu_id, use_cuda=True):
+def main(savepath_prefix, max_point, nz, model_str, vae, gpu_id, use_cuda=True):
     z_df = pd.read_pickle(os.path.join(savepath_prefix, 'latent-vectors', 'train', model_str + '.pkl'))
     np_arr = z_df.iloc[:, 0:nz].to_numpy()
 
     sampled_idx = np.random.choice(np_arr.shape[0], size=1, replace=False)
     sampled_vec = np_arr[sampled_idx].squeeze()
 
-    start_range = -5
-    end_range = 5
+    start_range = - max_point
+    end_range = max_point
 
     for j in range(nz):
         vec = copy.deepcopy(sampled_vec)

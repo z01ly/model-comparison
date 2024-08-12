@@ -82,7 +82,7 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
         if(use_cuda):
             test_x = test_x.cuda(gpu_id)
 
-        z, reconstructed_img = model(test_x)
+        _, reconstructed_img, _, _, _ = model(test_x)
 
         reconstructed_array = reconstructed_img.contiguous().cpu().data.numpy()
         reconstructed_array = reconstructed_array.squeeze().transpose(1, 2, 0)
@@ -128,5 +128,4 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
         savefig_path = os.path.join(savepath_prefix, 'infoVAE', 'residual-plot', model_str, f"{file_names[-1]}")
         plt.savefig(savefig_path, dpi=300)
         plt.close(fig)
-
 

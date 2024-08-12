@@ -47,9 +47,9 @@ def train(savepath_prefix, train_dataloader, val_dataloader, patience, z_dim=2, 
                 x = x.cuda(gpu_id)
                 true_samples = true_samples.cuda(gpu_id)
             
-            z, x_reconstructed, mu, log_var = model(x)
+            z_sparse, x_reconstructed, mu, log_var, _ = model(x)
 
-            loss_dict = model.loss_func(config, true_samples, z, x_reconstructed, x, mu, log_var)
+            loss_dict = model.loss_func(config, true_samples, z_sparse, x_reconstructed, x, mu, log_var)
             loss = loss_dict['loss']
 
             optimizer.zero_grad()
@@ -80,9 +80,9 @@ def train(savepath_prefix, train_dataloader, val_dataloader, patience, z_dim=2, 
                     x = x.cuda(gpu_id)
                     true_samples = true_samples.cuda(gpu_id)
                 
-                z, x_reconstructed, mu, log_var = model(x)
+                z_sparse, x_reconstructed, mu, log_var, _ = model(x)
 
-                loss_dict = model.loss_func(config, true_samples, z, x_reconstructed, x, mu, log_var)
+                loss_dict = model.loss_func(config, true_samples, z_sparse, x_reconstructed, x, mu, log_var)
                 loss = loss_dict['loss']
 
                 val_losses.append(loss.item())
@@ -129,5 +129,4 @@ def train(savepath_prefix, train_dataloader, val_dataloader, patience, z_dim=2, 
 
     # return model, train_losses, val_losses, avg_train_losses, avg_val_losses
     return train_losses, val_losses, avg_train_losses, avg_val_losses
-
 

@@ -43,10 +43,10 @@ def tsne_save(savepath_prefix, nz, model_str_dict):
 
 
 
-def sn_plot_tsne(savepath_prefix, model_str_list):
+def plot_tsne(savepath_prefix, model_str_list):
     embedded_z = pd.read_pickle(os.path.join(savepath_prefix, 'vis', 'tsne', 'embedded-z.pkl'))
     sns.scatterplot(data=embedded_z, x='f0', y='f1', hue='label', palette="bright", s=5)
-    plt.savefig(os.path.join(savepath_prefix, 'vis', 'tsne', 'sn-plot-mix.png'))
+    plt.savefig(os.path.join(savepath_prefix, 'vis', 'tsne', 'plot-mix.png'))
 
     fig, axs = plt.subplots(2, 3, figsize=(18, 10))
     for ax, model_str in zip(axs.flat, model_str_list):
@@ -54,6 +54,5 @@ def sn_plot_tsne(savepath_prefix, model_str_list):
         sns.scatterplot(x='f0', y='f1', data=subset_df, ax=ax, hue='label', s=5)
         ax.set_title(f'sdss and {model_str}')
     plt.tight_layout()
-    plt.savefig(os.path.join(savepath_prefix, 'vis', 'tsne', 'sn-plot-separate.png'))
-
+    plt.savefig(os.path.join(savepath_prefix, 'vis', 'tsne', 'plot-separate.png'))
 

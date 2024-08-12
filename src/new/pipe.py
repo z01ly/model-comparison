@@ -15,17 +15,7 @@ import src.classification.train_test_API as train_test_API
 import src.classification.train_test_tree as train_test_tree
 from src.pre import copy_df_path_images
 import src.main.img_encoder as img_encoder
-from src.auxiliary_test.sn_test import SNTest
-
-
-def infovae_func(savepath_prefix, model_str_list):
-    with open('src/infoVAE/infovae.yaml', 'r') as f:
-        config = yaml.safe_load(f)
-    
-    img_encoder.vae(savepath_prefix, 'mmdvae')
-    # img_encoder.encoder(savepath_prefix, model_str_list)
-    # sn_test = SNTest(savepath_prefix, config['model_params']['latent_dim'])
-    # sn_test.plot()
+import src.main.latent_vis as latent_vis
 
 
 def oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id):
@@ -166,22 +156,40 @@ class GenOod():
 if __name__ == "__main__":
     gpu_id = 6
     nz = 32
-    savepath_prefix = 'new'
+    savepath_prefix = 'new-sparse'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
-    minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
 
-    infovae_func(savepath_prefix, model_str_list)
-
-    # oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id)
+    with open('src/infoVAE/infovae.yaml', 'r') as f:
+        config = yaml.safe_load(f)
     
+    # infoVAE func
+    # img_encoder.vae(savepath_prefix)
+    # img_encoder.plot_training(savepath_prefix, 24, 0.0015, 0.0015)
+    # img_encoder.plot_residual(savepath_prefix, config, model_str_list, use_cuda=True)
+    # img_encoder.encoder(savepath_prefix, model_str_list)
+    
+
+    # latent vis func
+    # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
+    # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)
+    latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
+
+
+    # minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
+    # oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id)
+
+
     # cuda_num = str(gpu_id)
     # max_iter = 600
     # classify_calibration_train(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
 
+
     # classify_test(savepath_prefix, nz, model_str_list)
 
+
     # classify_ID_test(savepath_prefix, nz, model_str_list)
+
 
     # sdss_dir = os.path.join(savepath_prefix, 'classification')
     # id_dir = os.path.join(savepath_prefix, 'classify-ID')
@@ -189,4 +197,3 @@ if __name__ == "__main__":
     # gen.select_sdss(5)
     # gen.re_classify(model_str_list, nz)
     # gen.copy_sdss_imgs()
-

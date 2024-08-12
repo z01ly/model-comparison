@@ -167,3 +167,23 @@ def sample_filename(folder_path, num_samples):
     
     return join_sampled_filenames
 
+
+def apply_k_sparse(z, k_pre, alpha=1):
+    k = alpha * k_pre
+
+    assert (k <= z.shape[1]) and (k < 64 * 64), "k should: <= the latent dimension and < the input size"
+
+    _, topk_indices = torch.topk(torch.abs(z), k, dim=1, largest=True, sorted=True)
+
+    mask = torch.zeros_like(z)
+    mask.scatter_(1, topk_indices, 1)
+
+    z_sparse = z * mask
+    
+    return z_sparse
+
+
+def test_file_save_df(config, z_arr, filename_arr, model_str, pickle_dir):
+    z_filename_df = pd.DataFrame(z_arr, columns=[f'f{i}' for i in range(config['model_params']['latent_dim'])])
+    z_filename_df.insert(config['model_params']['latent_dim'], "filename", filename_arr, allow_duplicates=False)
+    z_filename_df.to_pickle(os.path.join(pickle_dir, model_str + '.pkl'))
