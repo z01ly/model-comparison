@@ -42,20 +42,13 @@ def img_oversample(savepath_prefix, model_str_list, minority_str_list, image_dir
 
 
 
-def infovae_reencode(savepath_prefix, model_str_list, gpu_id, nz, oversampled_image_dir, oversampled_vector_dir):
-    workers = 4
-    batch_size = 500
-    image_size = 64
-    nc = 3
-    n_filters = 64
+def infovae_reencode(savepath_prefix, model_str_list, oversampled_image_dir, oversampled_vector_dir, oversampled_dense_vector_dir):
     vae_save_path = os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')
 
     os.makedirs(oversampled_vector_dir, exist_ok=True)
+    os.makedirs(oversampled_dense_vector_dir, exist_ok=True)
 
-    mock_dataroot_dir = oversampled_image_dir
-    to_pickle_dir = oversampled_vector_dir
-    mmdVAE_test.test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, 
-    gpu_id, workers, batch_size, image_size, nc, nz, n_filters=image_size, use_cuda=True)
+    mmdVAE_test.test_main(model_str_list, vae_save_path, oversampled_image_dir, oversampled_vector_dir, oversampled_dense_vector_dir)
 
 
 

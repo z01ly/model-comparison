@@ -18,17 +18,22 @@ import src.main.img_encoder as img_encoder
 import src.main.latent_vis as latent_vis
 
 
-def oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id):
+def oversample_sim(savepath_prefix, model_str_list, minority_str_list):
     df_dir = os.path.join(savepath_prefix, 'latent-vectors', 'train')
     base_dir = os.path.join(savepath_prefix, 'oversampling')
     image_dir = os.path.join(base_dir, 'images')
     oversampled_image_dir = os.path.join(base_dir, 'oversampled-images')
     oversampled_vector_dir = os.path.join(base_dir, 'oversampled-vectors')
+    oversampled_dense_vector_dir = os.path.join(base_dir, 'oversampled-dense-vectors')
 
     oversampling.img_copy(savepath_prefix, model_str_list, df_dir, image_dir)
     oversampling.img_oversample(savepath_prefix, model_str_list, minority_str_list, image_dir, oversampled_image_dir)
     oversampling.print_messages(savepath_prefix, model_str_list, base_dir)
-    oversampling.infovae_reencode(savepath_prefix, model_str_list, gpu_id, nz, oversampled_image_dir, oversampled_vector_dir)
+    oversampling.infovae_reencode(savepath_prefix,
+                                  model_str_list,
+                                  oversampled_image_dir,
+                                  oversampled_vector_dir,
+                                  oversampled_dense_vector_dir)
 
 
 def classify_calibration_train(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
@@ -154,8 +159,6 @@ class GenOod():
 
 
 if __name__ == "__main__":
-    gpu_id = 6
-    nz = 32
     savepath_prefix = 'new-sparse'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
@@ -173,27 +176,28 @@ if __name__ == "__main__":
     # latent vis func
     # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
     # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)
-    latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
+    # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
 
 
     # minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
-    # oversample_sim(savepath_prefix, nz, model_str_list, minority_str_list, gpu_id)
+    # oversample_sim(savepath_prefix, model_str_list, minority_str_list)
 
 
-    # cuda_num = str(gpu_id)
-    # max_iter = 600
-    # classify_calibration_train(savepath_prefix, nz, model_str_list, cuda_num, max_iter)
+    # cuda_num = str(config['trainer_params']['gpu_id'])
+    # max_iter = 400
+    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter)
 
 
-    # classify_test(savepath_prefix, nz, model_str_list)
+    # classify_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
 
 
-    # classify_ID_test(savepath_prefix, nz, model_str_list)
+    # classify_ID_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
 
 
-    # sdss_dir = os.path.join(savepath_prefix, 'classification')
-    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
-    # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
-    # gen.select_sdss(5)
-    # gen.re_classify(model_str_list, nz)
+    sdss_dir = os.path.join(savepath_prefix, 'classification')
+    id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
+    gen.plot()
+    gen.select_sdss(5)
+    gen.re_classify(model_str_list, config['model_params']['latent_dim'])
     # gen.copy_sdss_imgs()

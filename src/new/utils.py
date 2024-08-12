@@ -43,5 +43,3 @@ def df_to_gen_score(save_dir, c, gamma, M):
 
 if __name__ == "__main__":
     pass 
-    # copy_previous_results()
-
