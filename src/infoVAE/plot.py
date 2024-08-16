@@ -63,7 +63,7 @@ def plot_itr_loss(savepath_prefix, train_losses, val_losses, y_itr):
 
 
 
-def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id, use_cuda=True):
+def residual(model, savepath_prefix, num_samples, model_str, folder_path, config, use_cuda=True):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'residual-plot', model_str), exist_ok=True)
 
     sampled_filenames = utils.sample_filename(folder_path, num_samples)
@@ -79,10 +79,10 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, gpu_id
   
         test_x = processed_image.unsqueeze(0)
         test_x.requires_grad_(False)
-        if(use_cuda):
-            test_x = test_x.cuda(gpu_id)
+        if (use_cuda):
+            test_x = test_x.cuda(config['trainer_params']['gpu_id'])
 
-        _, reconstructed_img, _, _, _ = model(test_x)
+        _, reconstructed_img, _, _, _ = model(test_x, config['model_params']['k_pre_value'])
 
         reconstructed_array = reconstructed_img.contiguous().cpu().data.numpy()
         reconstructed_array = reconstructed_array.squeeze().transpose(1, 2, 0)

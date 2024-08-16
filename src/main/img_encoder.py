@@ -40,12 +40,7 @@ def vae(savepath_prefix):
     train_losses, val_losses, avg_train_losses, avg_val_losses = mmdVAE_train.train(savepath_prefix=savepath_prefix,
                                                                                     train_dataloader=train_dataloader,
                                                                                     val_dataloader=esval_dataloader,
-                                                                                    patience=config['trainer_params']['patience'],
-                                                                                    z_dim=config['model_params']['latent_dim'],
-                                                                                    nc=config['model_params']['in_channels'],
-                                                                                    n_epochs=config['trainer_params']['max_epochs'],
-                                                                                    use_cuda=True,
-                                                                                    gpu_id=config['trainer_params']['gpu_id'])
+                                                                                    use_cuda=True)
     end_time = time.time()
 
     elapsed_time = end_time - start_time
@@ -87,7 +82,7 @@ def plot_training(savepath_prefix, es_pos, y_avg, y_itr):
 def plot_residual(savepath_prefix, config, model_str_list, use_cuda=True):
     os.makedirs(os.path.join(savepath_prefix, 'infoVAE', 'residual-plot'), exist_ok=True)
 
-    vae = Model(config['model_params']['latent_dim'], config['model_params']['in_channels'])
+    vae = Model(config)
     vae.load_state_dict(torch.load(os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')))
     if use_cuda:
         vae = vae.cuda(config['trainer_params']['gpu_id'])
@@ -96,12 +91,11 @@ def plot_residual(savepath_prefix, config, model_str_list, use_cuda=True):
     with torch.no_grad():
         for model_str in model_str_list:
             for folder_path in [os.path.join('data/mock_train', model_str, 'test'), os.path.join('data/mock_test', model_str, 'test')]:
-                plot.residual(vae, savepath_prefix, 1, model_str, folder_path, config['trainer_params']['gpu_id'], use_cuda=True)
+                plot.residual(vae, savepath_prefix, 1, model_str, folder_path, config, use_cuda=True)
         
         folder_path = 'data/sdss_data/test/cutouts'
-        plot.residual(vae, savepath_prefix, 2, 'sdss-test', folder_path, config['trainer_params']['gpu_id'], use_cuda=True)
+        plot.residual(vae, savepath_prefix, 2, 'sdss-test', folder_path, config, use_cuda=True)
     
-
 
 
 if __name__ == '__main__':

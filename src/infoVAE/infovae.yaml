@@ -4,6 +4,8 @@ model_params:
   name: 'InfoVAE'
   in_channels: 3
   latent_dim: 512
+  k_pre_value: 32
+  k_step: 7
   reg_weight: 4000 # MMD weight 110
   kernel_type: 'rbf'
   alpha: -9.0     # KLD weight
@@ -27,7 +29,7 @@ exp_params:
   manual_seed: 1265
 
 trainer_params:
-  gpu_id: 0
+  gpu_id: 5
   patience: 10
   max_epochs: 100
   gradient_clip_val: 0.8

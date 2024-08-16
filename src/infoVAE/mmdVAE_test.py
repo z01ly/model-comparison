@@ -29,8 +29,8 @@ def test_with_filename(model, test_dataroot, config, use_cuda=True):
         if (use_cuda):
             test_x = test_x.cuda(config['trainer_params']['gpu_id'])
 
-        _, _, _, _, z = model(test_x)
-        z_sparse = apply_k_sparse(z, k_pre=int(config['model_params']['latent_dim'] * 0.0625), alpha=2)
+        _, _, _, _, z = model(test_x, config['model_params']['k_pre_value'])
+        z_sparse = apply_k_sparse(z, k_pre=config['model_params']['k_pre_value'], alpha=2)
 
         z_sparse_list.append(z_sparse.cpu().data.numpy())
         z_dense_list.append(z.cpu().data.numpy())
@@ -50,7 +50,7 @@ def test_main(model_str_list, vae_save_path, mock_dataroot_dir, to_pickle_dir, d
         config = yaml.safe_load(f)
 
     # infoVAE model
-    vae = Model(config['model_params']['latent_dim'], config['model_params']['in_channels'])
+    vae = Model(config)
     vae.load_state_dict(torch.load(vae_save_path))
     vae = vae.cuda(config['trainer_params']['gpu_id'])
     vae.eval()

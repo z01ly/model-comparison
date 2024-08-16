@@ -122,13 +122,11 @@ class NewDecoder(nn.Module):
 
 # model
 class Model(nn.Module):
-    def __init__(self, z_dim, nc):
+    def __init__(self, config):
         super(Model, self).__init__()
-        self.encoder = Encoder(z_dim, nc)
-        self.decoder = NewDecoder(z_dim, nc)
-
-        self.z_dim = z_dim
-
+        self.encoder = Encoder(config['model_params']['latent_dim'], config['model_params']['in_channels'])
+        self.decoder = NewDecoder(config['model_params']['latent_dim'], config['model_params']['in_channels'])
+        
         # self._initialize_weights()
 
     # def _initialize_weights(self):
@@ -152,11 +150,11 @@ class Model(nn.Module):
         eps = torch.randn_like(std)
         return eps * std + mu
         
-    def forward(self, x):
+    def forward(self, x, k_pre_value):
         mu, log_var = self.encoder(x)
         z = self.reparameterize(mu, log_var)
 
-        z_sparse = apply_k_sparse(z, k_pre=int(self.z_dim * 0.0625))
+        z_sparse = apply_k_sparse(z, k_pre=k_pre_value)
 
         x_reconstructed = self.decoder(z_sparse)
 
@@ -180,7 +178,7 @@ class Model(nn.Module):
         mmd = x_kernel.mean() + y_kernel.mean() - 2*xy_kernel.mean()
         return mmd
 
-    def loss_func(self, config, true_samples, z, x_reconstructed, x, mu, log_var):
+    def loss_func(self, true_samples, z, x_reconstructed, x, mu, log_var):
         # kld = torch.mean(-0.5 * torch.sum(1 + log_var - mu ** 2 - log_var.exp(), dim=1), dim=0) # VAE kl divergence
 
         # rho_hat = torch.mean(z, dim=0)
@@ -194,3 +192,12 @@ class Model(nn.Module):
 
         return {'loss': loss, 'nll': nll, 'mmd': mmd}
 
+
+
+if __name__ == "__main__":
+    import yaml
+    with open('src/infoVAE/infovae.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+    for epoch in range(10):
+        k_pre_value = config['model_params']['k_pre_value'] + config['model_params']["k_step"] * (10 - epoch)
+        print(k_pre_value)

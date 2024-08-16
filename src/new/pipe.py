@@ -36,16 +36,17 @@ def oversample_sim(savepath_prefix, model_str_list, minority_str_list):
                                   oversampled_dense_vector_dir)
 
 
-def classify_calibration_train(savepath_prefix, nz, model_str_list, cuda_num, max_iter):
+def classify_calibration_train(savepath_prefix, nz, model_str_list, cuda_num, max_iter, key='train'):
     classifier.make_directory(savepath_prefix)
 
     load_data_dir = os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors')
     save_dir = os.path.join(savepath_prefix, 'classification')
     
-    classifier.cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
-
-    message_dir = save_dir
-    classifier.classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir, message_dir)
+    if key == 'cross-val':
+        classifier.cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir)
+    elif key == 'train':
+        message_dir = save_dir
+        classifier.classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir, message_dir)
 
 
 
@@ -159,7 +160,7 @@ class GenOod():
 
 
 if __name__ == "__main__":
-    savepath_prefix = 'new-sparse'
+    savepath_prefix = 'new-sparse-update'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
 
@@ -168,7 +169,7 @@ if __name__ == "__main__":
     
     # infoVAE func
     # img_encoder.vae(savepath_prefix)
-    # img_encoder.plot_training(savepath_prefix, 24, 0.0015, 0.0015)
+    # img_encoder.plot_training(savepath_prefix, 28, 0.0015, 0.0015)
     # img_encoder.plot_residual(savepath_prefix, config, model_str_list, use_cuda=True)
     # img_encoder.encoder(savepath_prefix, model_str_list)
     
@@ -184,7 +185,8 @@ if __name__ == "__main__":
 
 
     # cuda_num = str(config['trainer_params']['gpu_id'])
-    # max_iter = 400
+    # max_iter = 300
+    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
     # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter)
 
 

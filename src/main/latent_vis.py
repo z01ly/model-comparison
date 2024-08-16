@@ -30,7 +30,7 @@ def latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True):
 
     latent_space.check_range(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
 
-    vae = Model(config['model_params']['latent_dim'], config['model_params']['in_channels'])
+    vae = Model(config)
     vae.load_state_dict(torch.load(os.path.join(savepath_prefix, 'infoVAE', 'checkpoint.pt')))
     if use_cuda:
         vae = vae.cuda(config['trainer_params']['gpu_id'])
@@ -38,6 +38,7 @@ def latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True):
 
     with torch.no_grad():
         for model_str in ['AGNrt', 'NOAGNrt', 'TNG100']:
+            print(f"latent space vis of {model_str}...")
             latent_space.main(savepath_prefix,
                                 3.5,
                                 config['model_params']['latent_dim'],
