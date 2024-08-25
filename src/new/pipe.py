@@ -16,6 +16,7 @@ import src.classification.train_test_tree as train_test_tree
 from src.pre import copy_df_path_images
 import src.main.img_encoder as img_encoder
 import src.main.latent_vis as latent_vis
+import src.main.xai_func as xai_func
 
 
 def oversample_sim(savepath_prefix, model_str_list, minority_str_list):
@@ -162,11 +163,11 @@ class GenOod():
 if __name__ == "__main__":
     savepath_prefix = 'new-sparse-update'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
-    # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
 
     with open('src/infoVAE/infovae.yaml', 'r') as f:
         config = yaml.safe_load(f)
     
+
     # infoVAE func
     # img_encoder.vae(savepath_prefix)
     # img_encoder.plot_training(savepath_prefix, 28, 0.0015, 0.0015)
@@ -196,10 +197,28 @@ if __name__ == "__main__":
     # classify_ID_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
 
 
-    sdss_dir = os.path.join(savepath_prefix, 'classification')
-    id_dir = os.path.join(savepath_prefix, 'classify-ID')
-    gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
-    gen.plot()
-    gen.select_sdss(5)
-    gen.re_classify(model_str_list, config['model_params']['latent_dim'])
+    # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    # sdss_dir = os.path.join(savepath_prefix, 'classification')
+    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('voting-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
+    # gen.plot()
+    # gen.select_sdss(5)
+    # gen.re_classify(model_str_list, config['model_params']['latent_dim'])
     # gen.copy_sdss_imgs()
+
+
+    # SHAP
+    for c_str in ['xgboost']:
+        print(f"SHAP: {c_str}")
+        # xai_func.shap_compute(savepath_prefix,
+        #                     os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors'),
+        #                     os.path.join(savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', c_str, 'id.pkl'),
+        #                     config['model_params']['latent_dim'],
+        #                     model_str_list,
+        #                     c_str)
+        model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
+        xai_func.shap_plot(savepath_prefix, savepath_prefix, config['model_params']['latent_dim'], model_pos_dict, c_str)
+    

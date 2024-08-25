@@ -53,11 +53,11 @@ def deep_support_test(prefix, background, classifier_key):
 
 if __name__ == '__main__':
     compare_list = ['TNG100-1_snapnum_099', 'TNG50-1_snapnum_099_2times', 'mockobs_0915_2times']
-    X, y = load_data_train(compare_list)
+    # X, y = load_data_train(compare_list)
 
-    X_sampled = background_sample(X, y, percent=0.006)
+    # X_sampled = background_sample(X, y, percent=0.006)
 
-    sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
+    # sdss_test_data = np.load('src/infoVAE/test_results/latent/sdss_test.npy')
 
     # save_shap_values(X, sdss_test_data, 'compare', 'xgboost', 'TreeExplainer')
     # save_shap_values(X, sdss_test_data, 'compare', 'random-forest', 'TreeExplainer')
@@ -70,5 +70,5 @@ if __name__ == '__main__':
     # save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'stacking-MLP-RF-XGB', 'Explainer')
     # save_shap_values(X_sampled, sdss_test_data[0:100], 'compare', 'stacking-MLP-RF-XGB', 'KernelExplainer')
 
-    deep_support(X_sampled, sdss_test_data, 'compare', 'single-MLP')
+    # deep_support(X_sampled, sdss_test_data, 'compare', 'single-MLP')
     
