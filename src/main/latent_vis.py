@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import src.vis.tsne as tsne
 import src.vis.latent_space as latent_space
 from src.infoVAE.mmdVAE import Model 
-
+from src.vis.umap_vis import UmapVis
 
 
 def tsne_vis(savepath_prefix, nz, model_str_dict, model_str_list):
@@ -21,6 +21,12 @@ def tsne_vis(savepath_prefix, nz, model_str_dict, model_str_list):
 
     tsne.plot_tsne(savepath_prefix, model_str_list)
 
+
+def umap_func(savepath_prefix, nz, model_str_list):
+    sdss_df_path = os.path.join(savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl')
+    umap1 = UmapVis(savepath_prefix, nz, model_str_list, sdss_df_path)
+    umap1.embedding_save()
+    umap1.embedding_plot()
 
 
 def latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True):

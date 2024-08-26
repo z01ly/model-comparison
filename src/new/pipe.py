@@ -177,7 +177,8 @@ if __name__ == "__main__":
 
     # latent vis func
     # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
-    # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)
+    # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)}
+    latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
     # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
 
 
@@ -211,14 +212,14 @@ if __name__ == "__main__":
 
 
     # SHAP
-    for c_str in ['xgboost']:
-        print(f"SHAP: {c_str}")
+    # for c_str in ['xgboost']:
+        # print(f"SHAP: {c_str}")
         # xai_func.shap_compute(savepath_prefix,
         #                     os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors'),
         #                     os.path.join(savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', c_str, 'id.pkl'),
         #                     config['model_params']['latent_dim'],
         #                     model_str_list,
         #                     c_str)
-        model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
-        xai_func.shap_plot(savepath_prefix, savepath_prefix, config['model_params']['latent_dim'], model_pos_dict, c_str)
+        # model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
+        # xai_func.shap_plot(savepath_prefix, savepath_prefix, config['model_params']['latent_dim'], model_pos_dict, c_str)
     
