@@ -1,4 +1,4 @@
-# This file is from Zehao and Tobias
+# zhj, tb
 # sys.argv[1]: name_file_path variable
 # sys.argv[2]: imsave folder path
 # sys.argv[3]: folder_path variable (data source)
