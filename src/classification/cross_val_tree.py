@@ -76,7 +76,13 @@ def main(save_dir, model_names, X, y, encoder_key, classifier_key, cuda_num):
     # 'AGN' -> [1 0 0 0 0], 'NOAGN' -> [0 1 0 0 0], 'UHD' -> [0 0 1 0 0], 'mockobs_0915' -> [0 0 0 1 0], 'n80' -> [0 0 0 0 1]
     for class_label, onehot_vector in zip(bayesflow_onehot.classes_, bayesflow_onehot.transform(bayesflow_onehot.classes_)):
         print(f"Class '{class_label}' is transformed to encoding vector: {onehot_vector}")
-    cal_curves = bayesflow_calibration.plot_calibration_curves(true_labels_onehot, probabilities, model_names)
+    cal_curves = bayesflow_calibration.plot_calibration_curves(true_models=true_labels_onehot,
+                                                               pred_models=probabilities,
+                                                               model_names=model_names,
+                                                               label_fontsize=18,
+                                                               legend_fontsize=18,
+                                                               title_fontsize=20,
+                                                               tick_fontsize=16)
     plt.savefig(os.path.join(save_dir, 'calibration-curve', classifier_key + '-cc.png'))
     plt.close()
 
@@ -107,7 +113,15 @@ def main(save_dir, model_names, X, y, encoder_key, classifier_key, cuda_num):
     fig, ax = plt.subplots(figsize=(8, 6))
     disp.plot(cmap='Blues', ax=ax, values_format='.2f')
 
-    plt.title(classifier_key + ' Confusion Matrix')
+    plt.title(classifier_key + ' Confusion Matrix', fontsize=20)
+
+    ax.set_xlabel('Predicted label', fontsize=16)
+    ax.set_ylabel('True label', fontsize=16)
+
+    ax.tick_params(axis='both', which='major', labelsize=12)
+    for text in disp.text_.ravel():
+        text.set_fontsize(14)
+
     plt.savefig(os.path.join(save_dir, 'confusion-matrix', classifier_key + '-cm.png'))
     plt.close()
 

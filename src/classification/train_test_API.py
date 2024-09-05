@@ -76,9 +76,12 @@ def test(save_dir, test_save_dir, model_names, classifier_key, sdss_test_data):
 
     plt.figure(figsize=(12, 6))
     sns.violinplot(data=sdss_pred_prob_df, palette="Set3")
-    plt.xlabel("Models")
-    plt.ylabel("Probability")
-    plt.title("Violin Plot of Predicted Probabilities")
+    plt.xlabel("Simulation Models", fontsize=16)
+    plt.ylabel("Probability", fontsize=16)
+    plt.title("Violin Plot of Predicted Probabilities", fontsize=22)
+
+    plt.tick_params(axis='both', which='major', labelsize=16)
+
     plt.savefig(os.path.join(test_save_dir, 'violin-plot', classifier_key + '-violin.png'))
     plt.close()
 

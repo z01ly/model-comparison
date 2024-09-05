@@ -34,7 +34,7 @@ def cross_val(nz, model_str_list, cuda_num, max_iter, load_data_dir, save_dir):
         print(classifier)
         cross_val_tree.main(save_dir, model_str_list, X, y, 'integer', classifier, cuda_num)
 
-    classifiers = ['stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    classifiers = ['stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
     for classifier in classifiers:
         print(classifier)
         cross_val_API.main(save_dir, model_str_list, X, y, classifier, cuda_num, max_iter)

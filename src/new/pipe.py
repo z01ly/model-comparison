@@ -102,10 +102,14 @@ class GenOod():
 
         sns.histplot(sdss_negative_scores, bins=50, kde=True, stat='density', label='sdss')
         sns.histplot(ID_negative_scores, bins=50, kde=True, stat='density', label='sim-test (ID)')
-        plt.legend()
-        plt.xlabel('Negative score')
-        plt.ylabel('Density')
-        plt.title('Distribution of negative GEN scores')
+        # plt.legend()
+        plt.xlabel('Negative score', fontsize=16)
+        plt.ylabel('Density', fontsize=16)
+        plt.title('Distribution of negative GEN scores', fontsize=20)
+
+        plt.tick_params(axis='both', which='major', labelsize=14)
+
+        plt.legend(handletextpad=1, markerscale=2, fontsize=16)
 
         plt.savefig(os.path.join(self.savepath_prefix, 'gen-ood', 'plot', self.c_str + '.png'))
         plt.close()
@@ -178,7 +182,7 @@ if __name__ == "__main__":
     # latent vis func
     # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
     # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)}
-    latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
+    # latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
     # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
 
 
@@ -186,10 +190,10 @@ if __name__ == "__main__":
     # oversample_sim(savepath_prefix, model_str_list, minority_str_list)
 
 
-    # cuda_num = str(config['trainer_params']['gpu_id'])
-    # max_iter = 300
-    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
-    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter)
+    cuda_num = str(config['trainer_params']['gpu_id'])
+    max_iter = 300
+    classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
+    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'train')
 
 
     # classify_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)

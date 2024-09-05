@@ -65,8 +65,20 @@ class UmapVis():
             mock_embedding_df = pd.read_pickle(os.path.join(self.path_save_embedding, model_str + '.pkl'))
             subset_df = pd.concat([sdss_embedding_df, mock_embedding_df], axis=0)
             subset_df.reset_index(drop=True, inplace=True)
+
             sns.scatterplot(x='f0', y='f1', data=subset_df, ax=ax, hue='label', s=5)
-            ax.set_title(f'sdss and {model_str}')
+            ax.set_title(f'sdss and {model_str}', fontsize=22)
+
+            # Adjust font size and marker size
+            ax.set_xlabel('f0', fontsize=16)
+            ax.set_ylabel('f1', fontsize=16)
+            
+            legend = ax.legend(handletextpad=1, markerscale=3)  # markerscale controls marker size in legend
+            legend.set_title('label', prop={'size': 16}) # legend title size
+            plt.setp(legend.get_texts(), fontsize=16)  # legend text size
+
+            ax.tick_params(axis='both', which='major', labelsize=16)
+
         plt.tight_layout()
         plt.savefig(os.path.join(self.path_plot, 'plot-separate.png'))
 
