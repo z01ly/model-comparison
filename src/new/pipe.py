@@ -162,6 +162,21 @@ class GenOod():
             copy_df_path_images(df_dir, dest_dir, i)
 
 
+    def print_message(self):
+        sdss_test_id = pd.read_pickle(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str, 'id.pkl'))
+        id_row, id_column = sdss_test_id.shape
+        sdss_test_ood = pd.read_pickle(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str, 'ood.pkl'))
+        ood_row, ood_column = sdss_test_ood.shape
+        # print(id_column, ood_column)
+        total_row = id_row + ood_row
+
+        with open(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-id-ood-ratio.txt'), "a") as f:
+            f.write(f"classifier: {self.c_str} \n")
+            f.write(f"ID number: {id_row}, OOD number: {ood_row}, total number: {total_row}\n")
+            f.write(f"id ratio: {id_row / total_row}\n")
+            f.write(f"ood ratio: {ood_row / total_row}\n\n")
+
+
 
 
 if __name__ == "__main__":
@@ -190,9 +205,9 @@ if __name__ == "__main__":
     # oversample_sim(savepath_prefix, model_str_list, minority_str_list)
 
 
-    cuda_num = str(config['trainer_params']['gpu_id'])
-    max_iter = 300
-    classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
+    # cuda_num = str(config['trainer_params']['gpu_id'])
+    # max_iter = 300
+    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
     # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'train')
 
 
@@ -203,16 +218,17 @@ if __name__ == "__main__":
 
 
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
-    # sdss_dir = os.path.join(savepath_prefix, 'classification')
-    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    sdss_dir = os.path.join(savepath_prefix, 'classification')
+    id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
-    # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
+    gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('voting-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen.plot()
     # gen.select_sdss(5)
     # gen.re_classify(model_str_list, config['model_params']['latent_dim'])
     # gen.copy_sdss_imgs()
+    gen.print_message()
 
 
     # SHAP
