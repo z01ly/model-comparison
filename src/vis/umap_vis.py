@@ -61,23 +61,39 @@ class UmapVis():
         sdss_embedding_df = pd.read_pickle(os.path.join(self.path_save_embedding, 'sdss.pkl'))
 
         fig, axs = plt.subplots(2, 3, figsize=(18, 10))
-        for ax, model_str in zip(axs.flat, self.model_str_list):
+
+        for idx, (ax, model_str) in enumerate(zip(axs.flat, self.model_str_list)):
             mock_embedding_df = pd.read_pickle(os.path.join(self.path_save_embedding, model_str + '.pkl'))
             subset_df = pd.concat([sdss_embedding_df, mock_embedding_df], axis=0)
             subset_df.reset_index(drop=True, inplace=True)
 
-            sns.scatterplot(x='f0', y='f1', data=subset_df, ax=ax, hue='label', s=5)
-            ax.set_title(f'sdss and {model_str}', fontsize=22)
+            viridis = plt.cm.get_cmap('viridis', 256)
+            purple_color = viridis(0.2)
+            yellow_color = viridis(0.9)
+            custom_palette = {'sdss': purple_color, model_str: yellow_color}
+            sns.scatterplot(x='f0', y='f1', data=subset_df, ax=ax, hue='label', s=5, palette=custom_palette)
 
-            # Adjust font size and marker size
-            ax.set_xlabel('f0', fontsize=16)
-            ax.set_ylabel('f1', fontsize=16)
-            
-            legend = ax.legend(handletextpad=1, markerscale=3)  # markerscale controls marker size in legend
-            legend.set_title('label', prop={'size': 16}) # legend title size
-            plt.setp(legend.get_texts(), fontsize=16)  # legend text size
+            ax.set_title(f'SDSS vs. {model_str}', fontsize=28)
 
-            ax.tick_params(axis='both', which='major', labelsize=16)
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+
+            ax.legend([], [], frameon=False)
+            ax.tick_params(axis='both', which='major', labelsize=20)
+
+        # Global label
+        fig.supxlabel("projected feature 1", fontsize=26)
+        fig.supylabel("projected feature 2", fontsize=26)
+
+        # Global legend
+        handles, _ = ax.get_legend_handles_labels()
+        fig.legend(handles=handles,
+                   labels=['SDSS', 'Simulation model'],
+                   loc='lower right', 
+                   fontsize=22,
+                   ncol=2,
+                   markerscale=6,
+                   title="")
 
         plt.tight_layout()
         plt.savefig(os.path.join(self.path_plot, 'plot-separate.png'))
