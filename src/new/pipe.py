@@ -115,13 +115,14 @@ class GenOod():
         plt.close()
 
 
-    def select_sdss(self, id_percent): 
-        os.makedirs(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str), exist_ok=True)
+    def select_sdss(self, percent_p): 
+        percent_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-vectors', self.c_str)
+        os.makedirs(percent_dir, exist_ok=True)
 
         sdss_negative_scores = df_to_gen_score(self.sdss_dir, self.c_str, self.gamma, self.M)
         ID_negative_scores = df_to_gen_score(self.id_dir, self.c_str, self.gamma, self.M)
 
-        ID_threshold = np.percentile(ID_negative_scores, id_percent)
+        ID_threshold = np.percentile(ID_negative_scores, percent_p)
         # print(ID_threshold)
 
         sdss_test_df_path = os.path.join(self.savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl')
@@ -132,45 +133,45 @@ class GenOod():
         sdss_ood_idx = np.setdiff1d(np.arange(sdss_test_df.shape[0]), sdss_id_idx)
         print("OOD indices shape: ", sdss_ood_idx.shape)
 
-        filter_df(sdss_test_df, sdss_id_idx, os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str), 'id')
-        filter_df(sdss_test_df, sdss_ood_idx, os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str), 'ood')
+        filter_df(sdss_test_df, sdss_id_idx, percent_dir, 'id')
+        filter_df(sdss_test_df, sdss_ood_idx, percent_dir, 'ood')
 
 
-    def re_classify(self, model_str_list, nz):
-        os.makedirs(os.path.join(self.savepath_prefix, 'gen-ood', 're-classify'), exist_ok=True)
+    def re_classify(self, model_str_list, nz, percent_p):
+        test_save_dir = os.path.join(self.savepath_prefix, 'gen-ood', 're-classify', f"percent{percent_p}")
+        os.makedirs(test_save_dir, exist_ok=True)
+        for j in ['prob-df', 'violin-plot']:
+            os.makedirs(os.path.join(test_save_dir, j), exist_ok=True)
 
-        test_save_dir = os.path.join(self.savepath_prefix, 'gen-ood', 're-classify')
-        for directory in ['prob-df', 'violin-plot']:
-            os.makedirs(os.path.join(test_save_dir, directory), exist_ok=True)
-
-        sdss_test_df_path = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str, 'id.pkl')
-        sdss_test_df = pd.read_pickle(sdss_test_df_path)
-        sdss_test_data = sdss_test_df.iloc[:, 0:nz].to_numpy()
-        print("Selected SDSS test data shape: ", sdss_test_data.shape)
+        sdss_id_df_path = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-vectors', self.c_str, 'id.pkl')
+        sdss_id_df = pd.read_pickle(sdss_id_df_path)
+        sdss_id_data = sdss_id_df.iloc[:, 0:nz].to_numpy()
+        print("Selected SDSS test data shape: ", sdss_id_data.shape)
         
         if self.c_str in ['random-forest', 'xgboost']:
-            train_test_tree.test(self.sdss_dir, test_save_dir, model_str_list, self.c_str, sdss_test_data)
+            train_test_tree.test(self.sdss_dir, test_save_dir, model_str_list, self.c_str, sdss_id_data)
         elif self.c_str in ['stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']:
-            train_test_API.test(self.sdss_dir, test_save_dir, model_str_list, self.c_str, sdss_test_data)
+            train_test_API.test(self.sdss_dir, test_save_dir, model_str_list, self.c_str, sdss_id_data)
 
     
-    def copy_sdss_imgs(self):
-        df_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str)
+    def copy_sdss_imgs(self, percent_p):
+        percent_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-vectors', self.c_str)
         for i in ['id', 'ood']:
-            dest_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-imgs', self.c_str, i)
+            dest_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-imgs', self.c_str, i)
             os.makedirs(dest_dir, exist_ok=True)
-            copy_df_path_images(df_dir, dest_dir, i)
+            copy_df_path_images(percent_dir, dest_dir, i)
 
 
-    def print_message(self):
-        sdss_test_id = pd.read_pickle(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str, 'id.pkl'))
+    def print_message(self, percent_p):
+        percent_dir = os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-vectors', self.c_str)
+        sdss_test_id = pd.read_pickle(os.path.join(percent_dir, 'id.pkl'))
         id_row, id_column = sdss_test_id.shape
-        sdss_test_ood = pd.read_pickle(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', self.c_str, 'ood.pkl'))
+        sdss_test_ood = pd.read_pickle(os.path.join(percent_dir, 'ood.pkl'))
         ood_row, ood_column = sdss_test_ood.shape
         # print(id_column, ood_column)
         total_row = id_row + ood_row
 
-        with open(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', 'sdss-id-ood-ratio.txt'), "a") as f:
+        with open(os.path.join(self.savepath_prefix, 'gen-ood', 'selected', f"percent{percent_p}", 'sdss-id-ood-ratio.txt'), "a") as f:
             f.write(f"classifier: {self.c_str} \n")
             f.write(f"ID number: {id_row}, OOD number: {ood_row}, total number: {total_row}\n")
             f.write(f"id ratio: {id_row / total_row}\n")
@@ -197,7 +198,7 @@ if __name__ == "__main__":
     # latent vis func
     # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
     # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)}
-    latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
+    # latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
     # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
 
 
@@ -218,17 +219,19 @@ if __name__ == "__main__":
 
 
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
-    # sdss_dir = os.path.join(savepath_prefix, 'classification')
-    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    sdss_dir = os.path.join(savepath_prefix, 'classification')
+    id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
-    # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
+    gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('voting-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen.plot()
-    # gen.select_sdss(5)
-    # gen.re_classify(model_str_list, config['model_params']['latent_dim'])
-    # gen.copy_sdss_imgs()
-    # gen.print_message()
+    for percent_point in [1, 3, 5, 7, 10, 15]:
+        gen.select_sdss(percent_point)
+        gen.print_message(percent_point)
+        gen.re_classify(model_str_list, config['model_params']['latent_dim'], percent_point)
+    # gen.copy_sdss_imgs(percent_point)
+    
 
 
     # SHAP
