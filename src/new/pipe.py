@@ -219,30 +219,30 @@ if __name__ == "__main__":
 
 
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
-    sdss_dir = os.path.join(savepath_prefix, 'classification')
-    id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    # sdss_dir = os.path.join(savepath_prefix, 'classification')
+    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
-    gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('voting-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen.plot()
-    for percent_point in [1, 3, 5, 7, 10, 15]:
-        gen.select_sdss(percent_point)
-        gen.print_message(percent_point)
-        gen.re_classify(model_str_list, config['model_params']['latent_dim'], percent_point)
+    # for percent_point in [1, 3, 5, 7, 10, 15]:
+    #     gen.select_sdss(percent_point)
+    #     gen.print_message(percent_point)
+    #     gen.re_classify(model_str_list, config['model_params']['latent_dim'], percent_point)
     # gen.copy_sdss_imgs(percent_point)
     
 
 
     # SHAP
-    # for c_str in ['xgboost']:
-        # print(f"SHAP: {c_str}")
-        # xai_func.shap_compute(savepath_prefix,
-        #                     os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors'),
-        #                     os.path.join(savepath_prefix, 'gen-ood', 'selected', 'sdss-vectors', c_str, 'id.pkl'),
-        #                     config['model_params']['latent_dim'],
-        #                     model_str_list,
-        #                     c_str)
-        # model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
-        # xai_func.shap_plot(savepath_prefix, savepath_prefix, config['model_params']['latent_dim'], model_pos_dict, c_str)
+    # for c_str in ['random-forest', 'xgboost']:
+    #     print(f"SHAP: {c_str}")
+    #     xai_func.shap_compute(savepath_prefix,
+    #                         os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors'),
+    #                         os.path.join(savepath_prefix, 'gen-ood', 'selected', 'percent5', 'sdss-vectors', c_str, 'id.pkl'),
+    #                         config['model_params']['latent_dim'],
+    #                         model_str_list,
+    #                         c_str)
+    #     model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
+    #     xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, c_str)
     

@@ -43,7 +43,7 @@ def latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True):
     vae.eval()
 
     with torch.no_grad():
-        for model_str in ['AGNrt', 'NOAGNrt', 'TNG100']:
+        for model_str in ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']:
             print(f"latent space vis of {model_str}...")
             latent_space.main(savepath_prefix,
                                 3.5,

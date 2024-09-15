@@ -18,7 +18,7 @@ from src.infoVAE.mmdVAE_train import Model
 
 def plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_avg):
     fig = plt.figure(figsize=(10,8))
-    plt.title("Average Training and Validation Loss During Training")
+    plt.title("Average Training and Validation Loss During Training", fontsize=22)
     plt.plot(avg_train_losses, label='Training Loss')
     plt.plot(avg_val_losses, label='Validation Loss')
 
@@ -27,13 +27,16 @@ def plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_a
     plt.axvline(minposs, linestyle='-.', color='r', label='Lowest Validation Loss Point')
     plt.axvline(es_pos, linestyle='--', color='b', label='Early Stopping Checkpoint')
 
-    plt.xlabel('epochs')
-    plt.ylabel('loss')
+    plt.xlabel('epochs', fontsize=18)
+    plt.ylabel('loss', fontsize=18)
     # plt.ylim(0, 0.0012) 
     plt.ylim(0, y_avg) 
     plt.xlim(0, len(avg_train_losses)+1) 
     plt.grid(True)
-    plt.legend()
+    plt.legend(fontsize=16)
+
+    plt.tick_params(axis='both', which='major', labelsize=16)
+
     plt.tight_layout()
     fig.savefig(os.path.join(savepath_prefix, 'infoVAE', 'loss-plot', 'plot_avg_loss.png'), bbox_inches='tight')
 
