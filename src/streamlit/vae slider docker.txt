@@ -1,1 +1,0 @@
-https://hub.docker.com/repository/docker/z01ly/vae-slider/general
