@@ -13,8 +13,6 @@ import src.infoVAE.mmdVAE_train as mmdVAE_train
 import src.infoVAE.mmdVAE_test as mmdVAE_test
 import src.infoVAE.plot as plot
 
-import src.infoVAE.info_vae_train as info_vae_train
-
 
 def vae(savepath_prefix):
     with open('src/infoVAE/infovae.yaml', 'r') as f:
