@@ -181,7 +181,7 @@ class GenOod():
 
 
 if __name__ == "__main__":
-    savepath_prefix = 'new-sparse-update'
+    savepath_prefix = 'new-sparse-test1'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     with open('src/infoVAE/infovae.yaml', 'r') as f:
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     # infoVAE func
     # img_encoder.vae(savepath_prefix)
-    # img_encoder.plot_training(savepath_prefix, 28, 0.0015, 0.0015)
+    # img_encoder.plot_training(savepath_prefix, 34, 0.0015, 0.0015)
     # img_encoder.plot_residual(savepath_prefix, config, model_str_list, use_cuda=True)
     # img_encoder.encoder(savepath_prefix, model_str_list)
     
@@ -218,13 +218,12 @@ if __name__ == "__main__":
     # classify_ID_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
 
 
-    # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
     # sdss_dir = os.path.join(savepath_prefix, 'classification')
     # id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
     # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
-    # gen = GenOod('voting-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
     # gen.plot()
     # for percent_point in [1, 3, 5, 7, 10, 15]:
     #     gen.select_sdss(percent_point)
@@ -245,4 +244,5 @@ if __name__ == "__main__":
     #                         c_str)
     #     model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
     #     xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, c_str)
+    
     

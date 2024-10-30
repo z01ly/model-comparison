@@ -25,7 +25,7 @@ def tsne_vis(savepath_prefix, nz, model_str_dict, model_str_list):
 def umap_func(savepath_prefix, nz, model_str_list):
     sdss_df_path = os.path.join(savepath_prefix, 'latent-vectors', 'sdss', 'test.pkl')
     umap1 = UmapVis(savepath_prefix, nz, model_str_list, sdss_df_path)
-    # umap1.embedding_save()
+    umap1.embedding_save()
     umap1.embedding_plot()
 
 

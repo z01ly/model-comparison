@@ -68,7 +68,7 @@ def classifier_train(nz, model_str_list, cuda_num, max_iter, load_data_dir, save
         with open(os.path.join(message_dir, 'print-message.txt'), "a") as text_file:
             text_file.write(f"Training time of {classifier}: {elapsed_time:.6f} seconds. \n\n") 
 
-    classifiers = ['stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    classifiers = ['stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
     for classifier in classifiers:
         print(classifier)
 
@@ -86,7 +86,7 @@ def classifier_test(save_dir, test_save_dir, model_str_list, sdss_test_data):
     for classifier in classifiers:
         train_test_tree.test(save_dir, test_save_dir, model_str_list, classifier, sdss_test_data)
 
-    classifiers = ['stacking-MLP-RF-XGB', 'voting-MLP-RF-XGB']
+    classifiers = ['stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
     for classifier in classifiers:
         train_test_API.test(save_dir, test_save_dir, model_str_list, classifier, sdss_test_data)
 
