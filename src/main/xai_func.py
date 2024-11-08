@@ -29,9 +29,9 @@ def shap_compute(prefix, load_data_dir, sdss_test_df_path, nz, model_str_list, c
 
     
     
-def shap_plot(prefix, savepath_prefix, model_str_dict, c_str):
+def shap_plot(prefix, savepath_prefix, model_str_dict, c_str, max_display):
     os.makedirs(os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', c_str), exist_ok=True)
-    process_main(prefix, savepath_prefix, model_str_dict, c_str)
+    process_main(prefix, savepath_prefix, model_str_dict, c_str, max_display)
 
 
 

@@ -181,7 +181,7 @@ class GenOod():
 
 
 if __name__ == "__main__":
-    savepath_prefix = 'new-sparse-test1'
+    savepath_prefix = 'new-sparse'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     with open('src/infoVAE/infovae.yaml', 'r') as f:
@@ -243,6 +243,9 @@ if __name__ == "__main__":
     #                         model_str_list,
     #                         c_str)
     #     model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
-    #     xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, c_str)
+    #     xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, c_str, max_display=16)
+
+    model_pos_dict = {'TNG100': 2}
+    xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, 'xgboost', max_display=8)
     
     

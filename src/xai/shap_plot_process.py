@@ -13,7 +13,7 @@ def local_plot():
     pass
 
 
-def global_plot(prefix, classifier_key, model_str, model_pos, max_display=16):
+def global_plot(prefix, classifier_key, model_str, model_pos, max_display):
     clf = pickle.load(open(os.path.join(prefix, 'classification', 'save-model', classifier_key + '-model.pickle'), "rb"))
     # print(clf.classes_)
 
@@ -111,10 +111,10 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
 
 
 
-def process_main(prefix, savepath_prefix, model_str_dict, classifier_key):
+def process_main(prefix, savepath_prefix, model_str_dict, classifier_key, max_display):
     # OCR accuracy is not 100% and requires manual check
     for model_str, model_pos in model_str_dict.items():
-        global_plot(prefix, classifier_key, model_str, model_pos)
+        global_plot(prefix, classifier_key, model_str, model_pos, max_display)
 
         shap_plot_path = os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', classifier_key, model_str + '.png')
         temporary_path = os.path.join(prefix, 'xai', 'shap', 'beeswarm-plot', 'left_half.png')
