@@ -61,7 +61,7 @@ def ocr(shap_plot_path, temporary_path):
 def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path, tempo_stack):
     file_list = [f'dim{item.split()[-1]}.png' for item in feature_list]
 
-    resized_width, resized_height = 1440, 180
+    resized_width, resized_height = 1920, 240 # 1440, 180
     resized_images = []
     for file_name in file_list:
         image_path = f'{source_dir}/{file_name}'
@@ -75,7 +75,7 @@ def stack_pngs(feature_list, source_dir, output_dir, output_name, shap_plot_path
         stacked_image.paste(img, (0, i * resized_height))
 
     white_spaces = Image.new('RGB', (stacked_image.size[0], stacked_image.size[1] + 600), color='white')
-    white_spaces.paste(stacked_image, (0, 200))
+    white_spaces.paste(stacked_image, (0, 100)) # (0, 200))
 
     tempo_stack_path = f'{output_dir}/{tempo_stack}'
     white_spaces.save(tempo_stack_path)

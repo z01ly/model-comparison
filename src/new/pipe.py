@@ -94,14 +94,23 @@ class GenOod():
         self.M = M
 
 
-    def plot(self):
+    def plot(self, percent_p, x1, x2, y, legend_loc):
         os.makedirs(os.path.join(self.savepath_prefix, 'gen-ood', 'plot'), exist_ok=True)
 
         sdss_negative_scores = df_to_gen_score(self.sdss_dir, self.c_str, self.gamma, self.M)
         ID_negative_scores = df_to_gen_score(self.id_dir, self.c_str, self.gamma, self.M)
 
+        ID_threshold = np.percentile(ID_negative_scores, percent_p)
+        print(ID_threshold)
+
         sns.histplot(sdss_negative_scores, bins=50, kde=True, stat='density', label='sdss')
         sns.histplot(ID_negative_scores, bins=50, kde=True, stat='density', label='sim-test (ID)')
+
+        plt.axvline(x=ID_threshold, color='r', linestyle='--', linewidth=2)
+
+        plt.text(x1, y, 'OOD', color='r', fontsize=16, ha='center', va='center')
+        plt.text(x2, y, 'ID', color='r', fontsize=16, ha='center', va='center')
+
         # plt.legend()
         plt.xlabel('Negative score', fontsize=16)
         plt.ylabel('Density', fontsize=16)
@@ -109,7 +118,7 @@ class GenOod():
 
         plt.tick_params(axis='both', which='major', labelsize=14)
 
-        plt.legend(handletextpad=1, markerscale=2, fontsize=16)
+        plt.legend(handletextpad=1, markerscale=2, fontsize=16, loc=legend_loc)
 
         plt.savefig(os.path.join(self.savepath_prefix, 'gen-ood', 'plot', self.c_str + '.png'))
         plt.close()
@@ -219,12 +228,14 @@ if __name__ == "__main__":
 
 
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
-    # sdss_dir = os.path.join(savepath_prefix, 'classification')
-    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    sdss_dir = os.path.join(savepath_prefix, 'classification')
+    id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
-    # gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
+    # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=150, legend_loc="upper left")
+    gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
+    gen.plot(percent_p=5, x1=-4.9245, x2=-4.90, y=110, legend_loc="upper right")
     # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
-    # gen.plot()
+    # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=60, legend_loc="upper left")
     # for percent_point in [1, 3, 5, 7, 10, 15]:
     #     gen.select_sdss(percent_point)
     #     gen.print_message(percent_point)
@@ -245,7 +256,7 @@ if __name__ == "__main__":
     #     model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
     #     xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, c_str, max_display=16)
 
-    model_pos_dict = {'TNG100': 2}
-    xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, 'xgboost', max_display=8)
+    # model_pos_dict = {'NOAGNrt': 1}
+    # xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, 'xgboost', max_display=8)
     
     
