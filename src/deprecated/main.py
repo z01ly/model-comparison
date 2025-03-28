@@ -1,9 +1,8 @@
 import os
 import numpy as np
 import pandas as pd
-import torch
 
-import src.pre
+import src.data.utils
 
 import src.infoVAE.utils
 import src.infoVAE.mmdVAE_test
@@ -39,17 +38,17 @@ class ModelComparison():
             mock_img_path = os.path.join('data', model_str)
 
             # check size of mock images
-            mock_data_size = src.pre.check_image_size(mock_img_path)
+            mock_data_size = src.data.utils.check_image_size(mock_img_path)
 
             # upsample or downsample mock images if the size doesn't match sdss size
             if mock_data_size != self.image_size:
-                src.pre.sample_mock(mock_img_path)
+                src.data.utils.sample_mock(mock_img_path)
             # split mock images to training set and test set
-            src.pre.mock_split(mock_img_path, model_str)
+            src.data.utils.mock_split(mock_img_path, model_str)
 
             # add a subdir named 'test' to prepare the directory for infoVAE dataloader
-            src.pre.add_subdir_move_files(os.path.join('data/mock_train/', model_str), 'test')
-            src.pre.add_subdir_move_files(os.path.join('data/mock_test/', model_str), 'test')
+            src.data.utils.add_subdir_move_files(os.path.join('data/mock_train/', model_str), 'test')
+            src.data.utils.add_subdir_move_files(os.path.join('data/mock_test/', model_str), 'test')
 
     # step 2
     def infovae_encode(self, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True):
@@ -82,23 +81,23 @@ class ModelComparison():
                 source_dir = os.path.join('src/results/latent-vectors', 'train-' + key)
                 destination_dir = os.path.join('src/results/images', 'train-' + key, model_str)
                 os.makedirs(destination_dir, exist_ok=True)
-                src.pre.copy_df_path_images(source_dir, destination_dir, model_str)
+                src.data.utils.copy_df_path_images(source_dir, destination_dir, model_str)
         
         os.rename("src/results/images/train-inlier", "src/results/images/train-inlier-original")
         os.rename("src/results/latent-vectors/train-inlier", "src/results/latent-vectors/train-inlier-original")
         
         for minority_str in self.minority_str_list:
-            src.pre.oversample_minority(os.path.join("src/results/images/train-inlier-original", minority_str), 
+            src.data.utils.oversample_minority(os.path.join("src/results/images/train-inlier-original", minority_str), 
                                         os.path.join("src/results/images/train-inlier", minority_str), 
                                         2)
         
         for model_str in (np.setdiff1d(self.model_str_list, self.minority_str_list)):
-            src.pre.oversample_minority(os.path.join("src/results/images/train-inlier-original", model_str), 
+            src.data.utils.oversample_minority(os.path.join("src/results/images/train-inlier-original", model_str), 
                                         os.path.join("src/results/images/train-inlier", model_str), 
                                         1)
 
         for model_str in self.model_str_list:
-            src.pre.add_subdir_move_files(os.path.join("src/results/images/train-inlier", model_str), 'test')
+            src.data.utils.add_subdir_move_files(os.path.join("src/results/images/train-inlier", model_str), 'test')
 
     # step 5 
     def infovae_encode_inlier(self, gpu_id=0, workers=4, batch_size=500, nc=3, use_cuda=True):

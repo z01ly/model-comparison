@@ -13,7 +13,7 @@ from src.new.utils import df_to_gen_score
 from src.classification.example_sdss import filter_df
 import src.classification.train_test_API as train_test_API
 import src.classification.train_test_tree as train_test_tree
-from src.pre import copy_df_path_images
+from src.data.utils import copy_df_path_images
 import src.main.img_encoder as img_encoder
 import src.main.latent_vis as latent_vis
 import src.main.xai_func as xai_func

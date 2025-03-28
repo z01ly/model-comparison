@@ -1,16 +1,10 @@
-import numpy as np
-from PIL import Image
 import os
-import random
-import math
-import pickle
 import pandas as pd
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
-from src.pre import copy_df_path_images
+from src.data.utils import copy_df_path_images
 
 
 def reduce_sdss(savepath_prefix):

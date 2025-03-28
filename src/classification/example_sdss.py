@@ -1,16 +1,12 @@
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
 import pickle
 import os
 
 from sklearn.preprocessing import LabelEncoder
 
-import src.classification.utils as utils
-import src.pre
+import src.data.utils
 
 
 def map_model_idx(model_str_list, print_key=False):
@@ -57,10 +53,10 @@ def main(low, high, model_str, model_str_list, save_dir, classifier_key, sdss_te
     filter_df(sdss_test_df, low_idx, df_dir, 'low')
     destination_dir = os.path.join(df_dir, 'low')
     os.makedirs(destination_dir, exist_ok=True)
-    src.pre.copy_df_path_images(df_dir, destination_dir, 'low')
+    src.data.utils.copy_df_path_images(df_dir, destination_dir, 'low')
 
     filter_df(sdss_test_df, high_idx, df_dir, 'high')
     destination_dir = os.path.join(df_dir, 'high')
     os.makedirs(destination_dir, exist_ok=True)
-    src.pre.copy_df_path_images(df_dir, destination_dir, 'high')
+    src.data.utils.copy_df_path_images(df_dir, destination_dir, 'high')
 
