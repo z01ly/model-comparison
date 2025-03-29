@@ -4,9 +4,13 @@
 
 * Original raw data (never modify directly)
 
-## interim/    
+## interim-cleaning/
 
-* After up(down)sampling and cleaning of illustrisTNG (intermediate processing outputs)
+* After cleaning of illustrisTNG data (intermediate processing step 1)
+
+## interim-sampling/    
+
+* After up(down)sampling (intermediate processing step 2)
 
 ### sampling1/
 

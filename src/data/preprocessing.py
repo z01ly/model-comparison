@@ -1,25 +1,114 @@
 import os
 import random
 import shutil
-
+import h5py
+import re
 import numpy as np
 import scipy
-from PIL import Image
-import src.data.utils
 
+from PIL import Image
+from functools import reduce
+
+import src.data.utils
 import src.config as config
 
 
-# ====================================
+
+# =====================================================
 # Part 1: IllustrisTNG Processing
-# ====================================
+# =====================================================
+
+
+class FilterMorphFlag():
+    """
+    Clean illustrisTNG images
+    """
+    def __init__(self, simulation, snapnum):
+        self.simulation = simulation
+        self.snapnum = snapnum
+    
+    def find_unreliable_idx(self, hdf5_path):
+        """
+        Find indices of unreliable data according to IllustrisTNG website info
+        """
+        band_list = ["morphs_g.hdf5", "morphs_i.hdf5", "morphs_r.hdf5"]
+        unreliable_idx_list = []
+
+        for band in band_list:
+            if (band == "morphs_r.hdf5") and (self.simulation != "TNG50"):
+                continue
+            with h5py.File(os.path.join(hdf5_path, self.simulation, self.snapnum, band), "r") as f:
+                flag_dataset = f['flag']
+                flag_data = flag_dataset[()]
+                # print(f"flag_data shape of {band}: {flag_data.shape}")
+
+                sn_dataset = f['sn_per_pixel']
+                sn_data = sn_dataset[()]
+                # print(f"sn_data shape of {band}: {sn_data.shape}")
+
+            unreliable_flag_idx = np.where(flag_data == 1)[0]
+            # print(f"unreliable_flag_idx of {band} shape: {unreliable_flag_idx.shape}")
+            unreliable_idx_list.append(unreliable_flag_idx)
+
+            unreliable_sn_idx = np.where(sn_data <= 2.5)[0]
+            # print(f"unreliable_sn_idx of {band} shape: {unreliable_sn_idx.shape}")
+            unreliable_idx_list.append(unreliable_sn_idx)
+
+
+        # print(f"len of unreliable_idx_list: {len(unreliable_idx_list)}")
+        union_result = reduce(np.union1d, unreliable_idx_list)
+        # print(f"union_result shape: {union_result.shape}")
+
+        return union_result
+
+
+    def filter(self, source_dir, destination_dir, hdf5_path=config.ILLUSTRISTNG_RAW_PATH): 
+        """
+        Discard those unreliable images
+        """
+        unreliable_idx = self.find_unreliable_idx(hdf5_path)
+        # print(unreliable_idx)
+        subfind_ids = np.loadtxt(os.path.join(hdf5_path, self.simulation, self.snapnum, "subfind_ids.txt"), dtype=int)
+        unreliable_broadband = subfind_ids[unreliable_idx]
+        print(unreliable_broadband.shape)
+
+        # source_dir = os.path.join('../mock-images', 'illustris', self.simulation)
+        # destination_dir = os.path.join('data', self.simulation)
+        os.makedirs(destination_dir, exist_ok=True)
+
+        for filename in os.listdir(source_dir):
+            match = re.match(r'broadband_(\d+)\.png', filename)
+            number = int(match.group(1))
+            if number not in unreliable_broadband:
+                source_path = os.path.join(source_dir, filename)
+                destination_path = os.path.join(destination_dir, filename)
+                shutil.copy2(source_path, destination_path)
+
+        print(len(os.listdir(source_dir)) - len(os.listdir(destination_dir)))
 
 
 
+def manual_deletion(destination_dir):
+    """
+    Only used for TNG50
 
-# =======================================
+    A few broken images are not filterd out by checking flag 
+    """
+    # destination_dir = "data/TNG50"
+    num_list = [51, 52, 60, 66, 79, 101]
+    broken_images = ['broadband_' + str(num) + '.png' for num in num_list]
+
+    for broken in broken_images:
+        file_path = os.path.join(destination_dir, broken)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            print(f"File '{broken}' deleted.")
+
+
+
+# =====================================================
 # Part 2: Simulation Data Processing
-# =======================================
+# =====================================================
 
 def mock_split(source_directory, model_str, rate=0.85):
     train_dir = 'data/mock_train/' + model_str
@@ -115,12 +204,15 @@ def mock_data_count(model_str_list):
     
 
 
-# =============================
+# =====================================================
 # Part 3: SDSS Processing
-# =============================
+# =====================================================
+
 
 def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH, destination_folder=config.SDSS_IMAGE_PATH):
-    """Split SDSS images to train, validation and test set"""
+    """
+    Split SDSS images to train, validation and test set
+    """
     os.makedirs(config.SDSS_TRAIN_PATH, exist_ok=True)
     os.makedirs(config.SDSS_ESVAL_PATH, exist_ok=True)
     os.makedirs(config.SDSS_VAL_PATH, exist_ok=True)
