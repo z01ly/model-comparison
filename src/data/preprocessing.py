@@ -1,4 +1,5 @@
 import os
+import pickle
 import random
 import shutil
 import h5py
@@ -14,18 +15,19 @@ import src.config as config
 
 
 
-# =====================================================
-# Part 1: IllustrisTNG Processing
-# =====================================================
+# ===========================================================
+# Part 1: Delete Broken Simulation Images
+# ===========================================================
 
 
 class FilterMorphFlag():
     """
-    Clean illustrisTNG images
+    Clean IllustrisTNG images
     """
     def __init__(self, simulation, snapnum):
         self.simulation = simulation
         self.snapnum = snapnum
+
     
     def find_unreliable_idx(self, hdf5_path):
         """
@@ -54,7 +56,6 @@ class FilterMorphFlag():
             # print(f"unreliable_sn_idx of {band} shape: {unreliable_sn_idx.shape}")
             unreliable_idx_list.append(unreliable_sn_idx)
 
-
         # print(f"len of unreliable_idx_list: {len(unreliable_idx_list)}")
         union_result = reduce(np.union1d, unreliable_idx_list)
         # print(f"union_result shape: {union_result.shape}")
@@ -64,7 +65,8 @@ class FilterMorphFlag():
 
     def filter(self, source_dir, destination_dir, hdf5_path=config.ILLUSTRISTNG_RAW_PATH): 
         """
-        Discard those unreliable images
+        Discard unreliable images
+        And copy reliable images from source directory to destination directory
         """
         unreliable_idx = self.find_unreliable_idx(hdf5_path)
         # print(unreliable_idx)
@@ -88,27 +90,67 @@ class FilterMorphFlag():
 
 
 
-def manual_deletion(destination_dir):
+def deletion_TNG50(destination_dir):
     """
     Only used for TNG50
-
     A few broken images are not filterd out by checking flag 
     """
-    # destination_dir = "data/TNG50"
     num_list = [51, 52, 60, 66, 79, 101]
-    broken_images = ['broadband_' + str(num) + '.png' for num in num_list]
+    broken_images = ["broadband_" + str(num) + ".png" for num in num_list]
 
     for broken in broken_images:
         file_path = os.path.join(destination_dir, broken)
         if os.path.exists(file_path):
             os.remove(file_path)
             print(f"File '{broken}' deleted.")
+        else:
+            print(f"Not found: {file_path}")
 
 
 
-# =====================================================
-# Part 2: Simulation Data Processing
-# =====================================================
+def deletion_IllustrisTNG(broken_idx_path, TNG_path):
+    """
+    Delete broken IllustrisTNG images (using stored indices, without hdf5 files)
+    """
+    with open(broken_idx_path, 'rb') as f:
+        broken_indices = pickle.load(f)
+    print(f"Length of indices list: {len(broken_indices)}")
+    
+    for idx in broken_indices:
+        image_path = os.path.join(TNG_path, f"broadband_{idx}.png")  
+        if os.path.exists(image_path):
+            os.remove(image_path)
+        else:
+            print(f"Not found: {image_path}")
+
+
+
+def deletion_NIHAOrt(): # To Run
+    """
+    Delete broken NIHAOrt images
+    """
+    galaxy_patterns = [
+    "AGN_g3.49e11_",
+    "AGN_g5.53e12_",
+    "noAGN_g3.49e11_"
+    ]
+
+    for pattern in galaxy_patterns:
+        for i in range(20):
+            filename = f"{pattern}{i:02d}.png" 
+            file_path = os.path.join(config.NIHAORT_CLEAN_PATH, filename)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            else:
+                print(f"Not found: {file_path}")
+
+
+
+
+# ===========================================================
+# Part 2: Up/Downsampling of Simulation Images
+# ===========================================================
+
 
 def mock_split(source_directory, model_str, rate=0.85):
     train_dir = 'data/mock_train/' + model_str
@@ -201,15 +243,22 @@ def mock_data_count(model_str_list):
                 num_files = src.data.utils.count_files(data_dir)
                 f.write(f"{num_files} files in {data_dir}. \n")
 
-    
 
 
-# =====================================================
-# Part 3: SDSS Processing
-# =====================================================
+# ===========================================================
+# Part 3: Train-Test Split of Simulation Images
+# ===========================================================
 
 
-def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH, destination_folder=config.SDSS_IMAGE_PATH):
+
+
+
+# ===========================================================
+# Part 4: SDSS Processing
+# ===========================================================
+
+
+def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH):
     """
     Split SDSS images to train, validation and test set
     """
@@ -253,6 +302,11 @@ def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH, destination_folder=config
 
 if __name__ == '__main__':
     # sdss_split()
-    model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    # model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     # mock_data_pre(model_str_list, 64)
-    mock_data_count(model_str_list)
+    # mock_data_count(model_str_list)
+    
+    # deletion_IllustrisTNG(config.TNG50_BROKEN_IDX_PATH, config.TNG50_CLEAN_PATH)
+    # deletion_IllustrisTNG(config.TNG100_BROKEN_IDX_PATH, config.TNG100_CLEAN_PATH)
+    # deletion_NIHAOrt()
+    pass
