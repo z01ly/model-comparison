@@ -6,11 +6,12 @@ import h5py
 import re
 import numpy as np
 import scipy
+import cv2
 
 from PIL import Image
 from functools import reduce
 
-import src.data.utils
+import src.data.utils as data_utils
 import src.config as config
 
 
@@ -95,7 +96,7 @@ def deletion_TNG50(destination_dir):
     Only used for TNG50
     A few broken images are not filterd out by checking flag 
     """
-    num_list = [51, 52, 60, 66, 79, 101]
+    num_list = [40, 51, 52, 60, 66, 79, 101]
     broken_images = ["broadband_" + str(num) + ".png" for num in num_list]
 
     for broken in broken_images:
@@ -108,7 +109,7 @@ def deletion_TNG50(destination_dir):
 
 
 
-def deletion_IllustrisTNG(broken_idx_path, TNG_path):
+def deletion_IllustrisTNG(broken_idx_path: str, TNG_path: str) -> None:
     """
     Delete broken IllustrisTNG images (using stored indices, without hdf5 files)
     """
@@ -125,7 +126,7 @@ def deletion_IllustrisTNG(broken_idx_path, TNG_path):
 
 
 
-def deletion_NIHAOrt(): # To Run
+def deletion_NIHAOrt() -> None:
     """
     Delete broken NIHAOrt images
     """
@@ -148,7 +149,53 @@ def deletion_NIHAOrt(): # To Run
 
 
 # ===========================================================
-# Part 2: Up/Downsampling of Simulation Images
+# Part 2: Down/Upsampling of Simulation Images
+# ===========================================================
+
+
+def cubic_sampling(folder_path: str) -> None:
+    """
+    Cubic interpolation for downsampling and upsampling
+    """
+    for filename in os.listdir(folder_path):
+        image_path = os.path.join(folder_path, filename)
+        image = Image.open(image_path)
+
+        image_array = np.array(image)
+
+        # sample the image to 64x64 using scipy.ndimage.zoom
+        downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
+        downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
+
+        # save the sampled image, overwriting the original file
+        downsampled_image.save(image_path)
+
+
+
+def area_cubic_sampling(folder_path: str) -> None:
+    """
+    INTER_AREA for downsampling (if image is larger than 64x64)
+    INTER_CUBIC for upsampling (if image is smaller than 64x64)
+    """
+    for filename in os.listdir(folder_path):
+        img_path = os.path.join(folder_path, filename)
+        img = cv2.imread(img_path)
+        h, _ = img.shape[:2]
+
+        if h < 64:
+            interpolation = cv2.INTER_CUBIC
+        elif h > 64:
+            interpolation = cv2.INTER_AREA
+        else:
+            continue
+
+        resized_img = cv2.resize(img, (64, 64), interpolation=interpolation)
+        cv2.imwrite(img_path, resized_img)
+
+
+
+# ===========================================================
+# Part 3: Train-Test Split of Simulation Images
 # ===========================================================
 
 
@@ -163,7 +210,7 @@ def mock_split(source_directory, model_str, rate=0.85):
 
     total_files = len(files_in_source_directory)
     train_count = int(total_files * rate)
-    test_count = total_files - train_count
+    # test_count = total_files - train_count
 
     random.shuffle(files_in_source_directory)
 
@@ -183,24 +230,6 @@ def mock_split(source_directory, model_str, rate=0.85):
     print(f"current model: {model_str}")
     print(f"{len(os.listdir(train_dir))} files copied to the training set.")
     print(f"{len(os.listdir(test_dir))} files copied to the test set.")
-
-
-def sample_mock(folder_path): # for upsampling and downsampling
-    for filename in os.listdir(folder_path):
-        image_path = os.path.join(folder_path, filename)
-        image = Image.open(image_path)
-
-        image_array = np.array(image)
-
-        # sample the image to 64x64 using scipy.ndimage.zoom
-        downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
-
-        downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
-
-        # Save the sampled image, overwriting the original file
-        downsampled_image.save(image_path)
-
-
 
 
 
@@ -225,30 +254,6 @@ def mock_data_pre(model_str_list, image_size):
     src.data.utils.pixel_value('data/mock_train/TNG100/test/broadband_1.png')
 
     src.data.utils.rgba2rgb(model_str_list)
-
-
-
-def mock_data_count(model_str_list):
-    with open(os.path.join('results', 'data-details.txt'), "a") as f:
-        f.write(f"\n\nmock data:\n")
-        for model_str in model_str_list:
-            data_dir = os.path.join('data', model_str)
-            num_files = src.data.utils.count_files(data_dir)
-            f.write(f"{num_files} files in {data_dir}. \n")
-
-        f.write(f"\nTraining and test set:\n")
-        for model_str in model_str_list:
-            for key in ['mock_train', 'mock_test']:
-                data_dir = os.path.join('data', key, model_str, 'test')
-                num_files = src.data.utils.count_files(data_dir)
-                f.write(f"{num_files} files in {data_dir}. \n")
-
-
-
-# ===========================================================
-# Part 3: Train-Test Split of Simulation Images
-# ===========================================================
-
 
 
 
@@ -278,7 +283,7 @@ def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH):
     num_train = int(total_images * train_ratio)
     num_esval = int(total_images * esval_ratio)
     num_val = int(total_images * val_ratio)
-    num_test = total_images - num_train - num_esval - num_val
+    # num_test = total_images - num_train - num_esval - num_val
 
     train_files = image_files[: num_train]
     esval_files = image_files[num_train: num_train + num_esval]
@@ -309,4 +314,8 @@ if __name__ == '__main__':
     # deletion_IllustrisTNG(config.TNG50_BROKEN_IDX_PATH, config.TNG50_CLEAN_PATH)
     # deletion_IllustrisTNG(config.TNG100_BROKEN_IDX_PATH, config.TNG100_CLEAN_PATH)
     # deletion_NIHAOrt()
+    
+    # area_cubic_sampling(config.TNG50_SAMPLE_PATH_2)
+    # area_cubic_sampling(config.TNG100_SAMPLE_PATH_2)
+    # area_cubic_sampling(config.NIHAORT_SAMPLE_PATH_2)
     pass

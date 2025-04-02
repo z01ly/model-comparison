@@ -44,6 +44,22 @@ def sdss_count():
         f.write(f"SDSS: {s} files in total. \n")
 
 
+def mock_data_count(model_str_list): # TODO
+    with open(os.path.join('results', 'data-details.txt'), "a") as f:
+        f.write(f"\n\nmock data:\n")
+        for model_str in model_str_list:
+            data_dir = os.path.join('data', model_str)
+            num_files = count_files(data_dir)
+            f.write(f"{num_files} files in {data_dir}. \n")
+
+        f.write(f"\nTraining and test set:\n")
+        for model_str in model_str_list:
+            for key in ['mock_train', 'mock_test']:
+                data_dir = os.path.join('data', key, model_str, 'test')
+                num_files = count_files(data_dir)
+                f.write(f"{num_files} files in {data_dir}. \n")
+
+
 
 def pixel_value(image_path):
     image = Image.open(image_path)
