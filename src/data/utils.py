@@ -44,6 +44,7 @@ def sdss_count():
         f.write(f"SDSS: {s} files in total. \n")
 
 
+
 def mock_data_count(model_str_list): # TODO
     with open(os.path.join('results', 'data-details.txt'), "a") as f:
         f.write(f"\n\nmock data:\n")
@@ -61,16 +62,17 @@ def mock_data_count(model_str_list): # TODO
 
 
 
-def pixel_value(image_path):
+def check_color_mode(image_path: str) -> None:
     image = Image.open(image_path)
     color_mode = image.mode
     print("Color mode:", color_mode)
 
     image_array = np.array(image)
     print("Shape of the array:", image_array.shape)
-    r_channel = image_array[:, :, 0]
-    max_r_value = np.max(r_channel)
-    print("Max value of r channel:", max_r_value)
+    # r_channel = image_array[:, :, 0]
+    # max_r_value = np.max(r_channel)
+    # print("Max value of r channel:", max_r_value)
+    return
 
 
 
@@ -98,21 +100,21 @@ def check_image_size(dir_path):
 
 
 
-def add_subdir_move_files(base_dir, new_dir):
-    path = os.path.join(base_dir, new_dir)
-
-    if not os.path.exists(path):
-        os.makedirs(path, exist_ok=True)
-        print(f"Directory '{path}' created.")
-    else:
-        print(f"'{path}' already exists within '{base_dir}'.")
-
-    for filename in os.listdir(base_dir):
-        source_file = os.path.join(base_dir, filename)
-        if os.path.isdir(source_file):
-            continue
-        destination_file = os.path.join(path, filename)
-        shutil.move(source_file, destination_file)
+# def add_subdir_move_files(base_dir, new_dir):
+#     path = os.path.join(base_dir, new_dir)
+# 
+#     if not os.path.exists(path):
+#         os.makedirs(path, exist_ok=True)
+#         print(f"Directory '{path}' created.")
+#     else:
+#         print(f"'{path}' already exists within '{base_dir}'.")
+# 
+#     for filename in os.listdir(base_dir):
+#         source_file = os.path.join(base_dir, filename)
+#         if os.path.isdir(source_file):
+#             continue
+#         destination_file = os.path.join(path, filename)
+#         shutil.move(source_file, destination_file)
 
 
 
@@ -137,7 +139,7 @@ if __name__ == '__main__':
     # print(count_files(source_dir))
     # print(count_files(destination_dir))
 
-    # pixel_value("data/sdss_data/test/cutouts/16.png")
-    # pixel_value("../mock-images/illustris/illustris-1_snapnum_135/broadband_1.png")
-    # pixel_value("../mock-images/NIHAO/faceon_1114/bh_faceon_g1.05e11.png")
-    # pixel_value("../mock-images/NIHAOrt/mockobs_1012/AGN_g1.05e13_00.png")
+    # check_color_mode("data/sdss-data/test/cutouts/16.png")
+    check_color_mode('data/processed/sampling2/train/AGNrt/class_0/AGN_g1.14e13_11.png')
+    check_color_mode('data/processed/sampling2/train/TNG100/class_0/broadband_41600.png')
+    check_color_mode('data/sampled/sampling2/NIHAOrt/noAGN_g1.27e12_00.png')

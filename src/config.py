@@ -6,7 +6,7 @@ RESULTS_PATH = Path("results")
 
 # Paths to SDSS images
 SDSS_CUTOUTS_PATH = Path("data/sdss/cutouts")
-SDSS_IMAGE_PATH = Path("data/sdss_data")
+SDSS_IMAGE_PATH = Path("data/sdss-data")
 SDSS_TRAIN_PATH = SDSS_IMAGE_PATH / "train" / "cutouts"
 SDSS_ESVAL_PATH = SDSS_IMAGE_PATH / "esval" / "cutouts"
 SDSS_VAL_PATH = SDSS_IMAGE_PATH / "val" / "cutouts"
@@ -30,7 +30,7 @@ NIHAORT_CLEAN_PATH = "data/cleaned/NIHAOrt"
 
 
 # Paths to up(down)sampled simulation images - sampling 1
-# placeholder
+# 
 
 
 # Paths to up(down)sampled simulation images - sampling 2
@@ -40,16 +40,27 @@ TNG100_SAMPLE_PATH_2 = ILLUSTRISTNG_SAMPLE_PATH_2 / "TNG100"
 NIHAORT_SAMPLE_PATH_2 = "data/sampled/sampling2/NIHAOrt"
 
 
-# Paths to categorized simulation images - sampling 1
-# placeholder
+# Paths to organized simulation images - sampling 1
+# 
 
 
-# Paths to categorized simulation images - sampling 2
-
+# Paths to organized simulation images - sampling 2
+MOCK_ORGANIZE_PATH_2 = Path("data/organized/sampling2")
+TNG50_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "TNG50"
+TNG100_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "TNG100"
+AGNRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "AGNrt"
+NOAGNRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "NOAGNrt"
+UHDRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "UHDrt"
+N80RT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "n80rt"
 
 
 # Paths to train-test split simulation images - sampling 1
-# placeholder
+# 
 
 
 # Paths to train-test split simulation images - sampling 2
+MOCK_PROCESS_PATH_2 = Path("data/processed/sampling2")
+MOCK_TRAIN_PATH_2 = MOCK_PROCESS_PATH_2 / "train"
+MOCK_TEST_PATH_2 = MOCK_PROCESS_PATH_2 / "test"
+
+

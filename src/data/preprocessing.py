@@ -11,7 +11,6 @@ import cv2
 from PIL import Image
 from functools import reduce
 
-import src.data.utils as data_utils
 import src.config as config
 
 
@@ -96,7 +95,7 @@ def deletion_TNG50(destination_dir):
     Only used for TNG50
     A few broken images are not filterd out by checking flag 
     """
-    num_list = [40, 51, 52, 60, 66, 79, 101]
+    num_list = [1, 40, 51, 52, 60, 66, 79, 101]
     broken_images = ["broadband_" + str(num) + ".png" for num in num_list]
 
     for broken in broken_images:
@@ -164,8 +163,11 @@ def cubic_sampling(folder_path: str) -> None:
         image_array = np.array(image)
 
         # sample the image to 64x64 using scipy.ndimage.zoom
-        downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
-        downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
+        if image_array.shape[0] != 64:
+            downsampled_array = scipy.ndimage.zoom(image_array, (64 / image_array.shape[0], 64 / image_array.shape[1], 1), order=3)
+            downsampled_image = Image.fromarray(downsampled_array.astype(np.uint8))
+        else:
+            continue
 
         # save the sampled image, overwriting the original file
         downsampled_image.save(image_path)
@@ -176,10 +178,11 @@ def area_cubic_sampling(folder_path: str) -> None:
     """
     INTER_AREA for downsampling (if image is larger than 64x64)
     INTER_CUBIC for upsampling (if image is smaller than 64x64)
+    Important: BGR to RGB conversion and save images in RGB mode
     """
     for filename in os.listdir(folder_path):
         img_path = os.path.join(folder_path, filename)
-        img = cv2.imread(img_path)
+        img = cv2.imread(img_path) # discard the alpha (A) channel, BGR mode
         h, _ = img.shape[:2]
 
         if h < 64:
@@ -189,8 +192,35 @@ def area_cubic_sampling(folder_path: str) -> None:
         else:
             continue
 
-        resized_img = cv2.resize(img, (64, 64), interpolation=interpolation)
-        cv2.imwrite(img_path, resized_img)
+        resized_img = cv2.resize(img, (64, 64), interpolation=interpolation) # BGR mode
+        resized_img_rgb = cv2.cvtColor(resized_img, cv2.COLOR_BGR2RGB) # RGB mode 
+        img_pil = Image.fromarray(resized_img_rgb)
+        img_pil.save(img_path)
+        # cv2.imwrite(img_path, resized_img_rgb)
+    print(f"Finished: {folder_path}")
+
+
+
+
+def organize_NIHAO_images(source_dir: str, target_root: str) -> None:
+    """
+    Copy NIHAO images: create a folder for each class
+    TNG50 and TNG100 already have their own folders, just copy them.
+    """
+    class_map={"AGN": "AGNrt", "noAGN": "NOAGNrt", "UHD": "UHDrt", "n80": "n80rt"}
+
+    for _, folder_name in class_map.items():
+        target_path = os.path.join(target_root, folder_name)
+        os.makedirs(target_path, exist_ok=True)
+    
+    for filename in os.listdir(source_dir):
+        for class_prefix, folder_name in class_map.items():
+            if filename.startswith(class_prefix):
+                source_path = os.path.join(source_dir, filename)
+                destination_path = os.path.join(target_root, folder_name, filename)
+                shutil.copy2(source_path, destination_path)
+                # print(f"Moved {filename} to {folder_name}")
+                break
 
 
 
@@ -199,14 +229,21 @@ def area_cubic_sampling(folder_path: str) -> None:
 # ===========================================================
 
 
-def mock_split(source_directory, model_str, rate=0.85):
-    train_dir = 'data/mock_train/' + model_str
-    test_dir = 'data/mock_test/' + model_str
-
+def mock_split(source_root: str,
+               train_root: str,
+               test_root: str,
+               model_str: str,
+               rate: float=0.85) -> None:
+    """
+    Split simulation images to training set and test set.
+    """
+    train_dir = os.path.join(train_root, model_str, 'class_0')
+    test_dir = os.path.join(test_root, model_str, 'class_0')
     os.makedirs(train_dir, exist_ok=True)
     os.makedirs(test_dir, exist_ok=True)
 
-    files_in_source_directory = os.listdir(source_directory)
+    source_dir = os.path.join(source_root, model_str)
+    files_in_source_directory = os.listdir(source_dir)
 
     total_files = len(files_in_source_directory)
     train_count = int(total_files * rate)
@@ -218,22 +255,22 @@ def mock_split(source_directory, model_str, rate=0.85):
     test_files = files_in_source_directory[train_count:]
 
     for file in train_files:
-        source_path = os.path.join(source_directory, file)
+        source_path = os.path.join(source_dir, file)
         dest_path = os.path.join(train_dir, file)
         shutil.copy2(source_path, dest_path)
 
     for file in test_files:
-        source_path = os.path.join(source_directory, file)
+        source_path = os.path.join(source_dir, file)
         dest_path = os.path.join(test_dir, file)
         shutil.copy2(source_path, dest_path)
 
     print(f"current model: {model_str}")
     print(f"{len(os.listdir(train_dir))} files copied to the training set.")
-    print(f"{len(os.listdir(test_dir))} files copied to the test set.")
+    print(f"{len(os.listdir(test_dir))} files copied to the test set.\n")
 
 
 
-def mock_data_pre(model_str_list, image_size):
+def mock_data_pre(model_str_list, image_size): # TO DELETE
     for model_str in model_str_list:
         mock_img_path = os.path.join('data', model_str)
 
@@ -307,7 +344,7 @@ def sdss_split(source_folder=config.SDSS_CUTOUTS_PATH):
 
 if __name__ == '__main__':
     # sdss_split()
-    # model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
     # mock_data_pre(model_str_list, 64)
     # mock_data_count(model_str_list)
     
@@ -318,4 +355,7 @@ if __name__ == '__main__':
     # area_cubic_sampling(config.TNG50_SAMPLE_PATH_2)
     # area_cubic_sampling(config.TNG100_SAMPLE_PATH_2)
     # area_cubic_sampling(config.NIHAORT_SAMPLE_PATH_2)
-    pass
+    # organize_NIHAO_images(config.NIHAORT_SAMPLE_PATH_2, config.MOCK_ORGANIZE_PATH_2)
+    
+    # for model_str in model_str_list:
+    #     mock_split(config.MOCK_ORGANIZE_PATH_2, config.MOCK_TRAIN_PATH_2, config.MOCK_TEST_PATH_2, model_str)
