@@ -41,21 +41,17 @@ NIHAORT_SAMPLE_PATH_2 = "data/sampled/sampling2/NIHAOrt"
 
 
 # Paths to organized simulation images - sampling 1
-# 
+MOCK_ORGANIZE_PATH_1 = Path("data/organized/sampling1")
 
 
 # Paths to organized simulation images - sampling 2
 MOCK_ORGANIZE_PATH_2 = Path("data/organized/sampling2")
-TNG50_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "TNG50"
-TNG100_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "TNG100"
-AGNRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "AGNrt"
-NOAGNRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "NOAGNrt"
-UHDRT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "UHDrt"
-N80RT_ORGANIZE_PATH_2 = MOCK_ORGANIZE_PATH_2 / "n80rt"
 
 
 # Paths to train-test split simulation images - sampling 1
-# 
+MOCK_PROCESS_PATH_1 = Path("data/processed/sampling1")
+MOCK_TRAIN_PATH_1 = MOCK_PROCESS_PATH_1 / "train"
+MOCK_TEST_PATH_1 = MOCK_PROCESS_PATH_1 / "test"
 
 
 # Paths to train-test split simulation images - sampling 2

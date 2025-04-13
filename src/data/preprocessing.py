@@ -270,30 +270,6 @@ def mock_split(source_root: str,
 
 
 
-def mock_data_pre(model_str_list, image_size): # TO DELETE
-    for model_str in model_str_list:
-        mock_img_path = os.path.join('data', model_str)
-
-        # check size of mock images
-        mock_data_size = src.data.utils.check_image_size(mock_img_path)
-
-        # upsample or downsample mock images if the size doesn't match sdss size
-        if mock_data_size != image_size:
-            src.data.utils.sample_mock(mock_img_path)
-        # split mock images to training set and test set
-        src.data.utils.mock_split(mock_img_path, model_str)
-
-        # add a subdir named 'test' to prepare the directory for infoVAE dataloader
-        src.data.utils.add_subdir_move_files(os.path.join('data/mock_train/', model_str), 'test')
-        src.data.utils.add_subdir_move_files(os.path.join('data/mock_test/', model_str), 'test')
-
-    src.data.utils.pixel_value('data/mock_test/AGNrt/test/AGN_g1.05e13_10.png')
-    src.data.utils.pixel_value('data/mock_train/TNG100/test/broadband_1.png')
-
-    src.data.utils.rgba2rgb(model_str_list)
-
-
-
 
 # ===========================================================
 # Part 4: SDSS Processing
@@ -357,5 +333,9 @@ if __name__ == '__main__':
     # area_cubic_sampling(config.NIHAORT_SAMPLE_PATH_2)
     # organize_NIHAO_images(config.NIHAORT_SAMPLE_PATH_2, config.MOCK_ORGANIZE_PATH_2)
     
-    # for model_str in model_str_list:
+    # for model_str in model_str_list: 
+    #     mock_split(config.MOCK_ORGANIZE_PATH_1, config.MOCK_TRAIN_PATH_1, config.MOCK_TEST_PATH_1, model_str)
+
+    # for model_str in model_str_list: 
     #     mock_split(config.MOCK_ORGANIZE_PATH_2, config.MOCK_TRAIN_PATH_2, config.MOCK_TEST_PATH_2, model_str)
+

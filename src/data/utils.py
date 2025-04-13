@@ -4,6 +4,7 @@ import os
 import shutil
 import random
 import pandas as pd
+from typing import List
 
 import src.config as config
 
@@ -76,15 +77,19 @@ def check_color_mode(image_path: str) -> None:
 
 
 
-def rgba2rgb(model_str_list, subsets=['data/mock_test', 'data/mock_train']): # TODO
-    for subset in subsets:
-        for model_str in model_str_list:
-            image_dir = os.path.join(subset, model_str, 'test')
-            for filename in os.listdir(image_dir):
-                image_path = os.path.join(image_dir, filename)
-                img = Image.open(image_path)
-                rgb_img = img.convert('RGB')
-                rgb_img.save(image_path)
+def rgba2rgb(model_str_list: List[str], mock_train_or_test_path: str) -> None: 
+    """
+    Convert RGBA image to RGB mode
+    Used in combination with cubic_sampling(folder_path: str)
+    Run check_color_mode(image_path: str) before applying this function
+    """
+    for model_str in model_str_list:
+        image_dir = os.path.join(mock_train_or_test_path, model_str, 'class_0')
+        for filename in os.listdir(image_dir):
+            image_path = os.path.join(image_dir, filename)
+            img = Image.open(image_path)
+            rgb_img = img.convert('RGB')
+            rgb_img.save(image_path)
 
 
 
@@ -93,7 +98,7 @@ def check_image_size(dir_path):
     if files_in_dir:
         random_file = random.choice(files_in_dir)
         img = Image.open(os.path.join(dir_path, random_file))
-        print(f"The size of randomly sampled {random_file} from {dir_path} is {img.height} x {img.width}.")
+        print(f"Size of randomly sampled {random_file} from {dir_path}: {img.height} x {img.width}")
         return img.height
     else:
         print(f"The directory '{dir_path}' is empty.")
