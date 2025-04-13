@@ -4,7 +4,6 @@ import os
 import shutil
 import random
 import pandas as pd
-from typing import List
 
 import src.config as config
 
@@ -77,7 +76,7 @@ def check_color_mode(image_path: str) -> None:
 
 
 
-def rgba2rgb(model_str_list: List[str], mock_train_or_test_path: str) -> None: 
+def rgba2rgb(model_str_list: list[str], mock_train_or_test_path: str) -> None: 
     """
     Convert RGBA image to RGB mode
     Used in combination with cubic_sampling(folder_path: str)

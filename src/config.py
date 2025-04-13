@@ -2,6 +2,7 @@ from pathlib import Path
 
 # Paths to results
 RESULTS_PATH = Path("results")
+RESULTS_SAMPLING1_PATH = RESULTS_PATH / "sampling1"
 
 
 # Paths to SDSS images
