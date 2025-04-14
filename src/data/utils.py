@@ -147,3 +147,5 @@ if __name__ == '__main__':
     check_color_mode('data/processed/sampling2/train/AGNrt/class_0/AGN_g1.14e13_11.png')
     check_color_mode('data/processed/sampling2/train/TNG100/class_0/broadband_41600.png')
     check_color_mode('data/sampled/sampling2/NIHAOrt/noAGN_g1.27e12_00.png')
+
+
