@@ -20,6 +20,16 @@
 
 * up(down)sampling method 2: 
 
+## organized/
+
+### sampling1/
+
+* up(down)sampling method 1: 
+
+### sampling2/
+
+* up(down)sampling method 2: 
+
 ## processed/    
 
 * After train-test split (cleaned and preprocessed data)

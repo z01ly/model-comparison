@@ -1,5 +1,4 @@
-# This file is from Ufuk
-# https://github.com/ufuk-cakir/MEGS
+# from: https://github.com/ufuk-cakir/MEGS
 
 import requests
 import os
