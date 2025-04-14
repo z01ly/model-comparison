@@ -6,7 +6,7 @@ import yaml
 
 import src.main.oversampling as oversampling
 import src.main.classifier as classifier 
-from src.new.ood import GenOod
+from src.ood import GenOod
 import src.main.img_encoder as img_encoder
 import src.main.latent_vis as latent_vis
 import src.main.xai_func as xai_func
@@ -90,8 +90,6 @@ if __name__ == "__main__":
     
 
     # latent vis func
-    # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
-    # latent_vis.tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)}
     # latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
     # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
 

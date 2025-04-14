@@ -7,7 +7,7 @@ matplotlib.use('Agg')
 from src.data.utils import copy_df_path_images
 
 
-def reduce_sdss(savepath_prefix):
+def reduce_sdss(savepath_prefix: str, sdss_frac: float=0.5) -> None:
     os.makedirs(os.path.join('results', 'streamlit', 'sdss-test-reduced'), exist_ok=True)
 
     df = pd.read_pickle(os.path.join(savepath_prefix, 'vis', 'tsne', 'embedded-z.pkl'))
@@ -16,7 +16,7 @@ def reduce_sdss(savepath_prefix):
     sdss_data = df[df['label'] == 'sdss']
     non_sdss_data = df[df['label'] != 'sdss']
 
-    sdss_sampled = sdss_data.sample(frac=0.5, random_state=0)
+    sdss_sampled = sdss_data.sample(frac=sdss_frac, random_state=0)
     sdss_sampled.to_pickle(os.path.join('results', 'streamlit', 'sdss-sampled.pkl'))
 
     # copy images

@@ -1,25 +1,11 @@
-import numpy as np
 import os
-import pickle
-import pandas as pd
 import torch
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 import src.vis.tsne as tsne
 import src.vis.latent_space as latent_space
 from src.infoVAE.mmdVAE import Model 
 from src.vis.umap_vis import UmapVis
 
-
-def tsne_vis(savepath_prefix, nz, model_str_dict, model_str_list):
-    os.makedirs(os.path.join(savepath_prefix, 'vis', 'tsne'), exist_ok=True)
-
-    tsne.tsne_save(savepath_prefix, nz, model_str_dict)
-
-    tsne.plot_tsne(savepath_prefix, model_str_list)
 
 
 def umap_func(savepath_prefix, nz, model_str_list):

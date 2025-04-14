@@ -1,10 +1,10 @@
 import os
-import numpy as np
 import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
+import yaml
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE
@@ -56,3 +56,20 @@ def plot_tsne(savepath_prefix, model_str_list):
     plt.tight_layout()
     plt.savefig(os.path.join(savepath_prefix, 'vis', 'tsne', 'plot-separate.png'))
 
+
+
+def tsne_vis(savepath_prefix, nz, model_str_dict, model_str_list):
+    os.makedirs(os.path.join(savepath_prefix, 'vis', 'tsne'), exist_ok=True)
+    tsne_save(savepath_prefix, nz, model_str_dict)
+    plot_tsne(savepath_prefix, model_str_list)
+
+
+
+if __name__ == "__main__":
+    pass
+    # model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+    # model_str_dict = {'AGNrt': 0.9, 'NOAGNrt': 0.9, 'TNG100': 0.8, 'TNG50': 0.9, 'UHDrt': 1.0, 'n80rt': 1.0}
+    # with open('src/infoVAE/infovae.yaml', 'r') as f:
+    #     config = yaml.safe_load(f)
+    
+    # tsne_vis(savepath_prefix, config['model_params']['latent_dim'], model_str_dict, model_str_list)
