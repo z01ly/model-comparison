@@ -6,8 +6,8 @@ import pandas as pd
 import os
 import pickle
 
-from src.outlier_detect.mahalanobis import MDist
-import src.outlier_detect.dim_distribution as dim_distribution
+from src.deprecated.outlier_detect.mahalanobis import MDist
+import src.deprecated.outlier_detect.dim_distribution as dim_distribution
 
 
 def m_distance(savepath_prefix, nz, model_str_list):

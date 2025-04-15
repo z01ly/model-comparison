@@ -1,8 +1,12 @@
 from pathlib import Path
 
+# Basic configs
+LATENT_DIM = 512
+K_VALUE = 32
+
 # Paths to results
-RESULTS_PATH = Path("results")
-RESULTS_SAMPLING1_PATH = RESULTS_PATH / "sampling1"
+RESULTS_SAMPLING1_PATH = Path("results/sampling1")
+RESULTS_SAMPLING1_UMAP_SAVE_PATH = RESULTS_SAMPLING1_PATH / "vis" / "umap" / "save"
 
 
 # Paths to SDSS images

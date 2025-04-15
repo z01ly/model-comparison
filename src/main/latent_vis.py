@@ -1,7 +1,6 @@
 import os
 import torch
 
-import src.vis.tsne as tsne
 import src.vis.latent_space as latent_space
 from src.infoVAE.mmdVAE import Model 
 from src.vis.umap_vis import UmapVis
