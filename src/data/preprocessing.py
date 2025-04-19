@@ -95,7 +95,7 @@ def deletion_TNG50(destination_dir):
     Only used for TNG50
     A few broken images are not filterd out by checking flag 
     """
-    num_list = [1, 40, 51, 52, 60, 66, 79, 101]
+    num_list = config.BROKEN_TNG50_IMAGES
     broken_images = ["broadband_" + str(num) + ".png" for num in num_list]
 
     for broken in broken_images:
@@ -129,11 +129,7 @@ def deletion_NIHAOrt() -> None:
     """
     Delete broken NIHAOrt images
     """
-    galaxy_patterns = [
-    "AGN_g3.49e11_",
-    "AGN_g5.53e12_",
-    "noAGN_g3.49e11_"
-    ]
+    galaxy_patterns = config.BROKEN_NIHAO_IMAGES
 
     for pattern in galaxy_patterns:
         for i in range(20):

@@ -1,21 +1,50 @@
 from pathlib import Path
 
+# ===========================================================
+# General
+# ===========================================================
+
+
 # Basic configs
 LATENT_DIM = 512
 K_VALUE = 32
 
-# Paths to results
-RESULTS_SAMPLING1_PATH = Path("results/sampling1")
-RESULTS_SAMPLING1_UMAP_SAVE_PATH = RESULTS_SAMPLING1_PATH / "vis" / "umap" / "save"
+
+# Paths to results (default sampling 1)
+# Change RESULTS_PATH to switch between versions
+RESULTS_PATH = Path("results")
+RESULTS_LATENT_VECTORS = RESULTS_PATH / "latent-vectors"
+RESULTS_UMAP_SAVE_PATH = RESULTS_PATH / "vis" / "umap" / "save"
+RESULTS_STREAMLIT_UMAP_PATH = RESULTS_PATH / "st-umap"
 
 
 # Paths to SDSS images
 SDSS_CUTOUTS_PATH = Path("data/sdss/cutouts")
-SDSS_IMAGE_PATH = Path("data/sdss-data")
+SDSS_IMAGE_PATH = Path("data/sdss_data")
 SDSS_TRAIN_PATH = SDSS_IMAGE_PATH / "train" / "cutouts"
 SDSS_ESVAL_PATH = SDSS_IMAGE_PATH / "esval" / "cutouts"
 SDSS_VAL_PATH = SDSS_IMAGE_PATH / "val" / "cutouts"
 SDSS_TEST_PATH = SDSS_IMAGE_PATH / "test" / "cutouts"
+
+
+# ===========================================================
+# Old data paths
+# ===========================================================
+
+
+MOCK_TRAIN = Path("data/mock_train")
+MOCK_TEST = Path("data/mock_test")
+
+
+# ===========================================================
+# New data preprocessing paths
+# ===========================================================
+
+# Broken images
+BROKEN_TNG50_IMAGES = [1, 40, 51, 52, 60, 66, 79, 101]
+BROKEN_AGNRT_IMAGES = ["AGN_g3.49e11_", "AGN_g5.53e12_"]
+BROKEN_NOAGNRT_IMAGES = ["noAGN_g3.49e11_"]
+BROKEN_NIHAO_IMAGES = BROKEN_AGNRT_IMAGES + BROKEN_NOAGNRT_IMAGES
 
 
 # Paths to original raw data of simulation images
@@ -63,5 +92,4 @@ MOCK_TEST_PATH_1 = MOCK_PROCESS_PATH_1 / "test"
 MOCK_PROCESS_PATH_2 = Path("data/processed/sampling2")
 MOCK_TRAIN_PATH_2 = MOCK_PROCESS_PATH_2 / "train"
 MOCK_TEST_PATH_2 = MOCK_PROCESS_PATH_2 / "test"
-
 
