@@ -135,6 +135,25 @@ def copy_df_path_images(df_dir, destination_dir, model_str):
 
 
 
+
+def oversample_minority(source_folder, destination_folder, repeat):
+    os.makedirs(destination_folder, exist_ok=True)
+
+    for image in os.listdir(source_folder):
+        image_path = os.path.join(source_folder, image)
+        filename, extension = os.path.splitext(image)
+
+        for i in range(repeat):
+            new_filename = f"{filename}_copy{i}{extension}"
+            new_image_path = os.path.join(destination_folder, new_filename)
+            shutil.copy(image_path, new_image_path)
+
+    # print(f"{source_folder}: {len(os.listdir(source_folder))}")
+    # print(f"{destination_folder}: {len(os.listdir(destination_folder))}")
+    return
+
+
+
 if __name__ == '__main__':
     pass
     # source_dir = "data/sdss_data/val/cutouts"
@@ -147,5 +166,4 @@ if __name__ == '__main__':
     check_color_mode('data/processed/sampling2/train/AGNrt/class_0/AGN_g1.14e13_11.png')
     check_color_mode('data/processed/sampling2/train/TNG100/class_0/broadband_41600.png')
     check_color_mode('data/sampled/sampling2/NIHAOrt/noAGN_g1.27e12_00.png')
-
 

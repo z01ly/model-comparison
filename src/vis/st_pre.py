@@ -101,16 +101,21 @@ def umap_delete_broken_NIHAO(model_str: str, prefixes_to_remove: list[str]) -> N
 def umap_stack(model_str_list: list[str]) -> None:
     """
     Stack umap pkl files for creating the st app
+
+    Append sdss_sample_df to dfs first, 
+    so that other less frequent classes will be plotted on top, 
+    making them more visually prominent
     """
     dfs = []
-    for f in model_str_list:
-        file_path = os.path.join(config.RESULTS_UMAP_SAVE_PATH, f + '.pkl')
-        df = pd.read_pickle(file_path)
-        dfs.append(df)
 
     sdss_sample_path = os.path.join(config.RESULTS_STREAMLIT_UMAP_PATH, 'sdss-sampled.pkl')
     sdss_sample_df = pd.read_pickle(sdss_sample_path)
     dfs.append(sdss_sample_df)
+
+    for f in model_str_list:
+        file_path = os.path.join(config.RESULTS_UMAP_SAVE_PATH, f + '.pkl')
+        df = pd.read_pickle(file_path)
+        dfs.append(df)
     
     combined_df = pd.concat(dfs, ignore_index=True)
     combined_df.to_pickle(os.path.join(config.RESULTS_STREAMLIT_UMAP_PATH, 'embedded.pkl'))
@@ -180,6 +185,6 @@ if __name__ == '__main__':
     # umap_delete_broken_NIHAO('AGNrt', config.BROKEN_AGNRT_IMAGES)
     # umap_delete_broken_NIHAO('NOAGNrt', config.BROKEN_NOAGNRT_IMAGES)
 
-    # umap_sample_sdss(model_str_list, 0.3)
+    umap_sample_sdss(model_str_list, 0.3)
 
     

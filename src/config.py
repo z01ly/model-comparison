@@ -10,7 +10,7 @@ LATENT_DIM = 512
 K_VALUE = 32
 
 
-# Paths to results (default sampling 1)
+# Paths to results (default: k-sparse, sampling 1)
 # Change RESULTS_PATH to switch between versions
 RESULTS_PATH = Path("results")
 RESULTS_LATENT_VECTORS = RESULTS_PATH / "latent-vectors"
