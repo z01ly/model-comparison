@@ -8,6 +8,8 @@ from pathlib import Path
 # Basic configs
 LATENT_DIM = 512
 K_VALUE = 32
+MODEL_STR_LIST = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
+CLASSIFIER_LIST = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB']
 
 
 # Paths to results (default: k-sparse, sampling 1)
@@ -16,6 +18,10 @@ RESULTS_PATH = Path("results")
 RESULTS_LATENT_VECTORS = RESULTS_PATH / "latent-vectors"
 RESULTS_UMAP_SAVE_PATH = RESULTS_PATH / "vis" / "umap" / "save"
 RESULTS_STREAMLIT_UMAP_PATH = RESULTS_PATH / "st-umap"
+RESULTS_CLASSIFICATION = RESULTS_PATH / "classification"
+RESULTS_CLASSIFY_ID = RESULTS_PATH / "classify-ID"
+RESULTS_GEN_OOD = RESULTS_PATH / "gen-ood"
+RESULTS_GEN_OOD_GAMMA_TEST = RESULTS_PATH / "gen-ood-gamma-test"
 
 
 # Paths to SDSS images

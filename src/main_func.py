@@ -113,12 +113,13 @@ if __name__ == "__main__":
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
     sdss_dir = os.path.join(savepath_prefix, 'classification')
     id_dir = os.path.join(savepath_prefix, 'classify-ID')
-    # gen = GenOod('stacking-MLP-RF-XGB', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('stacking-MLP-RF-XGB', sdss_dir, id_dir)
     # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=150, legend_loc="upper left")
-    gen = GenOod('random-forest', savepath_prefix, sdss_dir, id_dir)
+    gen = GenOod('random-forest', sdss_dir, id_dir)
     gen.plot(percent_p=5, x1=-4.9245, x2=-4.90, y=110, legend_loc="upper right")
-    # gen = GenOod('xgboost', savepath_prefix, sdss_dir, id_dir)
+    # gen = GenOod('xgboost', sdss_dir, id_dir)
     # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=60, legend_loc="upper left")
+    
     # for percent_point in [1, 3, 5, 7, 10, 15]:
     #     gen.select_sdss(percent_point)
     #     gen.print_message(percent_point)

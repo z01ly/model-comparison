@@ -154,6 +154,13 @@ def oversample_minority(source_folder, destination_folder, repeat):
 
 
 
+def filter_df(input_df, indices, dest_dir, pkl_name):
+    df = input_df.iloc[indices].copy()
+    df.reset_index(drop=True, inplace=True)
+    df.to_pickle(os.path.join(dest_dir, pkl_name + '.pkl'))
+
+
+
 if __name__ == '__main__':
     pass
     # source_dir = "data/sdss_data/val/cutouts"

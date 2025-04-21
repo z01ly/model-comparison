@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib
+
+from src.data.utils import filter_df
 matplotlib.use('Agg')
 import pickle
 import os
@@ -18,12 +20,6 @@ def map_model_idx(model_str_list, print_key=False):
             print(f"{class_label}: {model_idx_dict[class_label]}")
 
     return model_idx_dict
-
-
-def filter_df(input_df, indices, dest_dir, pkl_name):
-    df = input_df.iloc[indices].copy()
-    df.reset_index(drop=True, inplace=True)
-    df.to_pickle(os.path.join(dest_dir, pkl_name + '.pkl'))
 
 
 # plot some example images that have high probability and some that have low probability
