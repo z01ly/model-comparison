@@ -8,7 +8,7 @@ from src.ood import GenOod
 if __name__ == "__main__":
     # Previous: gamma = 0.1
     # Test here: gamma = 0.3, 0.5, 0.7, 0.9
-    clf = 'stacking-MLP-RF-XGB'
+    clf = 'xgboost'
     gamma = 0.3
     percent_p = 5
 
@@ -16,9 +16,9 @@ if __name__ == "__main__":
     id_dir = config.RESULTS_CLASSIFY_ID
     gen_ood_folder = os.path.join(config.RESULTS_GEN_OOD_GAMMA_TEST, 'gamma' + str(gamma))
     gen = GenOod(clf, sdss_dir, id_dir, savepath=gen_ood_folder, gamma=gamma, M=6)
-    gen.plot(percent_p=percent_p, x1=-3.30, x2=-3.26, y=100, legend_loc="upper left")
+    gen.plot(percent_p=percent_p, x1=-3.305, x2=-3.27, y=30, legend_loc="upper left")
     
-    gen.select_sdss(percent_p)
-    gen.print_message(percent_p)
-    gen.re_classify(config.MODEL_STR_LIST, config.LATENT_DIM, percent_p)
+    #gen.select_sdss(percent_p)
+    #gen.print_message(percent_p)
+    #gen.re_classify(config.MODEL_STR_LIST, config.LATENT_DIM, percent_p)
     # gen.copy_sdss_imgs(percent_p)

@@ -104,21 +104,21 @@ def check_image_size(dir_path):
 
 
 
-# def add_subdir_move_files(base_dir, new_dir):
-#     path = os.path.join(base_dir, new_dir)
-# 
-#     if not os.path.exists(path):
-#         os.makedirs(path, exist_ok=True)
-#         print(f"Directory '{path}' created.")
-#     else:
-#         print(f"'{path}' already exists within '{base_dir}'.")
-# 
-#     for filename in os.listdir(base_dir):
-#         source_file = os.path.join(base_dir, filename)
-#         if os.path.isdir(source_file):
-#             continue
-#         destination_file = os.path.join(path, filename)
-#         shutil.move(source_file, destination_file)
+def add_subdir_move_files(base_dir, new_dir):
+    path = os.path.join(base_dir, new_dir)
+
+    if not os.path.exists(path):
+        os.makedirs(path, exist_ok=True)
+        print(f"Directory '{path}' created.")
+    else:
+        print(f"'{path}' already exists within '{base_dir}'.")
+
+    for filename in os.listdir(base_dir):
+        source_file = os.path.join(base_dir, filename)
+        if os.path.isdir(source_file):
+            continue
+        destination_file = os.path.join(path, filename)
+        shutil.move(source_file, destination_file)
 
 
 
