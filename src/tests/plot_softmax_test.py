@@ -15,7 +15,8 @@ def compute_softmax(prob_df_dir: str, c: str) -> np.ndarray:
     probs = prob_df.to_numpy()
     softmax_probs = softmax(probs, axis=1)
 
-    return softmax_probs
+    # return softmax_probs
+    return probs
 
 
 
@@ -42,7 +43,7 @@ def plot_softmax(c: str,
     plt.tick_params(axis='both', which='major', labelsize=14)
     plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join(savepath, c + '.png'))
+    plt.savefig(os.path.join(savepath, c + '-probs.png'))
     plt.close()
 
 
