@@ -27,8 +27,8 @@ def gen_ood(softmax_id_val, gamma, M):
 
 
 
-def df_to_gen_score(save_dir, c, gamma, M):
-    prob_df = pd.read_pickle(os.path.join(save_dir, 'prob-df', c + '.pkl'))
+def df_to_gen_score(prob_df_dir, c, gamma, M):
+    prob_df = pd.read_pickle(os.path.join(prob_df_dir, 'prob-df', c + '.pkl'))
     probs = prob_df.to_numpy()
 
     softmax_probs = softmax(probs, axis=1)

@@ -22,6 +22,7 @@ RESULTS_CLASSIFICATION = RESULTS_PATH / "classification"
 RESULTS_CLASSIFY_ID = RESULTS_PATH / "classify-ID"
 RESULTS_GEN_OOD = RESULTS_PATH / "gen-ood"
 RESULTS_GEN_OOD_GAMMA_TEST = RESULTS_PATH / "gen-ood-gamma-test"
+RESULTS_PLOT_SOFTMAX_TEST = RESULTS_PATH / "plot-softmax-test"
 
 
 # Paths to SDSS images
