@@ -15,8 +15,8 @@ def compute_softmax(prob_df_dir: str, c: str) -> np.ndarray:
     probs = prob_df.to_numpy()
     softmax_probs = softmax(probs, axis=1)
 
-    # return softmax_probs
-    return probs
+    # return probs
+    return softmax_probs
 
 
 
