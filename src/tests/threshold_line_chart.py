@@ -1,12 +1,12 @@
-import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import pandas as pd
 import os
 
+import src.config as config
 
-def percent_line_chart(savepath_prefix):
+
+def percent_line_chart():
     # Data for thresholds and models
     thresholds = [99, 97, 95, 93, 90, 85]
     rf_id = [83, 62, 42, 29, 13, 5]
@@ -32,9 +32,9 @@ def percent_line_chart(savepath_prefix):
         plt.text(thresholds[i], stacking_id[i] + 2, f'{stacking_id[i]}%', ha='center')
 
     plt.legend()
-    plt.grid(True)
+    # plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join(savepath_prefix, 'gen-ood', 'plot', 'id_ratio_threshold.png'))  
+    plt.savefig(os.path.join(config.RESULTS_GEN_OOD, 'plot', 'id_ratio_threshold.png'))  
     plt.close() 
 
     # Plotting OOD ratio and saving it as a separate figure
@@ -53,13 +53,13 @@ def percent_line_chart(savepath_prefix):
         plt.text(thresholds[i], stacking_ood[i] + 2, f'{stacking_ood[i]}%', ha='center')
 
     plt.legend()
-    plt.grid(True)
+    # plt.grid(True)
     plt.tight_layout()
-    plt.savefig(os.path.join(savepath_prefix, 'gen-ood', 'plot', 'ood_ratio_threshold.png'))  
+    plt.savefig(os.path.join(config.RESULTS_GEN_OOD, 'plot', 'ood_ratio_threshold.png'))  
     plt.close() 
 
 
 
 if __name__ == "__main__":
-    savepath_prefix = 'new-sparse-update'
-    percent_line_chart(savepath_prefix)
+    # Plot the figure without grid
+    percent_line_chart()

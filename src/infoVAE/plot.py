@@ -1,22 +1,19 @@
-import pickle
 from PIL import Image
 
-import torch
-from torchvision import transforms, datasets
+from torchvision import transforms
 
 import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import os
-import shutil
 
 import src.infoVAE.utils as utils
-from src.infoVAE.mmdVAE_train import Model
+import src.config as config
 
 
 
-def plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_avg):
+def plot_avg_loss(avg_train_losses, avg_val_losses, es_pos, y_avg):
     fig = plt.figure(figsize=(10,8))
     plt.title("Average Training and Validation Loss During Training", fontsize=22)
     plt.plot(avg_train_losses, label='Training Loss')
@@ -29,16 +26,16 @@ def plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_a
 
     plt.xlabel('epochs', fontsize=18)
     plt.ylabel('loss', fontsize=18)
-    # plt.ylim(0, 0.0012) 
-    plt.ylim(0, y_avg) 
+    plt.ylim(0, y_avg) # plt.ylim(0, 0.0012) 
     plt.xlim(0, len(avg_train_losses)+1) 
-    plt.grid(True)
+    # plt.grid(True)
     plt.legend(fontsize=16)
 
     plt.tick_params(axis='both', which='major', labelsize=16)
 
     plt.tight_layout()
-    fig.savefig(os.path.join(savepath_prefix, 'infoVAE', 'loss-plot', 'plot_avg_loss.png'), bbox_inches='tight')
+    fig.savefig(os.path.join(config.RESULTS_INFOVAE, 'loss-plot', 'plot_avg_loss.png'), bbox_inches='tight')
+
 
 
 def plot_itr_loss(savepath_prefix, train_losses, val_losses, y_itr):
@@ -132,3 +129,8 @@ def residual(model, savepath_prefix, num_samples, model_str, folder_path, config
         plt.savefig(savefig_path, dpi=300)
         plt.close(fig)
 
+
+if __name__ == '__main__':
+    # Plot the figure without grid
+    train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses()
+    plot_avg_loss(avg_train_losses, avg_val_losses, 28, 0.0015)

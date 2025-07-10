@@ -1,10 +1,7 @@
 import torch
 from torchvision import transforms, datasets
 import numpy as np
-import scipy
-from PIL import Image
 import os
-import shutil
 import random
 import math
 import pickle
@@ -12,7 +9,8 @@ import pandas as pd
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
+
+import src.config as config
 
 
 
@@ -141,17 +139,17 @@ def save_losses(savepath_prefix, train_losses, val_losses, avg_train_losses, avg
         pickle.dump(avg_val_losses, fp)
 
 
-def load_losses(savepath_prefix):
-    with open(os.path.join(savepath_prefix, 'infoVAE', 'loss', 'train_losses'), "rb") as fp:
+def load_losses():
+    with open(os.path.join(config.RESULTS_INFOVAE, 'loss', 'train_losses'), "rb") as fp:
         train_losses = pickle.load(fp)
 
-    with open(os.path.join(savepath_prefix, 'infoVAE', 'loss', 'val_losses'), "rb") as fp:
+    with open(os.path.join(config.RESULTS_INFOVAE, 'loss', 'val_losses'), "rb") as fp:
         val_losses = pickle.load(fp)
 
-    with open(os.path.join(savepath_prefix, 'infoVAE', 'loss', 'avg_train_losses'), "rb") as fp:
+    with open(os.path.join(config.RESULTS_INFOVAE, 'loss', 'avg_train_losses'), "rb") as fp:
         avg_train_losses = pickle.load(fp)
 
-    with open(os.path.join(savepath_prefix, 'infoVAE', 'loss', 'avg_val_losses'), "rb") as fp:
+    with open(os.path.join(config.RESULTS_INFOVAE, 'loss', 'avg_val_losses'), "rb") as fp:
         avg_val_losses = pickle.load(fp)
 
     return train_losses, val_losses, avg_train_losses, avg_val_losses

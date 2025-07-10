@@ -67,8 +67,8 @@ def encoder(savepath_prefix, model_str_list):
 
 def plot_training(savepath_prefix, es_pos, y_avg, y_itr):
     # training losses
-    train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses(savepath_prefix)
-    plot.plot_avg_loss(savepath_prefix, avg_train_losses, avg_val_losses, es_pos, y_avg)
+    train_losses, val_losses, avg_train_losses, avg_val_losses = utils.load_losses()
+    plot.plot_avg_loss(avg_train_losses, avg_val_losses, es_pos, y_avg)
     plot.plot_itr_loss(savepath_prefix, train_losses, val_losses, y_itr)
 
 
