@@ -15,6 +15,7 @@ CLASSIFIER_LIST = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB']
 # Paths to results (default: k-sparse, sampling 1)
 # Change RESULTS_PATH to switch between versions
 RESULTS_PATH = Path("results")
+RESULTS_INFOVAE = RESULTS_PATH / "infoVAE"
 RESULTS_LATENT_VECTORS = RESULTS_PATH / "latent-vectors"
 RESULTS_UMAP_SAVE_PATH = RESULTS_PATH / "vis" / "umap" / "save"
 RESULTS_STREAMLIT_UMAP_PATH = RESULTS_PATH / "st-umap"

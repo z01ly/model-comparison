@@ -2,14 +2,11 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import pandas as pd
-import seaborn as sns
-import pickle
 import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder, StandardScaler
 
-from sklearn.model_selection import StratifiedKFold, RepeatedStratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.calibration import calibration_curve
 
@@ -136,5 +133,3 @@ if __name__ == "__main__":
     for classifier_key in classifier_keys:
         main('NIHAOrt_TNG', [s.split('_')[0] for s in model_names], X, y, classifier_key)
 
-
-    

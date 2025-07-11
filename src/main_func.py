@@ -75,55 +75,56 @@ def classify_ID_test(savepath_prefix, nz, model_str_list):
 
 
 if __name__ == "__main__":
-    savepath_prefix = 'new-sparse'
+    # savepath_prefix = 'new-sparse'
+    savepath_prefix = 'results'
     model_str_list = ['AGNrt', 'NOAGNrt', 'TNG100', 'TNG50', 'UHDrt', 'n80rt']
 
     with open('src/infoVAE/infovae.yaml', 'r') as f:
-        config = yaml.safe_load(f)
+        config_yaml = yaml.safe_load(f)
     
 
     # infoVAE func
     # img_encoder.vae(savepath_prefix)
     # img_encoder.plot_training(savepath_prefix, 34, 0.0015, 0.0015)
-    # img_encoder.plot_residual(savepath_prefix, config, model_str_list, use_cuda=True)
+    # img_encoder.plot_residual(savepath_prefix, config_yaml, model_str_list, use_cuda=True)
     # img_encoder.encoder(savepath_prefix, model_str_list)
     
 
     # latent vis func
-    # latent_vis.umap_func(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
-    # latent_vis.latent_space_vis(savepath_prefix, config, model_str_list, use_cuda=True)
+    # latent_vis.umap_func(savepath_prefix, config_yaml['model_params']['latent_dim'], model_str_list)
+    # latent_vis.latent_space_vis(savepath_prefix, config_yaml, model_str_list, use_cuda=True)
 
 
     # minority_str_list = ['AGNrt', 'NOAGNrt', 'TNG50', 'UHDrt', 'n80rt']
     # oversample_sim(savepath_prefix, model_str_list, minority_str_list)
 
 
-    # cuda_num = str(config['trainer_params']['gpu_id'])
-    # max_iter = 300
-    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
-    # classify_calibration_train(savepath_prefix, config['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'train')
+    cuda_num = '0' # str(config_yaml['trainer_params']['gpu_id'])
+    max_iter = 300
+    classify_calibration_train(savepath_prefix, config_yaml['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'cross-val')
+    # classify_calibration_train(savepath_prefix, config_yaml['model_params']['latent_dim'], model_str_list, cuda_num, max_iter, 'train')
 
 
-    # classify_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
+    # classify_test(savepath_prefix, config_yaml['model_params']['latent_dim'], model_str_list)
 
 
-    # classify_ID_test(savepath_prefix, config['model_params']['latent_dim'], model_str_list)
+    # classify_ID_test(savepath_prefix, config_yaml['model_params']['latent_dim'], model_str_list)
 
 
     # classifiers = ['random-forest', 'xgboost', 'stacking-MLP-RF-XGB'] # , 'voting-MLP-RF-XGB']
-    sdss_dir = os.path.join(savepath_prefix, 'classification')
-    id_dir = os.path.join(savepath_prefix, 'classify-ID')
+    # sdss_dir = os.path.join(savepath_prefix, 'classification')
+    # id_dir = os.path.join(savepath_prefix, 'classify-ID')
     # gen = GenOod('stacking-MLP-RF-XGB', sdss_dir, id_dir)
     # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=150, legend_loc="upper left")
-    gen = GenOod('random-forest', sdss_dir, id_dir)
-    gen.plot(percent_p=5, x1=-4.9245, x2=-4.90, y=110, legend_loc="upper right")
+    # gen = GenOod('random-forest', sdss_dir, id_dir)
+    # gen.plot(percent_p=5, x1=-4.9245, x2=-4.90, y=110, legend_loc="upper right")
     # gen = GenOod('xgboost', sdss_dir, id_dir)
     # gen.plot(percent_p=5, x1=-4.92, x2=-4.90, y=60, legend_loc="upper left")
     
     # for percent_point in [1, 3, 5, 7, 10, 15]:
     #     gen.select_sdss(percent_point)
     #     gen.print_message(percent_point)
-    #     gen.re_classify(model_str_list, config['model_params']['latent_dim'], percent_point)
+    #     gen.re_classify(model_str_list, config_yaml['model_params']['latent_dim'], percent_point)
     # gen.copy_sdss_imgs(percent_point)
     
 
@@ -134,7 +135,7 @@ if __name__ == "__main__":
     #     xai_func.shap_compute(savepath_prefix,
     #                         os.path.join(savepath_prefix, 'oversampling', 'oversampled-vectors'),
     #                         os.path.join(savepath_prefix, 'gen-ood', 'selected', 'percent5', 'sdss-vectors', c_str, 'id.pkl'),
-    #                         config['model_params']['latent_dim'],
+    #                         config_yaml['model_params']['latent_dim'],
     #                         model_str_list,
     #                         c_str)
     #     model_pos_dict = {'AGNrt': 0, 'NOAGNrt': 1, 'TNG100': 2, 'TNG50': 3, 'UHDrt': 4, 'n80rt': 5}
@@ -142,5 +143,3 @@ if __name__ == "__main__":
 
     # model_pos_dict = {'NOAGNrt': 1}
     # xai_func.shap_plot(savepath_prefix, savepath_prefix, model_pos_dict, 'xgboost', max_display=8)
-    
-    

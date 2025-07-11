@@ -158,7 +158,8 @@ def plot_calibration_curves(
         ax[j].set_ylabel("True probability", fontsize=label_fontsize)
         ax[j].set_xticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
         ax[j].set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-        ax[j].grid(alpha=0.5)
+        # Plot without grid 
+        # ax[j].grid(alpha=0.5)
 
         # Add ECE label
         ax[j].text(

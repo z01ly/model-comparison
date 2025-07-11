@@ -5,14 +5,12 @@ import matplotlib.pyplot as plt
 import os
 
 from sklearn.preprocessing import LabelBinarizer, LabelEncoder
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 # from sklearn.model_selection import train_test_split
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 
 from xgboost import XGBClassifier
-
-from sklearn.calibration import calibration_curve
 
 import src.classification.utils as utils
 import src.classification.bayesflow_calibration as bayesflow_calibration
